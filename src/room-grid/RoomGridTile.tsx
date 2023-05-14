@@ -32,19 +32,15 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
     return getTileElement(target.parentElement as HTMLElement);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const { tile, x, y } = getTileElement(e.target as HTMLElement);
+    setHoverTile({ tile, x, y });
     if (e.buttons === 1) {
       addStructure(tile, x, y);
     } else if (e.buttons === 2) {
       props.structureBrushes.forEach(({ key }) => removeStructure(tile, x, y, key));
     }
-  };
-
-  const handleMouseOver = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    e.preventDefault();
-    setHoverTile(getTileElement(e.target as HTMLElement));
   };
 
   const structuresToRemove = (skipBrush = false) =>
@@ -257,8 +253,8 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
         className={tileClass}
         component='div'
         data-tile={props.tile}
-        onMouseDown={handleMouseDown}
-        onMouseOver={handleMouseOver}
+        onMouseDown={handleMouseEvent}
+        onMouseOver={handleMouseEvent}
         onMouseOut={resetHoverTile}
         onContextMenu={(e) => e.preventDefault()}
         sx={{
