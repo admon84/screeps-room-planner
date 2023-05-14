@@ -1,20 +1,31 @@
 import { useContext, useState, createContext, PropsWithChildren } from 'react';
 
 type State = {
-  tile: number;
-  x: number;
-  y: number;
+  hoverTile: {
+    tile: number;
+    x: number;
+    y: number;
+  };
   setHoverTile: (value: { tile: number; x: number; y: number }) => void;
+  resetHoverTile: () => void;
 };
 
 const HoverTileContext = createContext<State | null>(null);
 
-export const initialState = { tile: -1, x: -1, y: -1 };
+export const initialState: State['hoverTile'] = { tile: -1, x: -1, y: -1 };
 
 export const HoverTileProvider = ({ children }: PropsWithChildren) => {
   const [hoverTile, setHoverTile] = useState(initialState);
 
-  return <HoverTileContext.Provider value={{ ...hoverTile, setHoverTile }}>{children}</HoverTileContext.Provider>;
+  const resetHoverTile = () => {
+    setHoverTile(initialState);
+  };
+
+  return (
+    <HoverTileContext.Provider value={{ hoverTile, setHoverTile, resetHoverTile }}>
+      {children}
+    </HoverTileContext.Provider>
+  );
 };
 
 export function useHoverTile() {

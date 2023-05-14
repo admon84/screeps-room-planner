@@ -1,43 +1,45 @@
-import { useContext, useMemo } from 'react';
-import { createCtx } from './CreateCtx';
+import { useContext, useState, createContext, PropsWithChildren } from 'react';
 
-type State = { [tile: number]: string[] };
+type State = {
+  roomGrid: { [tile: number]: string[] };
+  addRoomGridStructure: (tile: number, structure: string) => void;
+  removeRoomGridStructure: (tile: number, structure: string) => void;
+  resetRoomGrid: () => void;
+};
 
-type Action =
-  | { type: 'add_structure'; tile: number; structure: string }
-  | { type: 'remove_structure'; tile: number; structure: string }
-  | { type: 'reset' };
+const RoomGridContext = createContext<State | null>(null);
 
-const initialState: State = {};
+export const initialState: State['roomGrid'] = {};
 
-function reducer(state: State, action: Action) {
-  switch (action.type) {
-    case 'add_structure':
-      return { ...state, [action.tile]: [...(state[action.tile] || []), action.structure] };
-    case 'remove_structure':
-      return { ...state, [action.tile]: (state[action.tile] || []).filter((s) => s !== action.structure) };
-    case 'reset':
-      return initialState;
-    default:
-      throw new Error(`Unknown action for RoomGridContext: ${action}`);
-  }
-}
+export const RoomGridProvider = ({ children }: PropsWithChildren) => {
+  const [roomGrid, setRoomGrid] = useState(initialState);
 
-const [ctx, RoomGridProvider] = createCtx(reducer, initialState);
+  const addRoomGridStructure = (tile: number, structure: string) => {
+    setRoomGrid((current) => {
+      const structures = [...(current[tile] || []), structure];
+      return { ...current, [tile]: [...new Set(structures)] };
+    });
+  };
 
-function useRoomGrid() {
-  const context = useContext(ctx);
-  if (context === undefined) {
+  const removeRoomGridStructure = (tile: number, structure: string) => {
+    setRoomGrid((current) => ({ ...current, [tile]: (current[tile] || []).filter((s) => s !== structure) }));
+  };
+
+  const resetRoomGrid = () => {
+    setRoomGrid(initialState);
+  };
+
+  return (
+    <RoomGridContext.Provider value={{ roomGrid, addRoomGridStructure, removeRoomGridStructure, resetRoomGrid }}>
+      {children}
+    </RoomGridContext.Provider>
+  );
+};
+
+export function useRoomGrid() {
+  const context = useContext(RoomGridContext);
+  if (!context) {
     throw new Error('useRoomGrid must be used within a RoomGridProvider');
   }
-  const { state, dispatch } = context;
-  return useMemo(
-    () => ({
-      roomGrid: state,
-      updateRoomGrid: dispatch,
-    }),
-    [state, dispatch]
-  );
+  return context;
 }
-
-export { RoomGridProvider, useRoomGrid };

@@ -16,7 +16,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
   const { palette } = Mui.useTheme();
   const { settings, updateSettings } = useSettings();
   const { shard, room } = settings;
-  const { updateRoomGrid } = useRoomGrid();
+  const { resetRoomGrid } = useRoomGrid();
   const { updateRoomStructures } = useRoomStructures();
   const { updateRoomTerrain } = useRoomTerrain();
 
@@ -102,7 +102,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                 .then(({ data }: { data: ScreepsGameRoomTerrain }) => {
                   if (data.ok) {
                     if (wipeStructuresChecked) {
-                      updateRoomGrid({ type: 'reset' });
+                      resetRoomGrid();
                       updateRoomStructures({ type: 'reset' });
                     }
                     updateRoomTerrain({ type: 'reset' });

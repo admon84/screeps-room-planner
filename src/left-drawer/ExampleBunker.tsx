@@ -9,14 +9,14 @@ import { useRoomTerrain } from '../contexts/RoomTerrainContext';
 
 export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
   const { updateSettings } = useSettings();
-  const { updateRoomGrid } = useRoomGrid();
+  const { addRoomGridStructure, resetRoomGrid } = useRoomGrid();
   const { updateRoomStructures } = useRoomStructures();
   const { updateRoomTerrain } = useRoomTerrain();
 
   return (
     <Mui.Button
       onMouseDown={() => {
-        updateRoomGrid({ type: 'reset' });
+        resetRoomGrid();
         updateRoomStructures({ type: 'reset' });
         updateRoomTerrain({ type: 'reset' });
         updateSettings({ type: 'set_rcl', rcl: MAX_RCL });
@@ -24,7 +24,7 @@ export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
         Object.entries(SAMPLE_JSON.structures).forEach(([structure, positions]) => {
           positions.forEach((pos) => {
             const tile = getRoomTile(pos.x, pos.y);
-            updateRoomGrid({ type: 'add_structure', tile, structure });
+            addRoomGridStructure(tile, structure);
             updateRoomStructures({ type: 'add_structure', structure, x: pos.x, y: pos.y });
           });
         });

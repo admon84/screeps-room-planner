@@ -13,7 +13,7 @@ import LoadStructuresJson from './LoadStructuresJson';
 
 export default function RoomActions() {
   const { palette } = Mui.useTheme();
-  const { updateRoomGrid } = useRoomGrid();
+  const { resetRoomGrid } = useRoomGrid();
   const { updateRoomStructures } = useRoomStructures();
   const { updateRoomTerrain } = useRoomTerrain();
 
@@ -38,7 +38,7 @@ export default function RoomActions() {
 
             <Mui.Button
               onMouseDown={() => {
-                updateRoomGrid({ type: 'reset' });
+                resetRoomGrid();
                 updateRoomStructures({ type: 'reset' });
                 toggleModalOpen();
               }}

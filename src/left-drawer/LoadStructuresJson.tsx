@@ -13,7 +13,7 @@ import { useTheme } from '@mui/material';
 export default function LoadStructuresJson(props: { toggleModalOpen: () => void }) {
   const { palette } = useTheme();
 
-  const { updateRoomGrid } = useRoomGrid();
+  const { addRoomGridStructure, resetRoomGrid } = useRoomGrid();
   const { updateRoomStructures } = useRoomStructures();
   const { updateRoomTerrain } = useRoomTerrain();
 
@@ -97,13 +97,13 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
               if (wipeTerrainChecked) {
                 updateRoomTerrain({ type: 'reset' });
               }
-              updateRoomGrid({ type: 'reset' });
+              resetRoomGrid();
               updateRoomStructures({ type: 'reset' });
 
               Object.entries(json.structures).forEach(([structure, positions]) => {
                 positions.forEach((pos) => {
                   const tile = getRoomTile(pos.x, pos.y);
-                  updateRoomGrid({ type: 'add_structure', tile, structure });
+                  addRoomGridStructure(tile, structure);
                   updateRoomStructures({ type: 'add_structure', structure, x: pos.x, y: pos.y });
                 });
               });

@@ -2,15 +2,15 @@ import * as Mui from '@mui/material';
 import { initialState, useHoverTile } from '../contexts/HoverTileContext';
 
 const HoverTilePanel = () => {
-  const { tile, x, y } = useHoverTile();
+  const { hoverTile } = useHoverTile();
 
-  if (tile === initialState.tile) {
+  if (hoverTile.tile === initialState.tile) {
     return null;
   }
 
   return (
     <Mui.Chip
-      label={`X: ${x}, Y: ${y}`}
+      label={`X: ${hoverTile.x}, Y: ${hoverTile.y}`}
       size='small'
       sx={{ fontSize: '.7rem', fontWeight: 300, position: 'absolute', bottom: -2 }}
       variant='outlined'

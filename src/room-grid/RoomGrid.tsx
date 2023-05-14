@@ -15,13 +15,13 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useRoomGrid } from '../contexts/RoomGridContext';
 import { useRoomStructures } from '../contexts/RoomStructuresContext';
 import { useRoomTerrain } from '../contexts/RoomTerrainContext';
-import { initialState, useHoverTile } from '../contexts/HoverTileContext';
+import { useHoverTile } from '../contexts/HoverTileContext';
 
 export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) {
-  const { tile: hoverTile, setHoverTile } = useHoverTile();
+  const { hoverTile, setHoverTile, resetHoverTile } = useHoverTile();
   const { settings, updateSettings } = useSettings();
   const { brush, rcl } = settings;
-  const { roomGrid, updateRoomGrid } = useRoomGrid();
+  const { roomGrid, addRoomGridStructure, removeRoomGridStructure } = useRoomGrid();
   const { roomStructures, updateRoomStructures } = useRoomStructures();
   const { roomTerrain } = useRoomTerrain();
 
@@ -73,7 +73,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
       structuresToRemove().forEach((structure) => removeStructure(tile, x, y, structure));
       // add structures
       updateRoomStructures({ type: 'add_structure', structure: brush, x, y });
-      updateRoomGrid({ type: 'add_structure', tile, structure: brush });
+      addRoomGridStructure(tile, brush);
       // deselect active brush when 0 remaining
       if (!structureCanBePlaced(brush, rcl, placed + 1, terrain)) {
         updateSettings({ type: 'unset_brush' });
@@ -82,7 +82,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
   };
 
   const removeStructure = (tile: number, x: number, y: number, structure: string) => {
-    updateRoomGrid({ type: 'remove_structure', tile, structure });
+    removeRoomGridStructure(tile, structure);
     updateRoomStructures({ type: 'remove_structure', structure, x, y });
   };
 
@@ -91,7 +91,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
     const placed = brush && roomStructures[brush] ? roomStructures[brush].length : 0;
     const previewIcon =
       !!brush &&
-      hoverTile === tile &&
+      hoverTile.tile === tile &&
       brush !== STRUCTURE_ROAD &&
       structureCanBePlaced(brush, rcl, placed, terrain) &&
       !positionHasStructure(tile, brush);
@@ -180,7 +180,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
 
   const getRoadLines = (tile: number, roadStyle: CSSProperties, previewIcon = false) => {
     const tileHasRoad = positionHasRoad(tile);
-    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && hoverTile === tile;
+    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && hoverTile.tile === tile;
     const previewColor = 'rgba(107,107,107,0.4)';
     const solidColor = '#6b6b6b';
     const roadColor = preview || previewIcon ? previewColor : solidColor;
@@ -200,7 +200,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
           const [cx, cy] = [x + rx, y + ry];
           const ctile = getRoomTile(cx, cy);
           const ctileHasRoad = positionHasRoad(ctile);
-          const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hoverTile === ctile;
+          const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hoverTile.tile === ctile;
           const croadColor = cpreview || preview || previewIcon ? previewColor : solidColor;
           if (positionIsValid(cx, cy) && (cpreview || ctileHasRoad)) {
             return rx === -1 && ry === -1 ? (
@@ -268,7 +268,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
                   data-tile={tile}
                   onMouseDown={handleMouseEvent}
                   onMouseOver={handleMouseEvent}
-                  onMouseOut={() => setHoverTile(initialState)}
+                  onMouseOut={resetHoverTile}
                   onContextMenu={(e) => e.preventDefault()}
                   sx={{
                     backgroundColor: ({ palette }) => palette.secondary.light,
