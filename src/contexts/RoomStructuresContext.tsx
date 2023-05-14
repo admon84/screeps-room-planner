@@ -10,7 +10,7 @@ type State = {
 
 const RoomStructuresContext = createContext<State | null>(null);
 
-export const initialState: State['roomStructures'] = {};
+const initialState: State['roomStructures'] = {};
 
 export const RoomStructuresProvider = ({ children }: PropsWithChildren) => {
   const [roomStructures, setRoomStructures] = useState(initialState);

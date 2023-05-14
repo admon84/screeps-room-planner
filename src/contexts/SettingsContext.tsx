@@ -21,7 +21,7 @@ const SettingsContext = createContext<State | null>(null);
 
 const initialState: State['settings'] = {
   codeDrawerOpen: false,
-  brush: '' || null,
+  brush: null,
   rcl: MAX_RCL,
   room: 'E3S1',
   shard: 'shard0',

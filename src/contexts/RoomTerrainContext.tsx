@@ -8,7 +8,7 @@ type State = {
 
 const RoomTerrainContext = createContext<State | null>(null);
 
-export const initialState: State['roomTerrain'] = {};
+const initialState: State['roomTerrain'] = {};
 
 export const RoomTerrainProvider = ({ children }: PropsWithChildren) => {
   const [roomTerrain, setRoomTerrain] = useState(initialState);

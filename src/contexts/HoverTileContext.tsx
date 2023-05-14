@@ -2,9 +2,9 @@ import { useContext, useState, createContext, PropsWithChildren } from 'react';
 
 type State = {
   hoverTile: {
-    tile: number;
-    x: number;
-    y: number;
+    tile: number | null;
+    x: number | null;
+    y: number | null;
   };
   setHoverTile: (value: { tile: number; x: number; y: number }) => void;
   resetHoverTile: () => void;
@@ -12,7 +12,7 @@ type State = {
 
 const HoverTileContext = createContext<State | null>(null);
 
-export const initialState: State['hoverTile'] = { tile: -1, x: -1, y: -1 };
+const initialState: State['hoverTile'] = { tile: null, x: null, y: null };
 
 export const HoverTileProvider = ({ children }: PropsWithChildren) => {
   const [hoverTile, setHoverTile] = useState(initialState);

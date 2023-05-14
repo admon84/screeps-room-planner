@@ -1,10 +1,10 @@
 import * as Mui from '@mui/material';
-import { initialState, useHoverTile } from '../contexts/HoverTileContext';
+import { useHoverTile } from '../contexts/HoverTileContext';
 
 const HoverTilePanel = () => {
   const { hoverTile } = useHoverTile();
 
-  if (hoverTile.tile === initialState.tile) {
+  if (hoverTile.tile === null) {
     return null;
   }
 

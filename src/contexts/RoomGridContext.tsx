@@ -9,7 +9,7 @@ type State = {
 
 const RoomGridContext = createContext<State | null>(null);
 
-export const initialState: State['roomGrid'] = {};
+const initialState: State['roomGrid'] = {};
 
 export const RoomGridProvider = ({ children }: PropsWithChildren) => {
   const [roomGrid, setRoomGrid] = useState(initialState);
