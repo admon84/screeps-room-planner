@@ -14,8 +14,8 @@ import LoadStructuresJson from './LoadStructuresJson';
 export default function RoomActions() {
   const { palette } = Mui.useTheme();
   const { resetRoomGrid } = useRoomGrid();
-  const { updateRoomStructures } = useRoomStructures();
-  const { updateRoomTerrain } = useRoomTerrain();
+  const { resetRoomStructures } = useRoomStructures();
+  const { resetRoomTerrain } = useRoomTerrain();
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -39,7 +39,7 @@ export default function RoomActions() {
             <Mui.Button
               onMouseDown={() => {
                 resetRoomGrid();
-                updateRoomStructures({ type: 'reset' });
+                resetRoomStructures();
                 toggleModalOpen();
               }}
               variant='outlined'
@@ -50,7 +50,7 @@ export default function RoomActions() {
 
             <Mui.Button
               onMouseDown={() => {
-                updateRoomTerrain({ type: 'reset' });
+                resetRoomTerrain();
                 toggleModalOpen();
               }}
               variant='outlined'

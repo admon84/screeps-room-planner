@@ -1,53 +1,59 @@
-import { useContext, useMemo } from 'react';
+import { useContext, useState, createContext, PropsWithChildren } from 'react';
 import { RoomPosition } from '../utils/types';
-import { createCtx } from './CreateCtx';
 
-type State = { [structure: string]: RoomPosition[] };
+type State = {
+  roomStructures: { [structure: string]: RoomPosition[] };
+  addRoomStructure: (structure: string, position: RoomPosition) => void;
+  removeRoomStructure: (structure: string, position: RoomPosition) => void;
+  resetRoomStructures: () => void;
+};
 
-type Action =
-  | { type: 'add_structure'; structure: string; x: number; y: number }
-  | { type: 'remove_structure'; structure: string; x: number; y: number }
-  | { type: 'reset' };
+const RoomStructuresContext = createContext<State | null>(null);
 
-const initialState: State = {};
+export const initialState: State['roomStructures'] = {};
 
-function reducer(state: State, action: Action) {
-  switch (action.type) {
-    case 'add_structure':
-      return { ...state, [action.structure]: [...(state[action.structure] || []), { x: action.x, y: action.y }] };
-    case 'remove_structure':
-      const roomPositions = (state[action.structure] || []).filter(({ x, y }) => !(x === action.x && y === action.y));
+export const RoomStructuresProvider = ({ children }: PropsWithChildren) => {
+  const [roomStructures, setRoomStructures] = useState(initialState);
+
+  const addRoomStructure = (structure: string, position: RoomPosition) => {
+    setRoomStructures((current) => {
+      const positions = [...(current[structure] || []), position];
+      return { ...current, [structure]: [...new Set(positions)] };
+    });
+  };
+
+  const removeRoomStructure = (structure: string, position: RoomPosition) => {
+    setRoomStructures((current) => {
+      const roomPositions = (current[structure] || []).filter((p) => p !== position);
       if (!roomPositions.length) {
         // destructure state to clean up (take out structures with empty roomPositions[])
-        const { [action.structure]: _, ...newState } = state;
+        const { [structure]: _, ...newState } = current;
         return newState;
       }
       return {
-        ...state,
-        [action.structure]: roomPositions,
+        ...current,
+        [structure]: roomPositions,
       };
-    case 'reset':
-      return initialState;
-    default:
-      throw new Error(`Unknown action for RoomStructuresContext: ${action}`);
-  }
-}
+    });
+  };
 
-const [ctx, RoomStructuresProvider] = createCtx(reducer, initialState);
+  const resetRoomStructures = () => {
+    setRoomStructures(initialState);
+  };
 
-function useRoomStructures() {
-  const context = useContext(ctx);
-  if (context === undefined) {
+  return (
+    <RoomStructuresContext.Provider
+      value={{ roomStructures, addRoomStructure, removeRoomStructure, resetRoomStructures }}
+    >
+      {children}
+    </RoomStructuresContext.Provider>
+  );
+};
+
+export function useRoomStructures() {
+  const context = useContext(RoomStructuresContext);
+  if (!context) {
     throw new Error('useRoomStructures must be used within a RoomStructuresProvider');
   }
-  const { state, dispatch } = context;
-  return useMemo(
-    () => ({
-      roomStructures: state,
-      updateRoomStructures: dispatch,
-    }),
-    [state, dispatch]
-  );
+  return context;
 }
-
-export { RoomStructuresProvider, useRoomStructures };

@@ -1,38 +1,37 @@
-import { useContext, useMemo } from 'react';
-import { createCtx } from './CreateCtx';
+import { useContext, useState, createContext, PropsWithChildren } from 'react';
 
-type State = { [tile: number]: string };
+type State = {
+  roomTerrain: { [tile: number]: string };
+  updateRoomTerrain: (tile: number, terrain: string) => void;
+  resetRoomTerrain: () => void;
+};
 
-type Action = { type: 'add_terrain'; tile: number; terrain: string } | { type: 'reset' };
+const RoomTerrainContext = createContext<State | null>(null);
 
-const initialState: State = {};
+export const initialState: State['roomTerrain'] = {};
 
-function reducer(state: State, action: Action) {
-  switch (action.type) {
-    case 'add_terrain':
-      return { ...state, [action.tile]: action.terrain };
-    case 'reset':
-      return initialState;
-    default:
-      throw new Error(`Unknown action for RoomTerrainContext: ${action}`);
-  }
-}
+export const RoomTerrainProvider = ({ children }: PropsWithChildren) => {
+  const [roomTerrain, setRoomTerrain] = useState(initialState);
 
-const [ctx, RoomTerrainProvider] = createCtx(reducer, initialState);
+  const updateRoomTerrain = (tile: number, terrain: string) => {
+    setRoomTerrain((current) => ({ ...current, [tile]: terrain }));
+  };
 
-function useRoomTerrain() {
-  const context = useContext(ctx);
-  if (context === undefined) {
+  const resetRoomTerrain = () => {
+    setRoomTerrain(initialState);
+  };
+
+  return (
+    <RoomTerrainContext.Provider value={{ roomTerrain, updateRoomTerrain, resetRoomTerrain }}>
+      {children}
+    </RoomTerrainContext.Provider>
+  );
+};
+
+export function useRoomTerrain() {
+  const context = useContext(RoomTerrainContext);
+  if (!context) {
     throw new Error('useRoomTerrain must be used within a RoomTerrainProvider');
   }
-  const { state, dispatch } = context;
-  return useMemo(
-    () => ({
-      roomTerrain: state,
-      updateRoomTerrain: dispatch,
-    }),
-    [state, dispatch]
-  );
+  return context;
 }
-
-export { RoomTerrainProvider, useRoomTerrain };

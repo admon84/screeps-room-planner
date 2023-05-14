@@ -14,11 +14,11 @@ import DialogTitle from '../common/DialogTitle';
 
 export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
   const { palette } = Mui.useTheme();
-  const { settings, updateSettings } = useSettings();
+  const { settings, setShard, setRoom } = useSettings();
   const { shard, room } = settings;
   const { resetRoomGrid } = useRoomGrid();
-  const { updateRoomStructures } = useRoomStructures();
-  const { updateRoomTerrain } = useRoomTerrain();
+  const { resetRoomStructures } = useRoomStructures();
+  const { resetRoomTerrain, updateRoomTerrain } = useRoomTerrain();
 
   const [wipeStructuresChecked, setWipeStructuresChecked] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -46,7 +46,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                   defaultValue={shard}
                   onChange={(e) => {
                     setFormError(null);
-                    updateSettings({ type: 'set_shard', shard: e.target.value });
+                    setShard(e.target.value);
                   }}
                 />
               </Mui.FormControl>
@@ -58,7 +58,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                   defaultValue={room}
                   onChange={(e) => {
                     setFormError(null);
-                    updateSettings({ type: 'set_room', room: e.target.value });
+                    setRoom(e.target.value);
                   }}
                 />
               </Mui.FormControl>
@@ -103,9 +103,9 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                   if (data.ok) {
                     if (wipeStructuresChecked) {
                       resetRoomGrid();
-                      updateRoomStructures({ type: 'reset' });
+                      resetRoomStructures();
                     }
-                    updateRoomTerrain({ type: 'reset' });
+                    resetRoomTerrain();
                     const bytes = Array.from(data.terrain[0].terrain);
                     if (bytes.length) {
                       roomTiles.forEach((_, y) => {
@@ -113,7 +113,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                           const terrain = +bytes.shift()!;
                           if (terrain === TERRAIN_MASK_WALL || terrain === TERRAIN_MASK_SWAMP) {
                             const tile = getRoomTile(x, y);
-                            updateRoomTerrain({ type: 'add_terrain', tile, terrain: TERRAIN_MASK[terrain] });
+                            updateRoomTerrain(tile, TERRAIN_MASK[terrain]);
                           }
                         });
                       });

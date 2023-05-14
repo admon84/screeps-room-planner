@@ -19,10 +19,10 @@ import { useHoverTile } from '../contexts/HoverTileContext';
 
 export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) {
   const { hoverTile, setHoverTile, resetHoverTile } = useHoverTile();
-  const { settings, updateSettings } = useSettings();
+  const { settings, resetBrush } = useSettings();
   const { brush, rcl } = settings;
   const { roomGrid, addRoomGridStructure, removeRoomGridStructure } = useRoomGrid();
-  const { roomStructures, updateRoomStructures } = useRoomStructures();
+  const { roomStructures, addRoomStructure, removeRoomStructure } = useRoomStructures();
   const { roomTerrain } = useRoomTerrain();
 
   const ref = useRef<HTMLHeadingElement>(null);
@@ -72,18 +72,18 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
       // remove existing structures at this position except ramparts
       structuresToRemove().forEach((structure) => removeStructure(tile, x, y, structure));
       // add structures
-      updateRoomStructures({ type: 'add_structure', structure: brush, x, y });
+      addRoomStructure(brush, { x, y });
       addRoomGridStructure(tile, brush);
       // deselect active brush when 0 remaining
       if (!structureCanBePlaced(brush, rcl, placed + 1, terrain)) {
-        updateSettings({ type: 'unset_brush' });
+        resetBrush();
       }
     }
   };
 
   const removeStructure = (tile: number, x: number, y: number, structure: string) => {
     removeRoomGridStructure(tile, structure);
-    updateRoomStructures({ type: 'remove_structure', structure, x, y });
+    removeRoomStructure(structure, { x, y });
   };
 
   const getCellContent = (tile: number): React.ReactNode => {

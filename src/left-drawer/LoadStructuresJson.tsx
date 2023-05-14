@@ -14,8 +14,8 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
   const { palette } = useTheme();
 
   const { addRoomGridStructure, resetRoomGrid } = useRoomGrid();
-  const { updateRoomStructures } = useRoomStructures();
-  const { updateRoomTerrain } = useRoomTerrain();
+  const { addRoomStructure, resetRoomStructures } = useRoomStructures();
+  const { resetRoomTerrain } = useRoomTerrain();
 
   const [wipeTerrainChecked, setWipeTerrainChecked] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,16 +95,16 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
               }
 
               if (wipeTerrainChecked) {
-                updateRoomTerrain({ type: 'reset' });
+                resetRoomTerrain();
               }
               resetRoomGrid();
-              updateRoomStructures({ type: 'reset' });
+              resetRoomStructures();
 
               Object.entries(json.structures).forEach(([structure, positions]) => {
                 positions.forEach((pos) => {
                   const tile = getRoomTile(pos.x, pos.y);
                   addRoomGridStructure(tile, structure);
-                  updateRoomStructures({ type: 'add_structure', structure, x: pos.x, y: pos.y });
+                  addRoomStructure(structure, pos);
                 });
               });
 

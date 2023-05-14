@@ -1,8 +1,25 @@
-import { useContext, useMemo } from 'react';
-import { createCtx } from './CreateCtx';
+import { useContext, useState, createContext, PropsWithChildren } from 'react';
 import { MAX_RCL } from '../utils/constants';
 
-const initialState = {
+type State = {
+  settings: {
+    codeDrawerOpen: boolean;
+    brush: string | null;
+    rcl: number;
+    room: string;
+    shard: string;
+  };
+  setBrush: (brush: string) => void;
+  setRcl: (rcl: number) => void;
+  setRoom: (room: string) => void;
+  setShard: (shard: string) => void;
+  toggleCodeDrawer: () => void;
+  resetBrush: () => void;
+};
+
+const SettingsContext = createContext<State | null>(null);
+
+const initialState: State['settings'] = {
   codeDrawerOpen: false,
   brush: '' || null,
   rcl: MAX_RCL,
@@ -10,56 +27,44 @@ const initialState = {
   shard: 'shard0',
 };
 
-type State = {
-  codeDrawerOpen: boolean;
-  brush: string | null;
-  rcl: number;
-  room: string;
-  shard: string;
+export const SettingsProvider = ({ children }: PropsWithChildren) => {
+  const [settings, setSettings] = useState(initialState);
+
+  const setBrush = (brush: string) => {
+    setSettings((current) => ({ ...current, brush }));
+  };
+
+  const setRcl = (rcl: number) => {
+    setSettings((current) => ({ ...current, rcl }));
+  };
+
+  const setRoom = (room: string) => {
+    setSettings((current) => ({ ...current, room }));
+  };
+
+  const setShard = (shard: string) => {
+    setSettings((current) => ({ ...current, shard }));
+  };
+
+  const toggleCodeDrawer = () => {
+    setSettings((current) => ({ ...current, codeDrawerOpen: !current.codeDrawerOpen }));
+  };
+
+  const resetBrush = () => {
+    setSettings((current) => ({ ...current, brush: null }));
+  };
+
+  return (
+    <SettingsContext.Provider value={{ settings, setBrush, setRcl, setRoom, setShard, toggleCodeDrawer, resetBrush }}>
+      {children}
+    </SettingsContext.Provider>
+  );
 };
 
-type Action =
-  | { type: 'set_brush'; brush: string }
-  | { type: 'set_rcl'; rcl: number }
-  | { type: 'set_room'; room: string }
-  | { type: 'set_shard'; shard: string }
-  | { type: 'open_code_drawer' }
-  | { type: 'unset_brush' };
-
-function reducer(state: State, action: Action) {
-  switch (action.type) {
-    case 'set_brush':
-      return { ...state, brush: action.brush };
-    case 'set_rcl':
-      return { ...state, rcl: action.rcl };
-    case 'set_room':
-      return { ...state, room: action.room };
-    case 'set_shard':
-      return { ...state, shard: action.shard };
-    case 'open_code_drawer':
-      return { ...state, codeDrawerOpen: !state.codeDrawerOpen };
-    case 'unset_brush':
-      return { ...state, brush: null };
-    default:
-      throw new Error(`Unknown action for SettingsContext: ${action}`);
-  }
-}
-
-const [ctx, SettingsProvider] = createCtx(reducer, initialState);
-
-function useSettings() {
-  const context = useContext(ctx);
-  if (context === undefined) {
+export function useSettings() {
+  const context = useContext(SettingsContext);
+  if (!context) {
     throw new Error('useSettings must be used within a SettingsProvider');
   }
-  const { state, dispatch } = context;
-  return useMemo(
-    () => ({
-      settings: state,
-      updateSettings: dispatch,
-    }),
-    [state, dispatch]
-  );
+  return context;
 }
-
-export { SettingsProvider, useSettings };

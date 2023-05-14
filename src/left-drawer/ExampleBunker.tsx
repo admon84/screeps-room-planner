@@ -8,24 +8,24 @@ import { useRoomStructures } from '../contexts/RoomStructuresContext';
 import { useRoomTerrain } from '../contexts/RoomTerrainContext';
 
 export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
-  const { updateSettings } = useSettings();
+  const { setRcl } = useSettings();
   const { addRoomGridStructure, resetRoomGrid } = useRoomGrid();
-  const { updateRoomStructures } = useRoomStructures();
-  const { updateRoomTerrain } = useRoomTerrain();
+  const { addRoomStructure, resetRoomStructures } = useRoomStructures();
+  const { resetRoomTerrain } = useRoomTerrain();
 
   return (
     <Mui.Button
       onMouseDown={() => {
         resetRoomGrid();
-        updateRoomStructures({ type: 'reset' });
-        updateRoomTerrain({ type: 'reset' });
-        updateSettings({ type: 'set_rcl', rcl: MAX_RCL });
+        resetRoomStructures();
+        resetRoomTerrain();
+        setRcl(MAX_RCL);
 
         Object.entries(SAMPLE_JSON.structures).forEach(([structure, positions]) => {
           positions.forEach((pos) => {
             const tile = getRoomTile(pos.x, pos.y);
             addRoomGridStructure(tile, structure);
-            updateRoomStructures({ type: 'add_structure', structure, x: pos.x, y: pos.y });
+            addRoomStructure(structure, pos);
           });
         });
         props.toggleModalOpen();

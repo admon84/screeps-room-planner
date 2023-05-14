@@ -60,7 +60,7 @@ const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(({ theme }) => ({
 }));
 
 export default function LeftDrawer(props: { structureBrushes: StructureBrush[] }) {
-  const { settings, updateSettings } = useSettings();
+  const { settings, setRcl, setBrush, resetBrush, toggleCodeDrawer } = useSettings();
   const { roomStructures } = useRoomStructures();
 
   const [roomMenuExpanded, setRoomMenuExpanded] = useState(true);
@@ -111,7 +111,7 @@ export default function LeftDrawer(props: { structureBrushes: StructureBrush[] }
                   color='primary'
                   exclusive
                   fullWidth
-                  onChange={(_, value) => value && updateSettings({ type: 'set_rcl', rcl: value })}
+                  onChange={(_, value) => value && setRcl(value)}
                   size='small'
                   value={settings.rcl}
                 >
@@ -162,9 +162,9 @@ export default function LeftDrawer(props: { structureBrushes: StructureBrush[] }
                       onMouseDown={(e) => {
                         const brush = getBrush(e.target as HTMLElement);
                         if (settings.brush === brush) {
-                          updateSettings({ type: 'unset_brush' });
+                          resetBrush();
                         } else {
-                          updateSettings({ type: 'set_brush', brush });
+                          setBrush(brush);
                         }
                       }}
                       sx={{
@@ -218,11 +218,7 @@ export default function LeftDrawer(props: { structureBrushes: StructureBrush[] }
               <Mui.Stack direction='column' sx={{ m: 2 }} spacing={1}>
                 <RoomActions />
 
-                <Mui.Button
-                  onMouseDown={() => updateSettings({ type: 'open_code_drawer' })}
-                  variant='outlined'
-                  endIcon={<Icons.DataObject />}
-                >
+                <Mui.Button onMouseDown={toggleCodeDrawer} variant='outlined' endIcon={<Icons.DataObject />}>
                   Generate Map JSON
                 </Mui.Button>
               </Mui.Stack>
