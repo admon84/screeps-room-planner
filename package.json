@@ -1,47 +1,44 @@
 {
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "defaults"
-    ],
-    "development": [
-      ">0.2% and not dead"
-    ]
-  },
-  "dependencies": {
-    "@emotion/react": "^11.10.5",
-    "@emotion/styled": "^11.10.5",
-    "@fontsource/roboto": "^4.5.8",
-    "@mui/icons-material": "^5.11.0",
-    "@mui/material": "^5.11.5",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^18.11.18",
-    "@types/react": "^18.0.27",
-    "@types/react-dom": "^18.0.10",
-    "axios": "^1.2.3",
-    "prismjs": "^1.29.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^4.9.4"
+  "name": "screeps-room-planner",
+  "version": "3.0.0",
+  "description": "Room Planner for Screeps",
+  "author": "admon84",
+  "license": "MIT",
+  "keywords": [
+    "screeps",
+    "planner",
+    "typescript"
+  ],
+  "homepage": "https://admon84.github.io/screeps-room-planner/",
+  "bugs": "https://github.com/admon84/screeps-room-planner/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/admon84/screeps-room-planner.git"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^18.11.18",
     "@types/prismjs": "^1.26.0",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
     "gh-pages": "^5.0.0",
     "prettier": "^2.8.3",
     "react-scripts": "5.0.1"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "dependencies": {
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/material": "^5.11.5",
+    "axios": "^1.2.3",
+    "prismjs": "^1.29.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^4.9.5"
   },
-  "name": "screeps-room-planner",
-  "version": "3.0.0",
-  "homepage": "https://admon84.github.io/screeps-room-planner/",
   "scripts": {
     "build": "PUBLIC_URL=/ react-scripts build",
     "build-prod": "react-scripts build",
@@ -50,5 +47,23 @@
     "predeploy": "npm run build-prod",
     "start": "react-scripts start",
     "test": "react-scripts test"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
