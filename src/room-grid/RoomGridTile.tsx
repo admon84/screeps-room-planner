@@ -1,9 +1,6 @@
-import { CSSProperties, useRef } from 'react';
+import { CSSProperties } from 'react';
 import { Box } from '@mui/material';
-import { useElementSize } from '../hooks/useElementSize';
-import { StructureBrush } from '../utils/types';
 import {
-  ROOM_SIZE,
   STRUCTURE_CONTAINER,
   STRUCTURE_RAMPART,
   STRUCTURE_ROAD,
@@ -16,18 +13,15 @@ import { useRoomGrid } from '../contexts/RoomGridContext';
 import { useRoomStructures } from '../contexts/RoomStructuresContext';
 import { useRoomTerrain } from '../contexts/RoomTerrainContext';
 import { useHoverTile } from '../contexts/HoverTileContext';
+import { StructureBrush } from '../utils/types';
 
-export default function RoomGridTile(props: { structureBrushes: StructureBrush[]; tile: number; sizePx: string }) {
+export default function RoomGridTile(props: { structureBrushes: StructureBrush[]; tile: number }) {
   const { hoverTile, setHoverTile, resetHoverTile } = useHoverTile();
   const { settings, resetBrush } = useSettings();
   const { brush, rcl } = settings;
   const { roomGrid, addRoomGridStructure, removeRoomGridStructure } = useRoomGrid();
   const { roomStructures, addRoomStructure, removeRoomStructure } = useRoomStructures();
   const { roomTerrain } = useRoomTerrain();
-
-  const ref = useRef<HTMLHeadingElement>(null);
-  const { width } = useElementSize(ref);
-  const size = Math.max(ROOM_SIZE, width) / ROOM_SIZE;
   const tileClass = 'tile';
 
   const getTileElement = (target: HTMLElement): { tile: number; x: number; y: number } => {
@@ -38,15 +32,19 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
     return getTileElement(target.parentElement as HTMLElement);
   };
 
-  const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const { tile, x, y } = getTileElement(e.target as HTMLElement);
-    setHoverTile({ tile, x, y });
     if (e.buttons === 1) {
       addStructure(tile, x, y);
     } else if (e.buttons === 2) {
       props.structureBrushes.forEach(({ key }) => removeStructure(tile, x, y, key));
     }
+  };
+
+  const handleMouseOver = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    e.preventDefault();
+    setHoverTile(getTileElement(e.target as HTMLElement));
   };
 
   const structuresToRemove = (skipBrush = false) =>
@@ -185,53 +183,53 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
     const roadColor = preview || previewIcon ? previewColor : solidColor;
 
     if (preview || tileHasRoad) {
-      return [-1, 0, 1].map((rx) =>
-        [-1, 0, 1].map((ry) => {
-          if (rx === 0 && ry === 0) {
+      return [-1, 0, 1].map((dx) =>
+        [-1, 0, 1].map((dy) => {
+          if (dx === 0 && dy === 0) {
             return (
-              <svg key={tile} height={size} style={roadStyle} width={size}>
+              <svg key={tile} style={roadStyle}>
                 <circle cx='50%' cy='50%' r='1' fill={roadColor} />
               </svg>
             );
           }
 
           const { x, y } = getRoomPosition(tile);
-          const [cx, cy] = [x + rx, y + ry];
+          const [cx, cy] = [x + dx, y + dy];
           const ctile = getRoomTile(cx, cy);
           const ctileHasRoad = positionHasRoad(ctile);
           const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hoverTile.tile === ctile;
           const croadColor = cpreview || preview || previewIcon ? previewColor : solidColor;
           if (positionIsValid(cx, cy) && (cpreview || ctileHasRoad)) {
-            return rx === -1 && ry === -1 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            return dx === -1 && dy === -1 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='0' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
-            ) : rx === 0 && ry === -1 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            ) : dx === 0 && dy === -1 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='50%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
-            ) : rx === 1 && ry === -1 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            ) : dx === 1 && dy === -1 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='100%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
-            ) : rx === 1 && ry === 0 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            ) : dx === 1 && dy === 0 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='100%' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
-            ) : rx === 1 && ry === 1 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            ) : dx === 1 && dy === 1 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='100%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
-            ) : rx === 0 && ry === 1 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            ) : dx === 0 && dy === 1 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='50%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
-            ) : rx === -1 && ry === 1 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            ) : dx === -1 && dy === 1 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='0' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
-            ) : rx === -1 && ry === 0 ? (
-              <svg key={ctile} height={size} style={roadStyle} width={size}>
+            ) : dx === -1 && dy === 0 ? (
+              <svg key={ctile} style={roadStyle}>
                 <line x1='0' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
               </svg>
             ) : null;
@@ -246,35 +244,50 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
   return (
     <Box
       key={props.tile}
-      className={tileClass}
-      component='div'
-      data-tile={props.tile}
-      onMouseDown={handleMouseEvent}
-      onMouseOver={handleMouseEvent}
-      onMouseOut={resetHoverTile}
-      onContextMenu={(e) => e.preventDefault()}
       sx={{
-        backgroundColor: ({ palette }) => palette.secondary.light,
-        height: props.sizePx,
         position: 'relative',
-        width: 'auto',
-        ':after': {
-          backgroundColor: 'rgba(255,255,255,0.08)',
-          boxShadow: 'inset rgba(0,0,0,0.05) 0 0 0 1px',
+        ':before': {
           content: '""',
-          height: props.sizePx,
-          left: 0,
-          opacity: 0,
-          position: 'absolute',
-          top: 0,
-          width: props.sizePx,
-        },
-        ':hover:after': {
-          opacity: 1,
+          display: 'block',
+          pt: '100%',
         },
       }}
     >
-      {getCellContent(props.tile)}
+      <Box
+        className={tileClass}
+        component='div'
+        data-tile={props.tile}
+        onMouseDown={handleMouseDown}
+        onMouseOver={handleMouseOver}
+        onMouseOut={resetHoverTile}
+        onContextMenu={(e) => e.preventDefault()}
+        sx={{
+          backgroundColor: ({ palette }) => palette.secondary.light,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          // Hover tile highlight styling
+          ':after': {
+            opacity: 0,
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            boxShadow: 'inset rgba(0,0,0,0.05) 0 0 0 1px',
+          },
+          // Show hover tile highlight
+          ':hover:after': {
+            opacity: 1,
+          },
+        }}
+      >
+        {getCellContent(props.tile)}
+      </Box>
     </Box>
   );
 }
