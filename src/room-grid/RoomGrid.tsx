@@ -15,10 +15,10 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useRoomGrid } from '../contexts/RoomGridContext';
 import { useRoomStructures } from '../contexts/RoomStructuresContext';
 import { useRoomTerrain } from '../contexts/RoomTerrainContext';
-import { useHoverTile } from '../contexts/HoverTileContext';
+import { initialState, useHoverTile } from '../contexts/HoverTileContext';
 
 export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) {
-  const { hover, updateHover } = useHoverTile();
+  const { tile: hoverTile, setHoverTile } = useHoverTile();
   const { settings, updateSettings } = useSettings();
   const { brush, rcl } = settings;
   const { roomGrid, updateRoomGrid } = useRoomGrid();
@@ -42,7 +42,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
   const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const { tile, x, y } = getTileElement(e.target as HTMLElement);
-    updateHover({ type: 'set_hover', tile, x, y });
+    setHoverTile({ tile, x, y });
     if (e.buttons === 1) {
       addStructure(tile, x, y);
     } else if (e.buttons === 2) {
@@ -91,7 +91,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
     const placed = brush && roomStructures[brush] ? roomStructures[brush].length : 0;
     const previewIcon =
       !!brush &&
-      hover.tile === tile &&
+      hoverTile === tile &&
       brush !== STRUCTURE_ROAD &&
       structureCanBePlaced(brush, rcl, placed, terrain) &&
       !positionHasStructure(tile, brush);
@@ -180,7 +180,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
 
   const getRoadLines = (tile: number, roadStyle: CSSProperties, previewIcon = false) => {
     const tileHasRoad = positionHasRoad(tile);
-    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && hover.tile === tile;
+    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && hoverTile === tile;
     const previewColor = 'rgba(107,107,107,0.4)';
     const solidColor = '#6b6b6b';
     const roadColor = preview || previewIcon ? previewColor : solidColor;
@@ -200,7 +200,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
           const [cx, cy] = [x + rx, y + ry];
           const ctile = getRoomTile(cx, cy);
           const ctileHasRoad = positionHasRoad(ctile);
-          const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hover.tile === ctile;
+          const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hoverTile === ctile;
           const croadColor = cpreview || preview || previewIcon ? previewColor : solidColor;
           if (positionIsValid(cx, cy) && (cpreview || ctileHasRoad)) {
             return rx === -1 && ry === -1 ? (
@@ -268,7 +268,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
                   data-tile={tile}
                   onMouseDown={handleMouseEvent}
                   onMouseOver={handleMouseEvent}
-                  onMouseOut={() => updateHover({ type: 'reset' })}
+                  onMouseOut={() => setHoverTile(initialState)}
                   onContextMenu={(e) => e.preventDefault()}
                   sx={{
                     backgroundColor: ({ palette }) => palette.secondary.light,
