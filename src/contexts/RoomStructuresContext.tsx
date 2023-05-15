@@ -25,7 +25,7 @@ export const RoomStructuresProvider = ({ children }: PropsWithChildren) => {
 
     const removeRoomStructure = (structure: string, position: RoomPosition) => {
       setRoomStructures((current) => {
-        const roomPositions = (current[structure] || []).filter((p) => p !== position);
+        const roomPositions = (current[structure] || []).filter((p) => !(p.x === position.x && p.y === position.y));
         if (!roomPositions.length) {
           // destructure state to clean up (take out structures with empty roomPositions[])
           const { [structure]: _, ...newState } = current;
