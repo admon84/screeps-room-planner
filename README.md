@@ -1,6 +1,6 @@
 # Screeps Room Planner
 
-Introducing the new Screeps Room Planner: a practical tool designed for players to efficiently plan and visualize room layouts.
+Introducing the new Screeps Room Planner: a practical tool for players to efficiently plan and visualize room layouts.
 
 ## Features
 
