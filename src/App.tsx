@@ -6,6 +6,7 @@ import { getStructureBrushes } from './utils/helpers';
 import BottomDrawer from './bottom-drawer/BottomDrawer';
 import { useSettings } from './contexts/SettingsContext';
 import HoverTilePanel from './room-grid/HoverTilePanel';
+import { HoverTileProvider } from './contexts/HoverTileContext';
 
 export default function App() {
   const { settings } = useSettings();
@@ -31,8 +32,10 @@ export default function App() {
       >
         <Mui.Toolbar variant='dense' />
         <Mui.Box display='flex' justifyContent='center' padding={3} position='relative'>
-          <HoverTilePanel />
-          <RoomGrid structureBrushes={brushes} />
+          <HoverTileProvider>
+            <HoverTilePanel />
+            <RoomGrid structureBrushes={brushes} />
+          </HoverTileProvider>
         </Mui.Box>
       </Mui.Box>
       <BottomDrawer />

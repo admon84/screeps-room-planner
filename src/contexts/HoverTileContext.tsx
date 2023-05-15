@@ -1,31 +1,35 @@
-import { useContext, useState, createContext, PropsWithChildren } from 'react';
+import { useContext, useState, createContext, PropsWithChildren, useMemo } from 'react';
 
-type State = {
-  hoverTile: {
-    tile: number | null;
-    x: number | null;
-    y: number | null;
-  };
-  setHoverTile: (value: { tile: number; x: number; y: number }) => void;
+type State = number | null;
+
+type Context = {
+  hoverTile: State;
+  updateHoverTile: (tile: number) => void;
   resetHoverTile: () => void;
 };
 
-const HoverTileContext = createContext<State | null>(null);
-
-const initialState: State['hoverTile'] = { tile: null, x: null, y: null };
+const HoverTileContext = createContext<Context | null>(null);
 
 export const HoverTileProvider = ({ children }: PropsWithChildren) => {
-  const [hoverTile, setHoverTile] = useState(initialState);
+  const [hoverTile, setHoverTile] = useState<State>(null);
 
-  const resetHoverTile = () => {
-    setHoverTile(initialState);
-  };
+  const value = useMemo(() => {
+    const updateHoverTile = (tile: number) => {
+      setHoverTile(tile);
+    };
 
-  return (
-    <HoverTileContext.Provider value={{ hoverTile, setHoverTile, resetHoverTile }}>
-      {children}
-    </HoverTileContext.Provider>
-  );
+    const resetHoverTile = () => {
+      setHoverTile(null);
+    };
+
+    return {
+      hoverTile,
+      updateHoverTile,
+      resetHoverTile,
+    };
+  }, [hoverTile]);
+
+  return <HoverTileContext.Provider value={value}>{children}</HoverTileContext.Provider>;
 };
 
 export function useHoverTile() {

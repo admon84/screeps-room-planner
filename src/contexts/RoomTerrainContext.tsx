@@ -1,31 +1,31 @@
-import { useContext, useState, createContext, PropsWithChildren } from 'react';
+import { useContext, useState, createContext, PropsWithChildren, useMemo } from 'react';
 
-type State = {
-  roomTerrain: { [tile: number]: string };
+type State = { [tile: number]: string };
+
+type Context = {
+  roomTerrain: State;
   updateRoomTerrain: (tile: number, terrain: string) => void;
   resetRoomTerrain: () => void;
 };
 
-const RoomTerrainContext = createContext<State | null>(null);
-
-const initialState: State['roomTerrain'] = {};
+const RoomTerrainContext = createContext<Context | null>(null);
 
 export const RoomTerrainProvider = ({ children }: PropsWithChildren) => {
-  const [roomTerrain, setRoomTerrain] = useState(initialState);
+  const [roomTerrain, setRoomTerrain] = useState<State>({});
 
-  const updateRoomTerrain = (tile: number, terrain: string) => {
-    setRoomTerrain((current) => ({ ...current, [tile]: terrain }));
-  };
+  const value = useMemo(() => {
+    const updateRoomTerrain = (tile: number, terrain: string) => {
+      setRoomTerrain((current) => ({ ...current, [tile]: terrain }));
+    };
 
-  const resetRoomTerrain = () => {
-    setRoomTerrain(initialState);
-  };
+    const resetRoomTerrain = () => {
+      setRoomTerrain({});
+    };
 
-  return (
-    <RoomTerrainContext.Provider value={{ roomTerrain, updateRoomTerrain, resetRoomTerrain }}>
-      {children}
-    </RoomTerrainContext.Provider>
-  );
+    return { roomTerrain, updateRoomTerrain, resetRoomTerrain };
+  }, [roomTerrain]);
+
+  return <RoomTerrainContext.Provider value={value}>{children}</RoomTerrainContext.Provider>;
 };
 
 export function useRoomTerrain() {

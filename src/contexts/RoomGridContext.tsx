@@ -1,39 +1,44 @@
-import { useContext, useState, createContext, PropsWithChildren } from 'react';
+import { useContext, useState, createContext, PropsWithChildren, useMemo } from 'react';
 
-type State = {
-  roomGrid: { [tile: number]: string[] };
+type State = { [tile: number]: string[] };
+
+type Context = {
+  roomGrid: State;
   addRoomGridStructure: (tile: number, structure: string) => void;
   removeRoomGridStructure: (tile: number, structure: string) => void;
   resetRoomGrid: () => void;
 };
 
-const RoomGridContext = createContext<State | null>(null);
-
-const initialState: State['roomGrid'] = {};
+const RoomGridContext = createContext<Context | null>(null);
 
 export const RoomGridProvider = ({ children }: PropsWithChildren) => {
-  const [roomGrid, setRoomGrid] = useState(initialState);
+  const [roomGrid, setRoomGrid] = useState<State>({});
 
-  const addRoomGridStructure = (tile: number, structure: string) => {
-    setRoomGrid((current) => {
-      const structures = [...(current[tile] || []), structure];
-      return { ...current, [tile]: [...new Set(structures)] };
-    });
-  };
+  const value = useMemo(() => {
+    const addRoomGridStructure = (tile: number, structure: string) => {
+      setRoomGrid((current) => {
+        const structures = [...(current[tile] || []), structure];
+        return { ...current, [tile]: [...new Set(structures)] };
+      });
+    };
 
-  const removeRoomGridStructure = (tile: number, structure: string) => {
-    setRoomGrid((current) => ({ ...current, [tile]: (current[tile] || []).filter((s) => s !== structure) }));
-  };
+    const removeRoomGridStructure = (tile: number, structure: string) => {
+      setRoomGrid((current) => ({ ...current, [tile]: (current[tile] || []).filter((s) => s !== structure) }));
+    };
 
-  const resetRoomGrid = () => {
-    setRoomGrid(initialState);
-  };
+    const resetRoomGrid = () => {
+      setRoomGrid({});
+    };
 
-  return (
-    <RoomGridContext.Provider value={{ roomGrid, addRoomGridStructure, removeRoomGridStructure, resetRoomGrid }}>
-      {children}
-    </RoomGridContext.Provider>
-  );
+    return {
+      roomGrid,
+      addRoomGridStructure,
+      removeRoomGridStructure,
+      resetRoomGrid,
+    };
+  }, [roomGrid]);
+
+  return <RoomGridContext.Provider value={value}>{children}</RoomGridContext.Provider>;
 };
 
 export function useRoomGrid() {

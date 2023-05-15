@@ -4,16 +4,15 @@ import { SettingsProvider } from './SettingsContext';
 import { RoomGridProvider } from './RoomGridContext';
 import { RoomStructuresProvider } from './RoomStructuresContext';
 import { RoomTerrainProvider } from './RoomTerrainContext';
-import { HoverTileProvider } from './HoverTileContext';
 
-export const AppProvider = ({ children }: PropsWithChildren) => (
-  <SettingsProvider>
-    <HoverTileProvider>
+export const AppProvider = ({ children }: PropsWithChildren) => {
+  return (
+    <SettingsProvider>
       <RoomGridProvider>
         <RoomStructuresProvider>
           <RoomTerrainProvider>{children}</RoomTerrainProvider>
         </RoomStructuresProvider>
       </RoomGridProvider>
-    </HoverTileProvider>
-  </SettingsProvider>
-);
+    </SettingsProvider>
+  );
+};

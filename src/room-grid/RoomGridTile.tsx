@@ -16,13 +16,20 @@ import { useHoverTile } from '../contexts/HoverTileContext';
 import { StructureBrush } from '../utils/types';
 
 export default function RoomGridTile(props: { structureBrushes: StructureBrush[]; tile: number }) {
-  const { hoverTile, setHoverTile, resetHoverTile } = useHoverTile();
+  const { hoverTile, updateHoverTile, resetHoverTile } = useHoverTile();
   const { settings, resetBrush } = useSettings();
   const { brush, rcl } = settings;
   const { roomGrid, addRoomGridStructure, removeRoomGridStructure } = useRoomGrid();
   const { roomStructures, addRoomStructure, removeRoomStructure } = useRoomStructures();
   const { roomTerrain } = useRoomTerrain();
   const tileClass = 'tile';
+  const tilePosition = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  };
 
   const getTileElement = (target: HTMLElement): { tile: number; x: number; y: number } => {
     if (target.classList.contains(tileClass)) {
@@ -35,7 +42,7 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
   const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     const { tile, x, y } = getTileElement(e.target as HTMLElement);
-    setHoverTile({ tile, x, y });
+    updateHoverTile(tile);
     if (e.buttons === 1) {
       addStructure(tile, x, y);
     } else if (e.buttons === 2) {
@@ -84,7 +91,7 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
     const placed = brush && roomStructures[brush] ? roomStructures[brush].length : 0;
     const previewIcon =
       !!brush &&
-      hoverTile.tile === tile &&
+      hoverTile === tile &&
       brush !== STRUCTURE_ROAD &&
       structureCanBePlaced(brush, rcl, placed, terrain) &&
       !positionHasStructure(tile, brush);
@@ -145,7 +152,7 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
         {getRoadLines(tile, roadStyle, previewIcon)}
         {structures &&
           props.structureBrushes
-            .filter((o) => o.key !== STRUCTURE_RAMPART && o.key !== STRUCTURE_ROAD && structures.includes(o.key))
+            .filter((o) => ![STRUCTURE_RAMPART, STRUCTURE_ROAD].includes(o.key) && structures.includes(o.key))
             .map(({ key, image }) => (
               <Box
                 key={key}
@@ -165,15 +172,14 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
   };
 
   const positionHasStructure = (tile: number, structure: string) => {
-    const placedStructures = roomGrid[tile];
-    return placedStructures && placedStructures.includes(structure);
+    return roomGrid[tile] && roomGrid[tile].includes(structure);
   };
 
   const positionHasRoad = (tile: number) => positionHasStructure(tile, STRUCTURE_ROAD);
 
   const getRoadLines = (tile: number, roadStyle: CSSProperties, previewIcon = false) => {
     const tileHasRoad = positionHasRoad(tile);
-    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && hoverTile.tile === tile;
+    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && hoverTile === tile;
     const previewColor = 'rgba(107,107,107,0.4)';
     const solidColor = '#6b6b6b';
     const roadColor = preview || previewIcon ? previewColor : solidColor;
@@ -193,7 +199,7 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
           const [cx, cy] = [x + dx, y + dy];
           const ctile = getRoomTile(cx, cy);
           const ctileHasRoad = positionHasRoad(ctile);
-          const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hoverTile.tile === ctile;
+          const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hoverTile === ctile;
           const croadColor = cpreview || preview || previewIcon ? previewColor : solidColor;
           if (positionIsValid(cx, cy) && (cpreview || ctileHasRoad)) {
             return dx === -1 && dy === -1 ? (
@@ -245,7 +251,7 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
         ':before': {
           content: '""',
           display: 'block',
-          pt: '100%',
+          paddingTop: '100%',
         },
       }}
     >
@@ -259,24 +265,15 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
         onContextMenu={(e) => e.preventDefault()}
         sx={{
           backgroundColor: ({ palette }) => palette.secondary.light,
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
+          ...tilePosition,
           // Hover tile highlight styling
           ':after': {
-            opacity: 0,
+            ...tilePosition,
             content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
             backgroundColor: 'rgba(255,255,255,0.08)',
             boxShadow: 'inset rgba(0,0,0,0.05) 0 0 0 1px',
+            opacity: 0,
           },
-          // Show hover tile highlight
           ':hover:after': {
             opacity: 1,
           },

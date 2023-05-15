@@ -1,53 +1,51 @@
-import { useContext, useState, createContext, PropsWithChildren } from 'react';
+import { useContext, useState, createContext, PropsWithChildren, useMemo } from 'react';
 import { RoomPosition } from '../utils/types';
 
-type State = {
-  roomStructures: { [structure: string]: RoomPosition[] };
+type State = { [structure: string]: RoomPosition[] };
+
+type Context = {
+  roomStructures: State;
   addRoomStructure: (structure: string, position: RoomPosition) => void;
   removeRoomStructure: (structure: string, position: RoomPosition) => void;
   resetRoomStructures: () => void;
 };
 
-const RoomStructuresContext = createContext<State | null>(null);
-
-const initialState: State['roomStructures'] = {};
+const RoomStructuresContext = createContext<Context | null>(null);
 
 export const RoomStructuresProvider = ({ children }: PropsWithChildren) => {
-  const [roomStructures, setRoomStructures] = useState(initialState);
+  const [roomStructures, setRoomStructures] = useState<State>({});
 
-  const addRoomStructure = (structure: string, position: RoomPosition) => {
-    setRoomStructures((current) => {
-      const positions = [...(current[structure] || []), position];
-      return { ...current, [structure]: [...new Set(positions)] };
-    });
-  };
+  const value = useMemo(() => {
+    const addRoomStructure = (structure: string, position: RoomPosition) => {
+      setRoomStructures((current) => {
+        const positions = [...(current[structure] || []), position];
+        return { ...current, [structure]: [...new Set(positions)] };
+      });
+    };
 
-  const removeRoomStructure = (structure: string, position: RoomPosition) => {
-    setRoomStructures((current) => {
-      const roomPositions = (current[structure] || []).filter((p) => p !== position);
-      if (!roomPositions.length) {
-        // destructure state to clean up (take out structures with empty roomPositions[])
-        const { [structure]: _, ...newState } = current;
-        return newState;
-      }
-      return {
-        ...current,
-        [structure]: roomPositions,
-      };
-    });
-  };
+    const removeRoomStructure = (structure: string, position: RoomPosition) => {
+      setRoomStructures((current) => {
+        const roomPositions = (current[structure] || []).filter((p) => p !== position);
+        if (!roomPositions.length) {
+          // destructure state to clean up (take out structures with empty roomPositions[])
+          const { [structure]: _, ...newState } = current;
+          return newState;
+        }
+        return {
+          ...current,
+          [structure]: roomPositions,
+        };
+      });
+    };
 
-  const resetRoomStructures = () => {
-    setRoomStructures(initialState);
-  };
+    const resetRoomStructures = () => {
+      setRoomStructures({});
+    };
 
-  return (
-    <RoomStructuresContext.Provider
-      value={{ roomStructures, addRoomStructure, removeRoomStructure, resetRoomStructures }}
-    >
-      {children}
-    </RoomStructuresContext.Provider>
-  );
+    return { roomStructures, addRoomStructure, removeRoomStructure, resetRoomStructures };
+  }, [roomStructures]);
+
+  return <RoomStructuresContext.Provider value={value}>{children}</RoomStructuresContext.Provider>;
 };
 
 export function useRoomStructures() {
