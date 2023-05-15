@@ -1,12 +1,12 @@
 # Screeps Room Planner
 
-Screeps Room Planner is a user-friendly application designed to help Screeps players effectively plan their room layouts.
+Introducing the new Screeps Room Planner: a practical tool designed for players to efficiently plan and visualize room layouts.
 
 ## Features
 
 - **Material UI**: Effortlessly create and modify room layouts using our simple point-and-click system
-- **Room Visualization**: Get a clear overview of your room with our beautiful room representation
-- **Import Room Data**: Download room terrain and structures from live rooms on Screeps MMO and Season shards
+- **Room Visualization**: Get a clear overview of your room with our beautiful room grid
+- **Import Room Data**: Download terrain and structure data from live Screeps MMO rooms
 - **Export Room JSON**: Generate your room layout as JSON for easy integration with your Screeps script
 
 ![screeps-room-planner](https://github.com/admon84/screeps-room-planner/assets/10291543/799c51b5-2207-462a-aba9-f40aaae19536)
