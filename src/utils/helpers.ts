@@ -8,6 +8,8 @@ import {
   STRUCTURE_BRUSHES,
   STRUCTURE_ROAD,
   TERRAIN_WALL,
+  STRUCTURE_RAMPART,
+  STRUCTURE_CONTAINER,
 } from './constants';
 
 export const getStructureProps = (key: string, rcl = MAX_RCL) => ({
@@ -47,3 +49,17 @@ export const structureCanBePlaced = (structure: string, rcl: number, placed: num
   const total = CONTROLLER_STRUCTURES[structure][rcl];
   return !!total && (!placed || placed < total);
 };
+
+export const structuresToRemove = (brush: string, skipBrush = false) =>
+  brush === STRUCTURE_RAMPART
+    ? []
+    : Object.keys(STRUCTURE_BRUSHES).reduce(
+        (acc: string[], structure) =>
+          (skipBrush && brush === structure) ||
+          structure === STRUCTURE_RAMPART ||
+          (brush === STRUCTURE_CONTAINER && structure === STRUCTURE_ROAD) ||
+          (brush === STRUCTURE_ROAD && structure === STRUCTURE_CONTAINER)
+            ? acc
+            : [...acc, structure],
+        []
+      );

@@ -1,27 +1,38 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, memo, useState } from 'react';
 import { Box } from '@mui/material';
-import {
-  STRUCTURE_CONTAINER,
-  STRUCTURE_RAMPART,
-  STRUCTURE_ROAD,
-  TERRAIN_SWAMP,
-  TERRAIN_WALL,
-} from '../utils/constants';
-import { getRoomPosition, getRoomTile, positionIsValid, structureCanBePlaced } from '../utils/helpers';
-import { useSettings } from '../contexts/SettingsContext';
-import { useRoomGrid } from '../contexts/RoomGridContext';
-import { useRoomStructures } from '../contexts/RoomStructuresContext';
-import { useRoomTerrain } from '../contexts/RoomTerrainContext';
+import { STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '../utils/constants';
+import { positionIsValid, structureCanBePlaced, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../contexts/HoverTileContext';
-import { StructureBrush } from '../utils/types';
+import { NearbyPositionsData, StructureBrush } from '../utils/types';
 
-export default function RoomGridTile(props: { structureBrushes: StructureBrush[]; tile: number }) {
-  const { hoverTile, updateHoverTile, resetHoverTile } = useHoverTile();
-  const { settings, resetBrush } = useSettings();
-  const { brush, rcl } = settings;
-  const { roomGrid, addRoomGridStructure, removeRoomGridStructure } = useRoomGrid();
-  const { roomStructures, addRoomStructure, removeRoomStructure } = useRoomStructures();
-  const { roomTerrain } = useRoomTerrain();
+type Props = {
+  brush: string | null;
+  placedStructures: string[];
+  placedBrushCount: number;
+  structureBrushes: StructureBrush[];
+  tile: number;
+  terrain: string;
+  rcl: number;
+  addStructure: (tile: number) => void;
+  removeStructure: (tile: number, structure: string) => void;
+  nearbyRoads: { [tile: number]: NearbyPositionsData };
+};
+
+export default memo(function RoomGridTile({
+  brush,
+  placedStructures,
+  placedBrushCount,
+  structureBrushes,
+  tile,
+  terrain,
+  rcl,
+  addStructure,
+  removeStructure,
+  nearbyRoads,
+}: Props) {
+  // console.log(`-- rendering tile ${tile} --`);
+  const [isHovered, setIsHovered] = useState(false);
+  const { updateHoverTile, resetHoverTile } = useHoverTile();
   const tileClass = 'tile';
   const tilePosition = {
     position: 'absolute',
@@ -31,79 +42,36 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
     height: '100%',
   };
 
-  const getTileElement = (target: HTMLElement): { tile: number; x: number; y: number } => {
-    if (target.classList.contains(tileClass)) {
-      const tile = +target.dataset.tile!;
-      return { tile, ...getRoomPosition(tile) };
-    }
-    return getTileElement(target.parentElement as HTMLElement);
-  };
-
   const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
-    const { tile, x, y } = getTileElement(e.target as HTMLElement);
-    updateHoverTile(tile);
+
+    setIsHovered(true);
+    // TODO: fix bad performance
+    // updateHoverTile(tile);
+
     if (e.buttons === 1) {
-      addStructure(tile, x, y);
+      addStructure(tile);
     } else if (e.buttons === 2) {
-      props.structureBrushes.forEach(({ key }) => removeStructure(tile, x, y, key));
+      structureBrushes.forEach(({ key }) => removeStructure(tile, key));
     }
   };
 
-  const structuresToRemove = (skipBrush = false) =>
-    brush === STRUCTURE_RAMPART
-      ? []
-      : Object.keys(roomStructures).reduce(
-          (acc: string[], structure) =>
-            (skipBrush && brush === structure) ||
-            structure === STRUCTURE_RAMPART ||
-            (brush === STRUCTURE_CONTAINER && structure === STRUCTURE_ROAD) ||
-            (brush === STRUCTURE_ROAD && structure === STRUCTURE_CONTAINER)
-              ? acc
-              : [...acc, structure],
-          []
-        );
-
-  const addStructure = (tile: number, x: number, y: number) => {
-    if (!brush) return;
-    const placed = roomStructures[brush]?.length || 0;
-    const terrain = roomTerrain[tile];
-    if (structureCanBePlaced(brush, rcl, placed, terrain)) {
-      // remove existing structures at this position except ramparts
-      structuresToRemove().forEach((structure) => removeStructure(tile, x, y, structure));
-      // add structures
-      addRoomStructure(brush, { x, y });
-      addRoomGridStructure(tile, brush);
-      // deselect active brush when 0 remaining
-      if (!structureCanBePlaced(brush, rcl, placed + 1, terrain)) {
-        resetBrush();
-      }
-    }
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    e.preventDefault();
+    setIsHovered(false);
+    resetHoverTile();
   };
 
-  const removeStructure = (tile: number, x: number, y: number, structure: string) => {
-    removeRoomGridStructure(tile, structure);
-    removeRoomStructure(structure, { x, y });
-  };
-
-  const getCellContent = (tile: number): React.ReactNode => {
-    const terrain = roomTerrain[tile];
-    const placed = brush && roomStructures[brush] ? roomStructures[brush].length : 0;
+  const getCellContent = (): React.ReactNode => {
     const previewIcon =
-      !!brush &&
-      hoverTile === tile &&
-      brush !== STRUCTURE_ROAD &&
-      structureCanBePlaced(brush, rcl, placed, terrain) &&
-      !positionHasStructure(tile, brush);
+      !!brush && isHovered && brush !== STRUCTURE_ROAD && structureCanBePlaced(brush, rcl, placedBrushCount, terrain);
 
-    let structures: string[] = [];
-    if (roomGrid[tile]) {
-      structures.push(...roomGrid[tile]);
-    }
+    let drawStructures = [...placedStructures];
+
     if (previewIcon) {
-      structures.push(brush);
-      const previewRemove = structuresToRemove(true);
-      structures = structures.filter((s) => !previewRemove.includes(s));
+      drawStructures.push(brush);
+      const previewRemove = structuresToRemove(brush, true);
+      drawStructures = drawStructures.filter((s) => !previewRemove.includes(s));
     }
 
     const width = '100%';
@@ -139,7 +107,7 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
                 }),
           }}
         />
-        {structures && structures.includes(STRUCTURE_RAMPART) && (
+        {drawStructures.includes(STRUCTURE_RAMPART) && (
           <Box
             sx={{
               ...backgroundSizeProps,
@@ -149,103 +117,90 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
             }}
           />
         )}
-        {getRoadLines(tile, roadStyle, previewIcon)}
-        {structures &&
-          props.structureBrushes
-            .filter((o) => ![STRUCTURE_RAMPART, STRUCTURE_ROAD].includes(o.key) && structures.includes(o.key))
-            .map(({ key, image }) => (
-              <Box
-                key={key}
-                sx={{
-                  ...backgroundSizeProps,
-                  ...positionAbsolute,
-                  backgroundImage: `url(${image})`,
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: 'contain',
-                  opacity: previewIcon ? 0.5 : 1,
-                }}
-              />
-            ))}
+        {getRoadLines(roadStyle, previewIcon)}
+        {structureBrushes
+          .filter((o) => ![STRUCTURE_RAMPART, STRUCTURE_ROAD].includes(o.key) && drawStructures.includes(o.key))
+          .map(({ key, image }) => (
+            <Box
+              key={key}
+              sx={{
+                ...backgroundSizeProps,
+                ...positionAbsolute,
+                backgroundImage: `url(${image})`,
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain',
+                opacity: previewIcon ? 0.5 : 1,
+              }}
+            />
+          ))}
       </>
     );
   };
 
-  const positionHasStructure = (tile: number, structure: string) => {
-    return roomGrid[tile] && roomGrid[tile].includes(structure);
-  };
-
-  const positionHasRoad = (tile: number) => positionHasStructure(tile, STRUCTURE_ROAD);
-
-  const getRoadLines = (tile: number, roadStyle: CSSProperties, previewIcon = false) => {
-    const tileHasRoad = positionHasRoad(tile);
-    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && hoverTile === tile;
+  const getRoadLines = (roadStyle: CSSProperties, previewIcon = false) => {
+    const tileHasRoad = placedStructures.includes(STRUCTURE_ROAD);
+    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && isHovered;
     const previewColor = 'rgba(107,107,107,0.4)';
     const solidColor = '#6b6b6b';
     const roadColor = preview || previewIcon ? previewColor : solidColor;
 
     if (preview || tileHasRoad) {
-      return [-1, 0, 1].map((dx) =>
-        [-1, 0, 1].map((dy) => {
-          if (dx === 0 && dy === 0) {
-            return (
-              <svg key={tile} style={roadStyle}>
-                <circle cx='50%' cy='50%' r='1' fill={roadColor} />
-              </svg>
-            );
-          }
+      const roads: Array<JSX.Element | null> = [
+        <svg key={tile} style={roadStyle}>
+          <circle cx='50%' cy='50%' r='1' fill={roadColor} />
+        </svg>,
+      ];
 
-          const { x, y } = getRoomPosition(tile);
-          const [cx, cy] = [x + dx, y + dy];
-          const ctile = getRoomTile(cx, cy);
-          const ctileHasRoad = positionHasRoad(ctile);
-          const cpreview = brush === STRUCTURE_ROAD && !ctileHasRoad && hoverTile === ctile;
-          const croadColor = cpreview || preview || previewIcon ? previewColor : solidColor;
-          if (positionIsValid(cx, cy) && (cpreview || ctileHasRoad)) {
-            return dx === -1 && dy === -1 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='0' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : dx === 0 && dy === -1 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='50%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : dx === 1 && dy === -1 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='100%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : dx === 1 && dy === 0 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='100%' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : dx === 1 && dy === 1 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='100%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : dx === 0 && dy === 1 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='50%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : dx === -1 && dy === 1 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='0' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : dx === -1 && dy === 0 ? (
-              <svg key={ctile} style={roadStyle}>
-                <line x1='0' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-              </svg>
-            ) : null;
-          }
-          return null;
-        })
-      );
+      const adjacentRoads = Object.entries(nearbyRoads).map(([key, data]) => {
+        const ctile = parseInt(key);
+        const cpreview = brush === STRUCTURE_ROAD && !data.hasRoad && isHovered && ctile === tile;
+        const croadColor = cpreview || preview || previewIcon ? previewColor : solidColor;
+        if (positionIsValid(data.x, data.y) && (cpreview || data.hasRoad)) {
+          return data.dx === -1 && data.dy === -1 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='0' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : data.dx === 0 && data.dy === -1 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='50%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : data.dx === 1 && data.dy === -1 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='100%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : data.dx === 1 && data.dy === 0 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='100%' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : data.dx === 1 && data.dy === 1 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='100%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : data.dx === 0 && data.dy === 1 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='50%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : data.dx === -1 && data.dy === 1 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='0' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : data.dx === -1 && data.dy === 0 ? (
+            <svg key={ctile} style={roadStyle}>
+              <line x1='0' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
+            </svg>
+          ) : null;
+        }
+        return null;
+      });
+      return roads.concat(adjacentRoads);
     }
     return null;
   };
 
   return (
     <Box
-      key={props.tile}
+      key={tile}
       sx={{
         position: 'relative',
         ':before': {
@@ -258,10 +213,10 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
       <Box
         className={tileClass}
         component='div'
-        data-tile={props.tile}
+        data-tile={tile}
         onMouseDown={handleMouseEvent}
         onMouseOver={handleMouseEvent}
-        onMouseOut={resetHoverTile}
+        onMouseOut={handleMouseLeave}
         onContextMenu={(e) => e.preventDefault()}
         sx={{
           backgroundColor: ({ palette }) => palette.secondary.light,
@@ -279,8 +234,8 @@ export default function RoomGridTile(props: { structureBrushes: StructureBrush[]
           },
         }}
       >
-        {getCellContent(props.tile)}
+        {getCellContent()}
       </Box>
     </Box>
   );
-}
+});

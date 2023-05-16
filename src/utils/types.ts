@@ -20,3 +20,12 @@ export type ScreepsGameRoomTerrain = {
   ok: number;
   terrain: Array<{ _id: string; room: string; terrain: string; type: 'terrain' }>;
 };
+
+export type NearbyPositionsData = {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  tile: number;
+  hasRoad: boolean;
+};

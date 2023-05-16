@@ -5,6 +5,7 @@ type State = { [structure: string]: RoomPosition[] };
 
 type Context = {
   roomStructures: State;
+  getPlacedStructureCount: (structure: string) => number;
   addRoomStructure: (structure: string, position: RoomPosition) => void;
   removeRoomStructure: (structure: string, position: RoomPosition) => void;
   resetRoomStructures: () => void;
@@ -16,6 +17,10 @@ export const RoomStructuresProvider = ({ children }: PropsWithChildren) => {
   const [roomStructures, setRoomStructures] = useState<State>({});
 
   const value = useMemo(() => {
+    const getPlacedStructureCount = (structure: string) => {
+      return roomStructures[structure] ? roomStructures[structure].length : 0;
+    };
+
     const addRoomStructure = (structure: string, position: RoomPosition) => {
       setRoomStructures((current) => {
         const positions = [...(current[structure] || []), position];
@@ -42,7 +47,13 @@ export const RoomStructuresProvider = ({ children }: PropsWithChildren) => {
       setRoomStructures({});
     };
 
-    return { roomStructures, addRoomStructure, removeRoomStructure, resetRoomStructures };
+    return {
+      roomStructures,
+      getPlacedStructureCount,
+      addRoomStructure,
+      removeRoomStructure,
+      resetRoomStructures,
+    };
   }, [roomStructures]);
 
   return <RoomStructuresContext.Provider value={value}>{children}</RoomStructuresContext.Provider>;
