@@ -2,9 +2,8 @@ import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '../utils/constants';
 import { getRequiredRCL, getStructureBrushes, structureCanBePlaced } from '../utils/helpers';
-import { StructureBrush } from '../utils/types';
 import { useSettings } from '../contexts/SettingsContext';
-import { useRoomStructures } from '../contexts/RoomStructuresContext';
+import { useStructurePositions } from '../contexts/StructurePositionsContext';
 import { useState } from 'react';
 import RoomActions from './RoomActions';
 
@@ -61,7 +60,7 @@ const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(({ theme }) => ({
 
 export default function LeftDrawer() {
   const { settings, setRcl, setBrush, resetBrush, toggleCodeDrawer } = useSettings();
-  const { roomStructures } = useRoomStructures();
+  const { getPlacedStructureCount, structurePositions } = useStructurePositions();
 
   const [roomMenuExpanded, setRoomMenuExpanded] = useState(true);
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
@@ -137,7 +136,7 @@ export default function LeftDrawer() {
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {structureBrushes.map(({ key, image, total, name }) => {
-                  const placed = roomStructures[key]?.length || 0;
+                  const placed = getPlacedStructureCount(key);
                   const disabled = !structureCanBePlaced(key, settings.rcl, placed, TERRAIN_PLAIN);
                   const error = total < placed;
                   const locked = !error && settings.rcl < getRequiredRCL(key);

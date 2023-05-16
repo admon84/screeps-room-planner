@@ -10,30 +10,30 @@ import {
 } from '../utils/helpers';
 import RoomGridTile from './RoomGridTile';
 import { useSettings } from '../contexts/SettingsContext';
-import { useRoomGrid } from '../contexts/RoomGridContext';
-import { useRoomStructures } from '../contexts/RoomStructuresContext';
-import { useRoomTerrain } from '../contexts/RoomTerrainContext';
+import { useTileStructure } from '../contexts/TileStructureContext';
+import { useStructurePositions } from '../contexts/StructurePositionsContext';
+import { useTileTerrain } from '../contexts/TileTerrainContext';
 
 export default function RoomGrid() {
   const {
     settings: { brush, rcl },
     resetBrush,
   } = useSettings();
-  const { roomGrid, addRoomGridStructure, removeRoomGridStructure } = useRoomGrid();
-  const { getPlacedStructureCount, addRoomStructure, removeRoomStructure } = useRoomStructures();
-  const { roomTerrain } = useRoomTerrain();
+  const { tileStructures, addTileStructure, removeTileStructure } = useTileStructure();
+  const { getPlacedStructureCount, addStructurePosition, removeStructurePosition } = useStructurePositions();
+  const { tileTerrain } = useTileTerrain();
   const roomTiles = [...Array(ROOM_SIZE)];
 
   const addStructure = (tile: number) => {
     if (!brush) return;
     const placed = getPlacedStructureCount(brush);
-    const terrain = roomTerrain[tile];
+    const terrain = tileTerrain[tile];
     if (structureCanBePlaced(brush, rcl, placed, terrain)) {
       // remove existing structures at this position except ramparts
       structuresToRemove(brush).forEach((structure) => removeStructure(tile, structure));
       // add structures
-      addRoomStructure(brush, getRoomPosition(tile));
-      addRoomGridStructure(tile, brush);
+      addStructurePosition(brush, getRoomPosition(tile));
+      addTileStructure(tile, brush);
       // deselect active brush when 0 remaining
       if (!structureCanBePlaced(brush, rcl, placed + 1, terrain)) {
         resetBrush();
@@ -42,8 +42,8 @@ export default function RoomGrid() {
   };
 
   const removeStructure = (tile: number, structure: string) => {
-    removeRoomGridStructure(tile, structure);
-    removeRoomStructure(structure, getRoomPosition(tile));
+    removeTileStructure(tile, structure);
+    removeStructurePosition(structure, getRoomPosition(tile));
   };
 
   const getNearbyRoads = (tile: number) => {
@@ -56,7 +56,7 @@ export default function RoomGrid() {
         }
         const [x, y] = [origin.x + dx, origin.y + dy];
         const tile = getRoomTile(x, y);
-        if (positionIsValid(x, y) && roomGrid[tile] && roomGrid[tile].includes(STRUCTURE_ROAD)) {
+        if (positionIsValid(x, y) && tileStructures[tile] && tileStructures[tile].includes(STRUCTURE_ROAD)) {
           positions[tile] = { dx, dy };
         }
       }
@@ -78,8 +78,8 @@ export default function RoomGrid() {
         {roomTiles.map((_, y) =>
           roomTiles.map((_, x) => {
             const tile = getRoomTile(x, y);
-            const terrain = roomTerrain[tile];
-            const placedStructures = roomGrid[tile] || [];
+            const terrain = tileTerrain[tile];
+            const placedStructures = tileStructures[tile] || [];
             const placedCount = brush ? getPlacedStructureCount(brush) : 0;
             const brushCanBePlaced =
               !!brush &&

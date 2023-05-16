@@ -2,20 +2,20 @@ import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { getRoomTile } from '../utils/helpers';
 import { RoomStructuresJson } from '../utils/types';
-import { useRoomTerrain } from '../contexts/RoomTerrainContext';
+import { useTileTerrain } from '../contexts/TileTerrainContext';
 import { useState } from 'react';
 import StyledDialog from '../common/StyledDialog';
-import { useRoomGrid } from '../contexts/RoomGridContext';
-import { useRoomStructures } from '../contexts/RoomStructuresContext';
+import { useTileStructure } from '../contexts/TileStructureContext';
+import { useStructurePositions } from '../contexts/StructurePositionsContext';
 import DialogTitle from '../common/DialogTitle';
 import { useTheme } from '@mui/material';
 
 export default function LoadStructuresJson(props: { toggleModalOpen: () => void }) {
   const { palette } = useTheme();
 
-  const { addRoomGridStructure, resetRoomGrid } = useRoomGrid();
-  const { addRoomStructure, resetRoomStructures } = useRoomStructures();
-  const { resetRoomTerrain } = useRoomTerrain();
+  const { addTileStructure, resetTileStructures } = useTileStructure();
+  const { addStructurePosition, resetStructurePositions } = useStructurePositions();
+  const { resetTileTerrain } = useTileTerrain();
 
   const [wipeTerrainChecked, setWipeTerrainChecked] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,16 +95,16 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
               }
 
               if (wipeTerrainChecked) {
-                resetRoomTerrain();
+                resetTileTerrain();
               }
-              resetRoomGrid();
-              resetRoomStructures();
+              resetTileStructures();
+              resetStructurePositions();
 
               Object.entries(json.structures).forEach(([structure, positions]) => {
                 positions.forEach((pos) => {
                   const tile = getRoomTile(pos.x, pos.y);
-                  addRoomGridStructure(tile, structure);
-                  addRoomStructure(structure, pos);
+                  addTileStructure(tile, structure);
+                  addStructurePosition(structure, pos);
                 });
               });
 

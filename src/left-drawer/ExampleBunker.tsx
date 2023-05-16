@@ -3,29 +3,29 @@ import * as Icons from '@mui/icons-material';
 import { MAX_RCL, SAMPLE_JSON } from '../utils/constants';
 import { getRoomTile } from '../utils/helpers';
 import { useSettings } from '../contexts/SettingsContext';
-import { useRoomGrid } from '../contexts/RoomGridContext';
-import { useRoomStructures } from '../contexts/RoomStructuresContext';
-import { useRoomTerrain } from '../contexts/RoomTerrainContext';
+import { useTileStructure } from '../contexts/TileStructureContext';
+import { useStructurePositions } from '../contexts/StructurePositionsContext';
+import { useTileTerrain } from '../contexts/TileTerrainContext';
 
 export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
   const { setRcl } = useSettings();
-  const { addRoomGridStructure, resetRoomGrid } = useRoomGrid();
-  const { addRoomStructure, resetRoomStructures } = useRoomStructures();
-  const { resetRoomTerrain } = useRoomTerrain();
+  const { addTileStructure, resetTileStructures } = useTileStructure();
+  const { addStructurePosition, resetStructurePositions } = useStructurePositions();
+  const { resetTileTerrain } = useTileTerrain();
 
   return (
     <Mui.Button
       onMouseDown={() => {
-        resetRoomGrid();
-        resetRoomStructures();
-        resetRoomTerrain();
+        resetTileStructures();
+        resetStructurePositions();
+        resetTileTerrain();
         setRcl(MAX_RCL);
 
         Object.entries(SAMPLE_JSON.structures).forEach(([structure, positions]) => {
           positions.forEach((pos) => {
             const tile = getRoomTile(pos.x, pos.y);
-            addRoomGridStructure(tile, structure);
-            addRoomStructure(structure, pos);
+            addTileStructure(tile, structure);
+            addStructurePosition(structure, pos);
           });
         });
         props.toggleModalOpen();

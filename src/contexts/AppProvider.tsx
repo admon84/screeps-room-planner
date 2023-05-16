@@ -1,18 +1,18 @@
 import { PropsWithChildren } from 'react';
 
 import { SettingsProvider } from './SettingsContext';
-import { RoomGridProvider } from './RoomGridContext';
-import { RoomStructuresProvider } from './RoomStructuresContext';
-import { RoomTerrainProvider } from './RoomTerrainContext';
+import { TileStructureProvider } from './TileStructureContext';
+import { StructurePositionsProvider } from './StructurePositionsContext';
+import { TileTerrainProvider } from './TileTerrainContext';
 
 export const AppProvider = ({ children }: PropsWithChildren) => {
   return (
     <SettingsProvider>
-      <RoomGridProvider>
-        <RoomStructuresProvider>
-          <RoomTerrainProvider>{children}</RoomTerrainProvider>
-        </RoomStructuresProvider>
-      </RoomGridProvider>
+      <TileStructureProvider>
+        <StructurePositionsProvider>
+          <TileTerrainProvider>{children}</TileTerrainProvider>
+        </StructurePositionsProvider>
+      </TileStructureProvider>
     </SettingsProvider>
   );
 };

@@ -1,5 +1,5 @@
 import * as Mui from '@mui/material';
-import { useRoomStructures } from '../contexts/RoomStructuresContext';
+import { useStructurePositions } from '../contexts/StructurePositionsContext';
 import { useSettings } from '../contexts/SettingsContext';
 
 import HighlightCode from './HighlightCode';
@@ -7,7 +7,7 @@ import HighlightCode from './HighlightCode';
 export default function BottomDrawer() {
   const { settings, toggleCodeDrawer } = useSettings();
   const { codeDrawerOpen, rcl } = settings;
-  const { roomStructures } = useRoomStructures();
+  const { structurePositions } = useStructurePositions();
 
   return (
     <Mui.Drawer
@@ -26,7 +26,7 @@ export default function BottomDrawer() {
           <HighlightCode>
             {JSON.stringify({
               rcl,
-              structures: roomStructures,
+              structures: structurePositions,
             })}
           </HighlightCode>
         </Mui.CardContent>
