@@ -1,5 +1,5 @@
 import { Box, Paper } from '@mui/material';
-import { NearbyRoadsData, StructureBrush } from '../utils/types';
+import { NearbyRoadsData } from '../utils/types';
 import { ROOM_SIZE, STRUCTURE_ROAD } from '../utils/constants';
 import {
   getRoomPosition,
@@ -78,15 +78,23 @@ export default function RoomGrid() {
         {roomTiles.map((_, y) =>
           roomTiles.map((_, x) => {
             const tile = getRoomTile(x, y);
+            const terrain = roomTerrain[tile];
+            const placedStructures = roomGrid[tile] || [];
+            const placedCount = brush ? getPlacedStructureCount(brush) : 0;
+            const brushCanBePlaced =
+              !!brush &&
+              brush !== STRUCTURE_ROAD &&
+              !placedStructures.includes(brush) &&
+              structureCanBePlaced(brush, rcl, placedCount, terrain);
             return (
               <RoomGridTile
                 key={tile}
                 tile={tile}
                 rcl={rcl}
                 brush={brush}
-                terrain={roomTerrain[tile]}
-                placedBrushCount={brush ? getPlacedStructureCount(brush) : 0}
-                placedStructures={roomGrid[tile] || []}
+                terrain={terrain}
+                brushCanBePlaced={brushCanBePlaced}
+                placedStructures={placedStructures}
                 nearbyRoads={getNearbyRoads(tile)}
                 addStructure={addStructure}
                 removeStructure={removeStructure}

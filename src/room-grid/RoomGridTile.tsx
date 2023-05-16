@@ -1,26 +1,26 @@
-import { CSSProperties, memo, useState } from 'react';
+import { CSSProperties, useState } from 'react';
 import { Box } from '@mui/material';
 import { STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '../utils/constants';
-import { getStructureBrushes, structureCanBePlaced, structuresToRemove } from '../utils/helpers';
+import { getStructureBrushes, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../contexts/HoverTileContext';
 import { NearbyRoadsData } from '../utils/types';
 
 type Props = {
   brush: string | null;
+  nearbyRoads: NearbyRoadsData;
   placedStructures: string[];
-  placedBrushCount: number;
+  brushCanBePlaced: boolean;
   tile: number;
   terrain: string;
   rcl: number;
   addStructure: (tile: number) => void;
   removeStructure: (tile: number, structure: string) => void;
-  nearbyRoads: NearbyRoadsData;
 };
 
-export default memo(function RoomGridTile({
+export default function RoomGridTile({
   brush,
   placedStructures,
-  placedBrushCount,
+  brushCanBePlaced,
   tile,
   terrain,
   rcl,
@@ -61,16 +61,11 @@ export default memo(function RoomGridTile({
   };
 
   const getCellContent = (): React.ReactNode => {
-    const previewIcon =
-      !!brush &&
-      isHovered &&
-      brush !== STRUCTURE_ROAD &&
-      structureCanBePlaced(brush, rcl, placedBrushCount, terrain) &&
-      !placedStructures.includes(brush);
+    const previewIcon = brushCanBePlaced && isHovered;
 
     let drawStructures = [...placedStructures];
 
-    if (previewIcon) {
+    if (previewIcon && brush) {
       drawStructures.push(brush);
       const previewRemove = structuresToRemove(brush, true);
       drawStructures = drawStructures.filter((s) => !previewRemove.includes(s));
@@ -236,4 +231,4 @@ export default memo(function RoomGridTile({
       </Box>
     </Box>
   );
-});
+}
