@@ -9,9 +9,6 @@ import HoverTilePanel from './room-grid/HoverTilePanel';
 import { HoverTileProvider } from './contexts/HoverTileContext';
 
 export default function App() {
-  const { settings } = useSettings();
-  const brushes = getStructureBrushes(settings.rcl);
-
   return (
     <Mui.Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Mui.CssBaseline />
@@ -22,7 +19,7 @@ export default function App() {
           </Mui.Typography>
         </Mui.Toolbar>
       </Mui.AppBar>
-      <LeftDrawer structureBrushes={brushes} />
+      <LeftDrawer />
       <Mui.Box
         component='main'
         flexDirection='row'
@@ -34,7 +31,7 @@ export default function App() {
         <Mui.Box display='flex' justifyContent='center' padding={3} position='relative'>
           <HoverTileProvider>
             <HoverTilePanel />
-            <RoomGrid structureBrushes={brushes} />
+            <RoomGrid />
           </HoverTileProvider>
         </Mui.Box>
       </Mui.Box>

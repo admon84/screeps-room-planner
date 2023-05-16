@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '../utils/constants';
-import { getRequiredRCL, structureCanBePlaced } from '../utils/helpers';
+import { getRequiredRCL, getStructureBrushes, structureCanBePlaced } from '../utils/helpers';
 import { StructureBrush } from '../utils/types';
 import { useSettings } from '../contexts/SettingsContext';
 import { useRoomStructures } from '../contexts/RoomStructuresContext';
@@ -59,7 +59,7 @@ const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(({ theme }) => ({
   },
 }));
 
-export default function LeftDrawer(props: { structureBrushes: StructureBrush[] }) {
+export default function LeftDrawer() {
   const { settings, setRcl, setBrush, resetBrush, toggleCodeDrawer } = useSettings();
   const { roomStructures } = useRoomStructures();
 
@@ -67,7 +67,8 @@ export default function LeftDrawer(props: { structureBrushes: StructureBrush[] }
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
   const [actionsMenuExpanded, setActionsMenuExpanded] = useState(true);
   const brushClass = 'brush';
-  const controller = props.structureBrushes.find((b) => b.key === STRUCTURE_CONTROLLER);
+  const structureBrushes = getStructureBrushes(settings.rcl);
+  const controller = structureBrushes.find((b) => b.key === STRUCTURE_CONTROLLER);
 
   const getBrush = (target: HTMLElement): string => {
     if (target.classList.contains(brushClass)) {
@@ -135,7 +136,7 @@ export default function LeftDrawer(props: { structureBrushes: StructureBrush[] }
           <StyledAccordionDetails>
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
-                {props.structureBrushes.map(({ key, image, total, name }) => {
+                {structureBrushes.map(({ key, image, total, name }) => {
                   const placed = roomStructures[key]?.length || 0;
                   const disabled = !structureCanBePlaced(key, settings.rcl, placed, TERRAIN_PLAIN);
                   const error = total < placed;

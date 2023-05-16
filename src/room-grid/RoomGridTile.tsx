@@ -1,15 +1,14 @@
 import { CSSProperties, memo, useState } from 'react';
 import { Box } from '@mui/material';
 import { STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '../utils/constants';
-import { structureCanBePlaced, structuresToRemove } from '../utils/helpers';
+import { getStructureBrushes, structureCanBePlaced, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../contexts/HoverTileContext';
-import { NearbyRoadsData, StructureBrush } from '../utils/types';
+import { NearbyRoadsData } from '../utils/types';
 
 type Props = {
   brush: string | null;
   placedStructures: string[];
   placedBrushCount: number;
-  structureBrushes: StructureBrush[];
   tile: number;
   terrain: string;
   rcl: number;
@@ -22,7 +21,6 @@ export default memo(function RoomGridTile({
   brush,
   placedStructures,
   placedBrushCount,
-  structureBrushes,
   tile,
   terrain,
   rcl,
@@ -33,6 +31,7 @@ export default memo(function RoomGridTile({
   // console.log(`-- rendering tile ${tile} --`);
   const [isHovered, setIsHovered] = useState(false);
   const { updateHoverTile, resetHoverTile } = useHoverTile();
+  const structureBrushes = getStructureBrushes(rcl);
   const tileClass = 'tile';
   const tilePosition = {
     position: 'absolute',
@@ -46,8 +45,7 @@ export default memo(function RoomGridTile({
     e.preventDefault();
 
     setIsHovered(true);
-    // TODO: fix bad performance
-    // updateHoverTile(tile);
+    // updateHoverTile(tile); // TODO: fix bad performance
 
     if (e.buttons === 1) {
       addStructure(tile);

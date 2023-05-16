@@ -14,7 +14,7 @@ import { useRoomGrid } from '../contexts/RoomGridContext';
 import { useRoomStructures } from '../contexts/RoomStructuresContext';
 import { useRoomTerrain } from '../contexts/RoomTerrainContext';
 
-export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) {
+export default function RoomGrid() {
   const {
     settings: { brush, rcl },
     resetBrush,
@@ -47,21 +47,17 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
   };
 
   const getNearbyRoads = (tile: number) => {
-    const position = getRoomPosition(tile);
-
+    const origin = getRoomPosition(tile);
     const positions: NearbyRoadsData = {};
     for (const dx of [-1, 0, 1]) {
       for (const dy of [-1, 0, 1]) {
         if (dx === 0 && dy === 0) {
           continue;
         }
-        const [x, y] = [position.x + dx, position.y + dy];
+        const [x, y] = [origin.x + dx, origin.y + dy];
         const tile = getRoomTile(x, y);
         if (positionIsValid(x, y) && roomGrid[tile] && roomGrid[tile].includes(STRUCTURE_ROAD)) {
-          positions[tile] = {
-            dx,
-            dy,
-          };
+          positions[tile] = { dx, dy };
         }
       }
     }
@@ -84,12 +80,11 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
             const tile = getRoomTile(x, y);
             return (
               <RoomGridTile
-                {...props}
                 key={tile}
                 tile={tile}
-                terrain={roomTerrain[tile]}
                 rcl={rcl}
                 brush={brush}
+                terrain={roomTerrain[tile]}
                 placedBrushCount={brush ? getPlacedStructureCount(brush) : 0}
                 placedStructures={roomGrid[tile] || []}
                 nearbyRoads={getNearbyRoads(tile)}
