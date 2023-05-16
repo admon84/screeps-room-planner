@@ -59,8 +59,8 @@ const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(({ theme }) => ({
 }));
 
 export default function LeftDrawer() {
-  const { settings, setRcl, setBrush, resetBrush, toggleCodeDrawer } = useSettings();
-  const { getPlacedStructureCount, structurePositions } = useStructurePositions();
+  const { settings, updateSettings } = useSettings();
+  const { getPlacedCount } = useStructurePositions();
 
   const [roomMenuExpanded, setRoomMenuExpanded] = useState(true);
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
@@ -111,7 +111,7 @@ export default function LeftDrawer() {
                   color='primary'
                   exclusive
                   fullWidth
-                  onChange={(_, value) => value && setRcl(value)}
+                  onChange={(_, value) => value && updateSettings({ type: 'set_rcl', rcl: value })}
                   size='small'
                   value={settings.rcl}
                 >
@@ -136,7 +136,7 @@ export default function LeftDrawer() {
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {structureBrushes.map(({ key, image, total, name }) => {
-                  const placed = getPlacedStructureCount(key);
+                  const placed = getPlacedCount(key);
                   const disabled = !structureCanBePlaced(key, settings.rcl, placed, TERRAIN_PLAIN);
                   const error = total < placed;
                   const locked = !error && settings.rcl < getRequiredRCL(key);
@@ -162,9 +162,9 @@ export default function LeftDrawer() {
                       onMouseDown={(e) => {
                         const brush = getBrush(e.target as HTMLElement);
                         if (settings.brush === brush) {
-                          resetBrush();
+                          updateSettings({ type: 'unset_brush' });
                         } else {
-                          setBrush(brush);
+                          updateSettings({ type: 'set_brush', brush });
                         }
                       }}
                       sx={{
@@ -218,7 +218,11 @@ export default function LeftDrawer() {
               <Mui.Stack direction='column' sx={{ m: 2 }} spacing={1}>
                 <RoomActions />
 
-                <Mui.Button onMouseDown={toggleCodeDrawer} variant='outlined' endIcon={<Icons.DataObject />}>
+                <Mui.Button
+                  onMouseDown={() => updateSettings({ type: 'toggle_code_drawer' })}
+                  variant='outlined'
+                  endIcon={<Icons.DataObject />}
+                >
                   Generate Map JSON
                 </Mui.Button>
               </Mui.Stack>

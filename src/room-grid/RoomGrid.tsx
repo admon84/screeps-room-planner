@@ -10,40 +10,40 @@ import {
 } from '../utils/helpers';
 import RoomGridTile from './RoomGridTile';
 import { useSettings } from '../contexts/SettingsContext';
-import { useTileStructure } from '../contexts/TileStructureContext';
+import { useTileStructures } from '../contexts/TileStructuresContext';
 import { useStructurePositions } from '../contexts/StructurePositionsContext';
 import { useTileTerrain } from '../contexts/TileTerrainContext';
 
 export default function RoomGrid() {
   const {
     settings: { brush, rcl },
-    resetBrush,
+    updateSettings,
   } = useSettings();
-  const { tileStructures, addTileStructure, removeTileStructure } = useTileStructure();
-  const { getPlacedStructureCount, addStructurePosition, removeStructurePosition } = useStructurePositions();
+  const { tileStructures, updateTileStructures } = useTileStructures();
+  const { getPlacedCount, updateStructurePositions } = useStructurePositions();
   const { tileTerrain } = useTileTerrain();
-  const roomTiles = [...Array(ROOM_SIZE)];
+  const roomTiles = [...Array(ROOM_SIZE * ROOM_SIZE)].map((_, i) => i);
 
   const addStructure = (tile: number) => {
     if (!brush) return;
-    const placed = getPlacedStructureCount(brush);
+    const placed = getPlacedCount(brush);
     const terrain = tileTerrain[tile];
     if (structureCanBePlaced(brush, rcl, placed, terrain)) {
       // remove existing structures at this position except ramparts
       structuresToRemove(brush).forEach((structure) => removeStructure(tile, structure));
       // add structures
-      addStructurePosition(brush, getRoomPosition(tile));
-      addTileStructure(tile, brush);
+      updateStructurePositions({ type: 'add_structure', structure: brush, position: getRoomPosition(tile) });
+      updateTileStructures({ type: 'add_structure', tile, structure: brush });
       // deselect active brush when 0 remaining
       if (!structureCanBePlaced(brush, rcl, placed + 1, terrain)) {
-        resetBrush();
+        updateSettings({ type: 'unset_brush' });
       }
     }
   };
 
   const removeStructure = (tile: number, structure: string) => {
-    removeTileStructure(tile, structure);
-    removeStructurePosition(structure, getRoomPosition(tile));
+    updateTileStructures({ type: 'remove_structure', tile, structure });
+    updateStructurePositions({ type: 'remove_structure', structure, position: getRoomPosition(tile) });
   };
 
   const getNearbyRoads = (tile: number) => {
@@ -75,33 +75,30 @@ export default function RoomGrid() {
       }}
     >
       <Box display='grid' gridTemplateColumns='repeat(50, minmax(2%, 1fr))' gap={0}>
-        {roomTiles.map((_, y) =>
-          roomTiles.map((_, x) => {
-            const tile = getRoomTile(x, y);
-            const terrain = tileTerrain[tile];
-            const placedStructures = tileStructures[tile] || [];
-            const placedCount = brush ? getPlacedStructureCount(brush) : 0;
-            const brushCanBePlaced =
-              !!brush &&
-              brush !== STRUCTURE_ROAD &&
-              !placedStructures.includes(brush) &&
-              structureCanBePlaced(brush, rcl, placedCount, terrain);
-            return (
-              <RoomGridTile
-                key={tile}
-                tile={tile}
-                rcl={rcl}
-                brush={brush}
-                terrain={terrain}
-                brushCanBePlaced={brushCanBePlaced}
-                placedStructures={placedStructures}
-                nearbyRoads={getNearbyRoads(tile)}
-                addStructure={addStructure}
-                removeStructure={removeStructure}
-              />
-            );
-          })
-        )}
+        {roomTiles.map((tile) => {
+          const terrain = tileTerrain[tile];
+          const placedStructures = tileStructures[tile] || [];
+          const placedCount = brush ? getPlacedCount(brush) : 0;
+          const brushCanBePlaced =
+            !!brush &&
+            brush !== STRUCTURE_ROAD &&
+            !placedStructures.includes(brush) &&
+            structureCanBePlaced(brush, rcl, placedCount, terrain);
+          return (
+            <RoomGridTile
+              key={tile}
+              tile={tile}
+              rcl={rcl}
+              brush={brush}
+              terrain={terrain}
+              brushCanBePlaced={brushCanBePlaced}
+              placedStructures={placedStructures}
+              nearbyRoads={getNearbyRoads(tile)}
+              addStructure={addStructure}
+              removeStructure={removeStructure}
+            />
+          );
+        })}
       </Box>
     </Paper>
   );

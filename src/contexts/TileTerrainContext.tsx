@@ -1,37 +1,38 @@
-import { useContext, useState, createContext, PropsWithChildren, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
+import { createCtx } from './CreateCtx';
 
 type State = { [tile: number]: string };
 
-type Context = {
-  tileTerrain: State;
-  updateTileTerrain: (tile: number, terrain: string) => void;
-  resetTileTerrain: () => void;
-};
+type Action = { type: 'set_terrain'; tile: number; terrain: string } | { type: 'reset' };
 
-const TileTerrainContext = createContext<Context | null>(null);
+const initialState: State = {};
 
-export const TileTerrainProvider = ({ children }: PropsWithChildren) => {
-  const [tileTerrain, setTileTerrain] = useState<State>({});
+function reducer(state: State, action: Action) {
+  switch (action.type) {
+    case 'set_terrain':
+      return { ...state, [action.tile]: action.terrain };
+    case 'reset':
+      return initialState;
+    default:
+      throw new Error(`Unknown action for TileTerrainContext: ${action}`);
+  }
+}
 
-  const value = useMemo(() => {
-    const updateTileTerrain = (tile: number, terrain: string) => {
-      setTileTerrain((current) => ({ ...current, [tile]: terrain }));
-    };
+const [ctx, TileTerrainProvider] = createCtx(reducer, initialState);
 
-    const resetTileTerrain = () => {
-      setTileTerrain({});
-    };
-
-    return { tileTerrain, updateTileTerrain, resetTileTerrain };
-  }, [tileTerrain]);
-
-  return <TileTerrainContext.Provider value={value}>{children}</TileTerrainContext.Provider>;
-};
-
-export function useTileTerrain() {
-  const context = useContext(TileTerrainContext);
-  if (!context) {
+function useTileTerrain() {
+  const context = useContext(ctx);
+  if (context === undefined) {
     throw new Error('useTileTerrain must be used within a TileTerrainProvider');
   }
-  return context;
+  const { state, dispatch } = context;
+  return useMemo(
+    () => ({
+      tileTerrain: state,
+      updateTileTerrain: dispatch,
+    }),
+    [state, dispatch]
+  );
 }
+
+export { TileTerrainProvider, useTileTerrain };

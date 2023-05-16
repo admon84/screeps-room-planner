@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import StyledDialog from '../common/StyledDialog';
 import { useTileTerrain } from '../contexts/TileTerrainContext';
-import { useTileStructure } from '../contexts/TileStructureContext';
+import { useTileStructures } from '../contexts/TileStructuresContext';
 import { useStructurePositions } from '../contexts/StructurePositionsContext';
 import ExampleBunker from './ExampleBunker';
 import LoadTerrain from './LoadTerrain';
@@ -13,9 +13,9 @@ import LoadStructuresJson from './LoadStructuresJson';
 
 export default function RoomActions() {
   const { palette } = Mui.useTheme();
-  const { resetTileStructures } = useTileStructure();
-  const { resetStructurePositions } = useStructurePositions();
-  const { resetTileTerrain } = useTileTerrain();
+  const { updateTileStructures } = useTileStructures();
+  const { updateStructurePositions } = useStructurePositions();
+  const { updateTileTerrain } = useTileTerrain();
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -38,8 +38,8 @@ export default function RoomActions() {
 
             <Mui.Button
               onMouseDown={() => {
-                resetTileStructures();
-                resetStructurePositions();
+                updateTileStructures({ type: 'reset' });
+                updateStructurePositions({ type: 'reset' });
                 toggleModalOpen();
               }}
               variant='outlined'
@@ -50,7 +50,7 @@ export default function RoomActions() {
 
             <Mui.Button
               onMouseDown={() => {
-                resetTileTerrain();
+                updateTileTerrain({ type: 'reset' });
                 toggleModalOpen();
               }}
               variant='outlined'

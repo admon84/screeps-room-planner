@@ -2,9 +2,7 @@ import * as Mui from '@mui/material';
 
 import LeftDrawer from './left-drawer/LeftDrawer';
 import RoomGrid from './room-grid/RoomGrid';
-import { getStructureBrushes } from './utils/helpers';
 import BottomDrawer from './bottom-drawer/BottomDrawer';
-import { useSettings } from './contexts/SettingsContext';
 import HoverTilePanel from './room-grid/HoverTilePanel';
 import { HoverTileProvider } from './contexts/HoverTileContext';
 

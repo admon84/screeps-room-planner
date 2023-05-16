@@ -8,17 +8,17 @@ import { ScreepsGameRoomTerrain } from '../utils/types';
 import { useSettings } from '../contexts/SettingsContext';
 import { useTileTerrain } from '../contexts/TileTerrainContext';
 import StyledDialog from '../common/StyledDialog';
-import { useTileStructure } from '../contexts/TileStructureContext';
+import { useTileStructures } from '../contexts/TileStructuresContext';
 import { useStructurePositions } from '../contexts/StructurePositionsContext';
 import DialogTitle from '../common/DialogTitle';
 
 export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
   const { palette } = Mui.useTheme();
-  const { settings, setShard, setRoom } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { shard, room } = settings;
-  const { resetTileStructures } = useTileStructure();
-  const { resetStructurePositions } = useStructurePositions();
-  const { resetTileTerrain, updateTileTerrain } = useTileTerrain();
+  const { updateTileStructures } = useTileStructures();
+  const { updateStructurePositions } = useStructurePositions();
+  const { updateTileTerrain } = useTileTerrain();
 
   const [wipeStructuresChecked, setWipeStructuresChecked] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -46,7 +46,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                   defaultValue={shard}
                   onChange={(e) => {
                     setFormError(null);
-                    setShard(e.target.value);
+                    updateSettings({ type: 'set_shard', shard: e.target.value });
                   }}
                 />
               </Mui.FormControl>
@@ -58,7 +58,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                   defaultValue={room}
                   onChange={(e) => {
                     setFormError(null);
-                    setRoom(e.target.value);
+                    updateSettings({ type: 'set_room', room: e.target.value });
                   }}
                 />
               </Mui.FormControl>
@@ -102,10 +102,10 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                 .then(({ data }: { data: ScreepsGameRoomTerrain }) => {
                   if (data.ok) {
                     if (wipeStructuresChecked) {
-                      resetTileStructures();
-                      resetStructurePositions();
+                      updateTileStructures({ type: 'reset' });
+                      updateStructurePositions({ type: 'reset' });
                     }
-                    resetTileTerrain();
+                    updateTileTerrain({ type: 'reset' });
                     const bytes = Array.from(data.terrain[0].terrain);
                     if (bytes.length) {
                       roomTiles.forEach((_, y) => {
@@ -113,7 +113,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                           const terrain = +bytes.shift()!;
                           if (terrain === TERRAIN_MASK_WALL || terrain === TERRAIN_MASK_SWAMP) {
                             const tile = getRoomTile(x, y);
-                            updateTileTerrain(tile, TERRAIN_MASK[terrain]);
+                            updateTileTerrain({ type: 'set_terrain', tile, terrain: TERRAIN_MASK[terrain] });
                           }
                         });
                       });

@@ -1,41 +1,38 @@
-import { useContext, useState, createContext, PropsWithChildren, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
+import { createCtx } from './CreateCtx';
 
-type State = number | null;
+type State = { tile: number | null };
 
-type Context = {
-  hoverTile: State;
-  updateHoverTile: (tile: number) => void;
-  resetHoverTile: () => void;
-};
+type Action = { type: 'set_hover'; tile: number } | { type: 'reset' };
 
-const HoverTileContext = createContext<Context | null>(null);
+const initialState = { tile: null };
 
-export const HoverTileProvider = ({ children }: PropsWithChildren) => {
-  const [hoverTile, setHoverTile] = useState<State>(null);
+function reducer(_: State, action: Action) {
+  switch (action.type) {
+    case 'set_hover':
+      return { tile: action.tile };
+    case 'reset':
+      return initialState;
+    default:
+      throw new Error(`Unknown action for RoomGridContext: ${action}`);
+  }
+}
 
-  const value = useMemo(() => {
-    const updateHoverTile = (tile: number) => {
-      setHoverTile(tile);
-    };
+const [ctx, HoverTileProvider] = createCtx(reducer, initialState);
 
-    const resetHoverTile = () => {
-      setHoverTile(null);
-    };
-
-    return {
-      hoverTile,
-      updateHoverTile,
-      resetHoverTile,
-    };
-  }, [hoverTile]);
-
-  return <HoverTileContext.Provider value={value}>{children}</HoverTileContext.Provider>;
-};
-
-export function useHoverTile() {
-  const context = useContext(HoverTileContext);
-  if (!context) {
+function useHoverTile() {
+  const context = useContext(ctx);
+  if (context === undefined) {
     throw new Error('useHoverTile must be used within a HoverTileProvider');
   }
-  return context;
+  const { state, dispatch } = context;
+  return useMemo(
+    () => ({
+      hover: state,
+      updateHover: dispatch,
+    }),
+    [dispatch, state]
+  );
 }
+
+export { HoverTileProvider, initialState, useHoverTile };

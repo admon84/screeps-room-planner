@@ -3,11 +3,11 @@ import { useHoverTile } from '../contexts/HoverTileContext';
 import { getRoomPosition } from '../utils/helpers';
 
 const HoverTilePanel = () => {
-  const { hoverTile } = useHoverTile();
-  if (hoverTile === null) {
+  const { hover } = useHoverTile();
+  if (hover.tile === null) {
     return null;
   }
-  const { x, y } = getRoomPosition(hoverTile);
+  const { x, y } = getRoomPosition(hover.tile);
   return (
     <Mui.Chip
       label={`X: ${x}, Y: ${y}`}

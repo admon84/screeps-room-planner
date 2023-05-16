@@ -5,7 +5,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import HighlightCode from './HighlightCode';
 
 export default function BottomDrawer() {
-  const { settings, toggleCodeDrawer } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { codeDrawerOpen, rcl } = settings;
   const { structurePositions } = useStructurePositions();
 
@@ -13,7 +13,7 @@ export default function BottomDrawer() {
     <Mui.Drawer
       anchor='bottom'
       open={codeDrawerOpen}
-      onClose={toggleCodeDrawer}
+      onClose={() => updateSettings({ type: 'toggle_code_drawer' })}
       sx={{
         flexShrink: 0,
         [`& .MuiDrawer-paper`]: {

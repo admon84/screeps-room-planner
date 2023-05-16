@@ -1,4 +1,4 @@
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, memo, useState } from 'react';
 import { Box } from '@mui/material';
 import { STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '../utils/constants';
 import { getStructureBrushes, structuresToRemove } from '../utils/helpers';
@@ -17,7 +17,7 @@ type Props = {
   removeStructure: (tile: number, structure: string) => void;
 };
 
-export default function RoomGridTile({
+export default memo(function RoomGridTile({
   brush,
   placedStructures,
   brushCanBePlaced,
@@ -30,7 +30,7 @@ export default function RoomGridTile({
 }: Props) {
   // console.log(`-- rendering tile ${tile} --`);
   const [isHovered, setIsHovered] = useState(false);
-  const { updateHoverTile, resetHoverTile } = useHoverTile();
+  const { updateHover } = useHoverTile();
   const structureBrushes = getStructureBrushes(rcl);
   const tileClass = 'tile';
   const tilePosition = {
@@ -45,7 +45,7 @@ export default function RoomGridTile({
     e.preventDefault();
 
     setIsHovered(true);
-    // updateHoverTile(tile); // TODO: fix bad performance
+    // updateHover({ type: 'set_hover', tile }); // TODO: fix bad performance
 
     if (e.buttons === 1) {
       addStructure(tile);
@@ -57,7 +57,7 @@ export default function RoomGridTile({
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     setIsHovered(false);
-    resetHoverTile();
+    updateHover({ type: 'reset' });
   };
 
   const getCellContent = (): React.ReactNode => {
@@ -231,4 +231,4 @@ export default function RoomGridTile({
       </Box>
     </Box>
   );
-}
+});

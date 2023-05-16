@@ -5,7 +5,7 @@ import { RoomStructuresJson } from '../utils/types';
 import { useTileTerrain } from '../contexts/TileTerrainContext';
 import { useState } from 'react';
 import StyledDialog from '../common/StyledDialog';
-import { useTileStructure } from '../contexts/TileStructureContext';
+import { useTileStructures } from '../contexts/TileStructuresContext';
 import { useStructurePositions } from '../contexts/StructurePositionsContext';
 import DialogTitle from '../common/DialogTitle';
 import { useTheme } from '@mui/material';
@@ -13,9 +13,9 @@ import { useTheme } from '@mui/material';
 export default function LoadStructuresJson(props: { toggleModalOpen: () => void }) {
   const { palette } = useTheme();
 
-  const { addTileStructure, resetTileStructures } = useTileStructure();
-  const { addStructurePosition, resetStructurePositions } = useStructurePositions();
-  const { resetTileTerrain } = useTileTerrain();
+  const { updateTileStructures } = useTileStructures();
+  const { updateStructurePositions } = useStructurePositions();
+  const { updateTileTerrain } = useTileTerrain();
 
   const [wipeTerrainChecked, setWipeTerrainChecked] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,16 +95,16 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
               }
 
               if (wipeTerrainChecked) {
-                resetTileTerrain();
+                updateTileTerrain({ type: 'reset' });
               }
-              resetTileStructures();
-              resetStructurePositions();
+              updateTileStructures({ type: 'reset' });
+              updateStructurePositions({ type: 'reset' });
 
               Object.entries(json.structures).forEach(([structure, positions]) => {
                 positions.forEach((pos) => {
                   const tile = getRoomTile(pos.x, pos.y);
-                  addTileStructure(tile, structure);
-                  addStructurePosition(structure, pos);
+                  updateTileStructures({ type: 'add_structure', tile, structure });
+                  updateStructurePositions({ type: 'add_structure', structure, position: pos });
                 });
               });
 

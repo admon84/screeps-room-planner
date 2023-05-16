@@ -1,68 +1,59 @@
-import { useContext, useState, createContext, PropsWithChildren, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { RoomPosition } from '../utils/types';
+import { createCtx } from './CreateCtx';
 
 type State = { [structure: string]: RoomPosition[] };
 
-type Context = {
-  structurePositions: State;
-  getPlacedStructureCount: (structure: string) => number;
-  addStructurePosition: (structure: string, position: RoomPosition) => void;
-  removeStructurePosition: (structure: string, position: RoomPosition) => void;
-  resetStructurePositions: () => void;
-};
+type Action =
+  | { type: 'add_structure'; structure: string; position: RoomPosition }
+  | { type: 'remove_structure'; structure: string; position: RoomPosition }
+  | { type: 'reset' };
 
-const StructurePositionsContext = createContext<Context | null>(null);
+const initialState: State = {};
 
-export const StructurePositionsProvider = ({ children }: PropsWithChildren) => {
-  const [structurePositions, setStructurePositions] = useState<State>({});
+function reducer(state: State, action: Action) {
+  switch (action.type) {
+    case 'add_structure':
+      return {
+        ...state,
+        [action.structure]: [...(state[action.structure] || []), { x: action.position.x, y: action.position.y }],
+      };
+    case 'remove_structure':
+      const roomPositions = (state[action.structure] || []).filter(
+        ({ x, y }) => !(x === action.position.x && y === action.position.y)
+      );
+      if (!roomPositions.length) {
+        // destructure state to clean up (take out structures with empty roomPositions[])
+        const { [action.structure]: _, ...newState } = state;
+        return newState;
+      }
+      return {
+        ...state,
+        [action.structure]: roomPositions,
+      };
+    case 'reset':
+      return initialState;
+    default:
+      throw new Error(`Unknown action for StructurePositionsContext: ${action}`);
+  }
+}
 
-  const value = useMemo(() => {
-    const getPlacedStructureCount = (structure: string) => {
-      return structurePositions[structure] ? structurePositions[structure].length : 0;
-    };
+const [ctx, StructurePositionsProvider] = createCtx(reducer, initialState);
 
-    const addStructurePosition = (structure: string, position: RoomPosition) => {
-      setStructurePositions((current) => {
-        const positions = [...(current[structure] || []), position];
-        return { ...current, [structure]: [...new Set(positions)] };
-      });
-    };
-
-    const removeStructurePosition = (structure: string, position: RoomPosition) => {
-      setStructurePositions((current) => {
-        const roomPositions = (current[structure] || []).filter((p) => !(p.x === position.x && p.y === position.y));
-        if (!roomPositions.length) {
-          // destructure state to clean up (take out structures with empty roomPositions[])
-          const { [structure]: _, ...newState } = current;
-          return newState;
-        }
-        return {
-          ...current,
-          [structure]: roomPositions,
-        };
-      });
-    };
-
-    const resetStructurePositions = () => {
-      setStructurePositions({});
-    };
-
-    return {
-      structurePositions,
-      getPlacedStructureCount,
-      addStructurePosition,
-      removeStructurePosition,
-      resetStructurePositions,
-    };
-  }, [structurePositions]);
-
-  return <StructurePositionsContext.Provider value={value}>{children}</StructurePositionsContext.Provider>;
-};
-
-export function useStructurePositions() {
-  const context = useContext(StructurePositionsContext);
-  if (!context) {
+function useStructurePositions() {
+  const context = useContext(ctx);
+  if (context === undefined) {
     throw new Error('useStructurePositions must be used within a StructurePositionsProvider');
   }
-  return context;
+  const { state, dispatch } = context;
+  return useMemo(
+    () => ({
+      structurePositions: state,
+      getPlacedCount: (structure: string) => (state[structure] ? state[structure].length : 0),
+      updateStructurePositions: dispatch,
+    }),
+    [state, dispatch]
+  );
 }
+
+export { StructurePositionsProvider, useStructurePositions };

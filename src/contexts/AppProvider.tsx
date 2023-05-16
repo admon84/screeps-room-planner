@@ -1,18 +1,18 @@
 import { PropsWithChildren } from 'react';
 
 import { SettingsProvider } from './SettingsContext';
-import { TileStructureProvider } from './TileStructureContext';
+import { TileStructuresProvider } from './TileStructuresContext';
 import { StructurePositionsProvider } from './StructurePositionsContext';
 import { TileTerrainProvider } from './TileTerrainContext';
 
 export const AppProvider = ({ children }: PropsWithChildren) => {
   return (
     <SettingsProvider>
-      <TileStructureProvider>
+      <TileStructuresProvider>
         <StructurePositionsProvider>
           <TileTerrainProvider>{children}</TileTerrainProvider>
         </StructurePositionsProvider>
-      </TileStructureProvider>
+      </TileStructuresProvider>
     </SettingsProvider>
   );
 };
