@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/screeps-room-planner/static/css/main.0e2e7a93.css",
-    "main.js": "/screeps-room-planner/static/js/main.4e8870be.js",
+    "main.js": "/screeps-room-planner/static/js/main.eebcf339.js",
     "index.html": "/screeps-room-planner/index.html",
     "main.0e2e7a93.css.map": "/screeps-room-planner/static/css/main.0e2e7a93.css.map",
-    "main.4e8870be.js.map": "/screeps-room-planner/static/js/main.4e8870be.js.map"
+    "main.eebcf339.js.map": "/screeps-room-planner/static/js/main.eebcf339.js.map"
   },
   "entrypoints": [
     "static/css/main.0e2e7a93.css",
-    "static/js/main.4e8870be.js"
+    "static/js/main.eebcf339.js"
   ]
 }
