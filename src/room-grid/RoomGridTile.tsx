@@ -1,9 +1,9 @@
 import { CSSProperties, memo, useState } from 'react';
 import { Box } from '@mui/material';
 import { STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '../utils/constants';
-import { positionIsValid, structureCanBePlaced, structuresToRemove } from '../utils/helpers';
+import { structureCanBePlaced, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../contexts/HoverTileContext';
-import { NearbyPositionsData, StructureBrush } from '../utils/types';
+import { NearbyRoadsData, StructureBrush } from '../utils/types';
 
 type Props = {
   brush: string | null;
@@ -15,7 +15,7 @@ type Props = {
   rcl: number;
   addStructure: (tile: number) => void;
   removeStructure: (tile: number, structure: string) => void;
-  nearbyRoads: { [tile: number]: NearbyPositionsData };
+  nearbyRoads: NearbyRoadsData;
 };
 
 export default memo(function RoomGridTile({
@@ -64,7 +64,11 @@ export default memo(function RoomGridTile({
 
   const getCellContent = (): React.ReactNode => {
     const previewIcon =
-      !!brush && isHovered && brush !== STRUCTURE_ROAD && structureCanBePlaced(brush, rcl, placedBrushCount, terrain);
+      !!brush &&
+      isHovered &&
+      brush !== STRUCTURE_ROAD &&
+      structureCanBePlaced(brush, rcl, placedBrushCount, terrain) &&
+      !placedStructures.includes(brush);
 
     let drawStructures = [...placedStructures];
 
@@ -152,46 +156,42 @@ export default memo(function RoomGridTile({
         </svg>,
       ];
 
-      const adjacentRoads = Object.entries(nearbyRoads).map(([key, data]) => {
-        const ctile = parseInt(key);
-        const cpreview = brush === STRUCTURE_ROAD && !data.hasRoad && isHovered && ctile === tile;
-        const croadColor = cpreview || preview || previewIcon ? previewColor : solidColor;
-        if (positionIsValid(data.x, data.y) && (cpreview || data.hasRoad)) {
-          return data.dx === -1 && data.dy === -1 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='0' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : data.dx === 0 && data.dy === -1 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='50%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : data.dx === 1 && data.dy === -1 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='100%' y1='0' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : data.dx === 1 && data.dy === 0 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='100%' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : data.dx === 1 && data.dy === 1 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='100%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : data.dx === 0 && data.dy === 1 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='50%' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : data.dx === -1 && data.dy === 1 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='0' y1='100%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : data.dx === -1 && data.dy === 0 ? (
-            <svg key={ctile} style={roadStyle}>
-              <line x1='0' y1='50%' x2='50%' y2='50%' stroke={croadColor} strokeWidth={2} />
-            </svg>
-          ) : null;
-        }
-        return null;
+      const adjacentRoads = Object.entries(nearbyRoads).map(([key, { dx, dy }]) => {
+        const nearTile = parseInt(key);
+
+        return dx === -1 && dy === -1 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='0' y1='0' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : dx === 0 && dy === -1 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='50%' y1='0' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : dx === 1 && dy === -1 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='100%' y1='0' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : dx === 1 && dy === 0 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='100%' y1='50%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : dx === 1 && dy === 1 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='100%' y1='100%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : dx === 0 && dy === 1 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='50%' y1='100%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : dx === -1 && dy === 1 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='0' y1='100%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : dx === -1 && dy === 0 ? (
+          <svg key={nearTile} style={roadStyle}>
+            <line x1='0' y1='50%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
+          </svg>
+        ) : null;
       });
       return roads.concat(adjacentRoads);
     }

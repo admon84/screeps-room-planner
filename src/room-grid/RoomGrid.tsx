@@ -1,5 +1,5 @@
 import { Box, Paper } from '@mui/material';
-import { NearbyPositionsData, StructureBrush } from '../utils/types';
+import { NearbyRoadsData, StructureBrush } from '../utils/types';
 import { ROOM_SIZE, STRUCTURE_ROAD } from '../utils/constants';
 import {
   getRoomPosition,
@@ -49,7 +49,7 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
   const getNearbyRoads = (tile: number) => {
     const position = getRoomPosition(tile);
 
-    const positions: NearbyPositionsData[] = [];
+    const positions: NearbyRoadsData = {};
     for (const dx of [-1, 0, 1]) {
       for (const dy of [-1, 0, 1]) {
         if (dx === 0 && dy === 0) {
@@ -57,22 +57,15 @@ export default function RoomGrid(props: { structureBrushes: StructureBrush[] }) 
         }
         const [x, y] = [position.x + dx, position.y + dy];
         const tile = getRoomTile(x, y);
-        if (positionIsValid(x, y)) {
-          positions.push({
-            x,
-            y,
+        if (positionIsValid(x, y) && roomGrid[tile] && roomGrid[tile].includes(STRUCTURE_ROAD)) {
+          positions[tile] = {
             dx,
             dy,
-            tile,
-            hasRoad: roomGrid[tile] && roomGrid[tile].includes(STRUCTURE_ROAD),
-          });
+          };
         }
       }
     }
-    return positions.reduce(
-      (acc: { [tile: number]: NearbyPositionsData }, data) => ({ ...acc, [data.tile]: data }),
-      {}
-    );
+    return positions;
   };
 
   return (
