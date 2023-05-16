@@ -1,42 +1,43 @@
 # Screeps Room Planner
 
-Screeps Room Planner is a powerful and user-friendly application designed to help Screeps players efficiently plan and optimize their room layouts. With its intuitive interface and advanced features, you can visualize your base, manage structure placements, and export your designs as JSON code for easy integration into your Screeps script.
+Introducing the new Screeps Room Planner: a practical tool for players to efficiently plan and visualize room layouts.
 
 ## Features
 
-- **Intuitive Interface**: Effortlessly create and modify room layouts using our simple drag-and-drop system, allowing for quick and precise placement of structures.
-- **Room Visualization**: Get a clear overview of your room with our grid-based representation, complete with color-coded building types for easy identification.
-- **JSON Export**: Conveniently export your room layout as a JSON file, enabling seamless integration with your Screeps script and sharing with other players.
-- **Import Room**: Easily import room terrain and structures from live rooms on Screeps MMO and Season shards (run the app locally to use this feature)
+- **Material UI**: Experience a clean, modern, and intuitive user interface built with Material UI
+- **Room Visualization**: Get a clear overview of your room in a visually pleasing design
+- **Import Room Data**: Download terrain and structure data from live Screeps MMO rooms
+- **Export Room JSON**: Generate your room layout as JSON for easy integration with your Screeps script
 
-## Use hosted app
+![screeps-room-planner](https://github.com/admon84/screeps-room-planner/assets/10291543/799c51b5-2207-462a-aba9-f40aaae19536)
 
-To start using the Screeps Room Planner demo version (everything works except Import Room):
+## Hosted version
 
-:link: https://admon84.github.io/screeps-room-planner/
+Try the Screeps Room Planner hosted version (everything works except importing room data):
 
-## Run local app
+:link: [admon84.github.io/screeps-room-planner](https://admon84.github.io/screeps-room-planner/)
 
-To run the Screeps Room Planner locally, follow these steps:
+## Getting started
 
-1. Install Node.js 14+
-2. Clone or download the repository to your local machine
-3. Install dependencies in the project root with `npm install`
-4. Continue steps below in either Development or Production (your choice)
+Screeps Room Planner is easy to install and run on your local machine.
 
-### Development
+### Requirements
 
-Run the app in development mode to enable hot reloading for making changes:
+* Node.js 14+
 
-- Start the app with `npm start`
+### Install
+
+1. Clone or download the repo to your local machine
+2. Install dependencies with `npm install`
+3. Start the app with `npm start`
 
 ### Production
 
-Run the app in production mode for the best user experience:
+Run the app in production mode for optimized app performance:
 
 - Install serve with `npm install serve --global`
 - Build the optimized app with `npm run build`
-- Run the optimized app with `serve -s build`
+- Start the optimized app with `serve -s build`
 
 ## License
 
