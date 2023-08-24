@@ -2,20 +2,22 @@ import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { getRoomTile } from '../utils/helpers';
 import { RoomStructuresJson } from '../utils/types';
-import { useTileTerrain } from '../contexts/TileTerrainContext';
+import { useTileTerrain } from '../state/TileTerrain';
 import { useState } from 'react';
 import StyledDialog from '../common/StyledDialog';
-import { useTileStructures } from '../contexts/TileStructuresContext';
-import { useStructurePositions } from '../contexts/StructurePositionsContext';
+import { useTileStructures } from '../state/TileStructures';
+import { useStructurePositions } from '../state/StructurePositions';
 import DialogTitle from '../common/DialogTitle';
 import { useTheme } from '@mui/material';
 
 export default function LoadStructuresJson(props: { toggleModalOpen: () => void }) {
   const { palette } = useTheme();
 
-  const { updateTileStructures } = useTileStructures();
-  const { updateStructurePositions } = useStructurePositions();
-  const { updateTileTerrain } = useTileTerrain();
+  const addTileStructure = useTileStructures((state) => state.addStructure);
+  const resetTileStructures = useTileStructures((state) => state.reset);
+  const resetStructurePositions = useStructurePositions((state) => state.reset);
+  const addStructurePosition = useStructurePositions((state) => state.addStructure);
+  const resetTileTerrain = useTileTerrain((state) => state.reset);
 
   const [wipeTerrainChecked, setWipeTerrainChecked] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,16 +97,16 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
               }
 
               if (wipeTerrainChecked) {
-                updateTileTerrain({ type: 'reset' });
+                resetTileTerrain();
               }
-              updateTileStructures({ type: 'reset' });
-              updateStructurePositions({ type: 'reset' });
+              resetTileStructures();
+              resetStructurePositions();
 
               Object.entries(json.structures).forEach(([structure, positions]) => {
                 positions.forEach((pos) => {
                   const tile = getRoomTile(pos.x, pos.y);
-                  updateTileStructures({ type: 'add_structure', tile, structure });
-                  updateStructurePositions({ type: 'add_structure', structure, position: pos });
+                  addTileStructure(tile, structure);
+                  addStructurePosition(structure, pos);
                 });
               });
 

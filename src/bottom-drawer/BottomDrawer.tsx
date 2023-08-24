@@ -1,5 +1,5 @@
 import * as Mui from '@mui/material';
-import { useStructurePositions } from '../contexts/StructurePositionsContext';
+import { useStructurePositions } from '../state/StructurePositions';
 import { useSettings } from '../contexts/SettingsContext';
 
 import HighlightCode from './HighlightCode';
@@ -7,7 +7,7 @@ import HighlightCode from './HighlightCode';
 export default function BottomDrawer() {
   const { settings, updateSettings } = useSettings();
   const { codeDrawerOpen, rcl } = settings;
-  const { structurePositions } = useStructurePositions();
+  const structurePositions = useStructurePositions((state) => state.positions);
 
   return (
     <Mui.Drawer

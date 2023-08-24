@@ -3,7 +3,7 @@ import * as Icons from '@mui/icons-material';
 import { MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '../utils/constants';
 import { getRequiredRCL, getStructureBrushes, structureCanBePlaced } from '../utils/helpers';
 import { useSettings } from '../contexts/SettingsContext';
-import { useStructurePositions } from '../contexts/StructurePositionsContext';
+import { useStructurePositions } from '../state/StructurePositions';
 import { useState } from 'react';
 import RoomActions from './RoomActions';
 

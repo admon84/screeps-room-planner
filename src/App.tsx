@@ -4,7 +4,6 @@ import LeftDrawer from './left-drawer/LeftDrawer';
 import RoomGrid from './room-grid/RoomGrid';
 import BottomDrawer from './bottom-drawer/BottomDrawer';
 import HoverTilePanel from './room-grid/HoverTilePanel';
-import { HoverTileProvider } from './contexts/HoverTileContext';
 
 export default function App() {
   return (
@@ -27,10 +26,8 @@ export default function App() {
       >
         <Mui.Toolbar variant='dense' />
         <Mui.Box display='flex' justifyContent='center' padding={3} position='relative'>
-          <HoverTileProvider>
-            <HoverTilePanel />
-            <RoomGrid />
-          </HoverTileProvider>
+          <HoverTilePanel />
+          <RoomGrid />
         </Mui.Box>
       </Mui.Box>
       <BottomDrawer />
