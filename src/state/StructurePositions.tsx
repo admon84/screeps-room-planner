@@ -1,40 +1,30 @@
 import { create } from 'zustand';
-import { RoomPosition } from '../utils/types';
+import { CONTROLLER_STRUCTURES } from '../utils/constants';
 
 interface State {
-  positions: Record<string, ReadonlyArray<RoomPosition>>;
-  getPlacedCount: (structure: string | null) => number;
-  addStructure: (structure: string, position: RoomPosition) => void;
-  removeStructure: (structure: string, position: RoomPosition) => void;
+  positions: Record<string, ReadonlyArray<string>>;
+  getPlacedCount: (structure: string) => number;
+  addStructure: (structure: string, position: string) => void;
+  removeStructure: (structure: string, position: string) => void;
   reset: () => void;
 }
 
+// fill out the initial positions object with keys for all possible structures
+const initialPositions = Object.keys(CONTROLLER_STRUCTURES).reduce((acc, s) => ({ ...acc, [s]: [] }), {});
+
 export const useStructurePositions = create<State>((set, get) => ({
-  positions: {},
-  getPlacedCount: (structure: string | null) => (structure ? (get().positions[structure]?.length || 0) : 0),
-  addStructure: (structure: string, position: RoomPosition) =>
+  positions: initialPositions,
+  getPlacedCount: (structure) => get().positions[structure].length,
+  addStructure: (structure, position) =>
     set((state) => ({
       positions: {
         ...state.positions,
-        [structure]: [...(state.positions[structure] ?? []), { x: position.x, y: position.y }],
+        [structure]: [...state.positions[structure], position],
       },
     })),
-  removeStructure: (structure: string, position: RoomPosition) =>
-    set((state) => {
-      const roomPositions = (state.positions[structure] ?? []).filter(
-        ({ x, y }) => !(x === position.x && y === position.y)
-      );
-      if (roomPositions.length === 0) {
-        // destructure state to clean up (take out structures with empty roomPositions[])
-        const { [structure]: _, ...newState } = state.positions;
-        return { positions: newState };
-      }
-      return {
-        positions: {
-          ...state.positions,
-          [structure]: roomPositions,
-        },
-      };
-    }),
-  reset: () => set({ positions: {} }),
+  removeStructure: (structure, position) =>
+    set((state) => ({
+      positions: { ...state.positions, [structure]: state.positions[structure].filter((p) => p !== position) },
+    })),
+  reset: () => set({ positions: initialPositions }),
 }));

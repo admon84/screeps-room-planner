@@ -1,6 +1,6 @@
 export type RoomPosition = { x: number; y: number };
 
-export type RoomStructures = { [structure: string]: RoomPosition[] };
+export type RoomStructures = { [structure: string]: string[] };
 
 export type RoomStructuresJson = {
   rcl?: number;

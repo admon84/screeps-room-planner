@@ -1,6 +1,6 @@
 import { Box, Paper } from '@mui/material';
 import { NearbyRoadsData } from '../utils/types';
-import { ROOM_SIZE, STRUCTURE_ROAD } from '../utils/constants';
+import { GRID_SIZE, STRUCTURE_ROAD } from '../utils/constants';
 import {
   getRoomPosition,
   getRoomTile,
@@ -14,11 +14,14 @@ import { useTileStructures } from '../state/TileStructures';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useTileTerrain } from '../state/TileTerrain';
 import { useCallback } from 'react';
+import { shallow } from 'zustand/shallow';
 
 export default function RoomGrid() {
+  console.log(`-- RENDERING ROOM GRID --`);
   const rcl = useSettings((state) => state.rcl);
   const unsetBrush = useSettings((state) => state.unsetBrush);
-  const tileStructures = useTileStructures((state) => state.structures);
+  const tileStructures = useTileStructures((state) => state.structures, shallow);
+  // const getStructures = useTileStructures((state) => state.getStructures);
   const addTileStructure = useTileStructures((state) => state.addStructure);
   const removeTileStructure = useTileStructures((state) => state.removeStructure);
 
@@ -26,22 +29,26 @@ export default function RoomGrid() {
   const addStructurePosition = useStructurePositions((state) => state.addStructure);
   const removeStructurePosition = useStructurePositions((state) => state.removeStructure);
   const tileTerrainMap = useTileTerrain((state) => state.terrain);
-  const roomTiles = [...Array(ROOM_SIZE * ROOM_SIZE)].map((_, i) => i);
+  const gridTiles = Array.from(Array(GRID_SIZE).keys());
 
   const addStructure = useCallback((tile: number, structure: string) => {
     const placed = getPlacedCount(structure);
     const terrain = tileTerrainMap[tile];
     if (structureCanBePlaced(structure, rcl, placed, terrain)) {
       // remove existing structures at this position except ramparts
-      structuresToRemove(structure).forEach((structure) => removeStructure(tile, structure));
+      structuresToRemove(structure).forEach((structure) => {
+        removeStructure(tile, structure);
+      });
       // add structures
       addStructurePosition(structure, getRoomPosition(tile));
       addTileStructure(tile, structure);
       // deselect active structure when 0 remaining
-      if (!structureCanBePlaced(structure, rcl, placed + 1, terrain)) {
-        unsetBrush();
-      }
+      // if (!structureCanBePlaced(structure, rcl, placed + 1, terrain)) {
+      //   unsetBrush();
+      // }
     }
+    // addTileStructure(tile, structure);
+    // addStructurePosition(structure, getRoomPosition(tile));
   }, []);
 
   const removeStructure = useCallback((tile: number, structure: string) => {
@@ -49,23 +56,23 @@ export default function RoomGrid() {
     removeStructurePosition(structure, getRoomPosition(tile));
   }, []);
 
-  const getNearbyRoads = (tile: number) => {
-    const origin = getRoomPosition(tile);
-    const positions: NearbyRoadsData = {};
-    for (const dx of [-1, 0, 1]) {
-      for (const dy of [-1, 0, 1]) {
-        if (dx === 0 && dy === 0) {
-          continue;
-        }
-        const [x, y] = [origin.x + dx, origin.y + dy];
-        const tile = getRoomTile(x, y);
-        if (positionIsValid(x, y) && tileStructures[tile] && tileStructures[tile].includes(STRUCTURE_ROAD)) {
-          positions[tile] = { dx, dy };
-        }
-      }
-    }
-    return positions;
-  };
+  // const getNearbyRoads = (tile: number) => {
+  //   const origin = getRoomPosition(tile);
+  //   const positions: NearbyRoadsData = {};
+  //   for (const dx of [-1, 0, 1]) {
+  //     for (const dy of [-1, 0, 1]) {
+  //       if (dx === 0 && dy === 0) {
+  //         continue;
+  //       }
+  //       const [x, y] = [origin.x + dx, origin.y + dy];
+  //       const nearTile = getRoomTile(x, y);
+  //       if (positionIsValid(x, y) && tileStructures[nearTile] && tileStructures[nearTile].includes(STRUCTURE_ROAD)) {
+  //         positions[nearTile] = { dx, dy };
+  //       }
+  //     }
+  //   }
+  //   return positions;
+  // };
 
   return (
     <Paper
@@ -78,17 +85,16 @@ export default function RoomGrid() {
       }}
     >
       <Box display='grid' gridTemplateColumns='repeat(50, minmax(2%, 1fr))' gap={0}>
-        {roomTiles.map((tile) => {
+        {gridTiles.map((tile) => {
           const terrain = tileTerrainMap[tile];
-          const placedStructures = tileStructures[tile] || [];
           return (
             <RoomGridTile
               key={tile}
               tile={tile}
               rcl={rcl}
               terrain={terrain}
-              placedStructures={placedStructures}
-              nearbyRoads={getNearbyRoads(tile)}
+              placedStructures={tileStructures[tile]}
+              // nearbyRoads={getNearbyRoads(tile)}
               addStructure={addStructure}
               removeStructure={removeStructure}
             />

@@ -8,7 +8,6 @@ interface State {
 
 export const useTileTerrain = create<State>((set) => ({
   terrain: {},
-  setTileTerrain: (tile: number, terrain: string) =>
-    set((state) => ({ terrain: { ...state.terrain, [tile]: terrain } })),
+  setTileTerrain: (tile, terrain) => set((state) => ({ terrain: { ...state.terrain, [tile]: terrain } })),
   reset: () => set({ terrain: {} }),
 }));

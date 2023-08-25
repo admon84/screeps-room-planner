@@ -38,7 +38,13 @@ export const getRequiredRCL = (structure: string) =>
 
 export const getRoomTile = (x: number, y: number) => y * ROOM_SIZE + x;
 
-export const getRoomPosition = (tile: number) => ({ x: tile % ROOM_SIZE, y: Math.floor(tile / ROOM_SIZE) });
+export const getRoomPoint = (tile: number) => ({ x: tile % ROOM_SIZE, y: Math.floor(tile / ROOM_SIZE) });
+
+export const getRoomPosition = (tile: number) => {
+  const x = tile % ROOM_SIZE;
+  const y = Math.floor(tile / ROOM_SIZE);
+  return `${x}-${y}`;
+};
 
 export const positionIsValid = (x: number, y: number) => x >= 0 && x < ROOM_SIZE && y >= 0 && y < ROOM_SIZE;
 

@@ -104,7 +104,8 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
 
               Object.entries(json.structures).forEach(([structure, positions]) => {
                 positions.forEach((pos) => {
-                  const tile = getRoomTile(pos.x, pos.y);
+                  const [x, y] = pos.split('-');
+                  const tile = getRoomTile(+x, +y);
                   addTileStructure(tile, structure);
                   addStructurePosition(structure, pos);
                 });
