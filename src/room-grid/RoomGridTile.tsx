@@ -3,32 +3,35 @@ import { Box } from '@mui/material';
 import { STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '../utils/constants';
 import { getStructureBrushes, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../state/HoverTile';
+import { useSettings } from '../state/Settings';
+import { useStructurePositions } from '../state/StructurePositions';
 import { NearbyRoadsData } from '../utils/types';
+import {
+  structureCanBePlaced,
+} from '../utils/helpers';
 
 type Props = {
-  brush: string | null;
   nearbyRoads: NearbyRoadsData;
   placedStructures: readonly string[];
-  brushCanBePlaced: boolean;
   tile: number;
   terrain: string;
   rcl: number;
-  addStructure: (tile: number) => void;
+  addStructure: (tile: number, structure: string) => void;
   removeStructure: (tile: number, structure: string) => void;
 };
 
-export default memo(function RoomGridTile({
-  brush,
+export default memo(({
   placedStructures,
-  brushCanBePlaced,
   tile,
   terrain,
   rcl,
   addStructure,
   removeStructure,
   nearbyRoads,
-}: Props) {
+}: Props) => {
   console.log(`-- rendering tile ${tile} --`);
+  const brush = useSettings((state) => state.brush);
+  const placedBrushCount = useStructurePositions((state) => state.getPlacedCount(brush));
   const resetHoverTile = useHoverTile((state) => state.reset);
   const [isHovered, setIsHovered] = useState(false);
   const structureBrushes = getStructureBrushes(rcl);
@@ -41,15 +44,20 @@ export default memo(function RoomGridTile({
     height: '100%',
   };
 
+  const brushCanBePlaced =
+    !!brush &&
+    brush !== STRUCTURE_ROAD &&
+    !placedStructures.includes(brush) &&
+    structureCanBePlaced(brush, rcl, placedBrushCount, terrain);
+
   const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
 
     setIsHovered(true);
-    // updateHover({ type: 'set_hover', tile }); // TODO: fix bad performance
     useHoverTile.setState({ tile });
 
-    if (e.buttons === 1) {
-      addStructure(tile);
+    if (e.buttons === 1 && brush) {
+      addStructure(tile, brush);
     } else if (e.buttons === 2) {
       structureBrushes.forEach(({ key }) => removeStructure(tile, key));
     }

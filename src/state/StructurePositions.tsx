@@ -3,7 +3,7 @@ import { RoomPosition } from '../utils/types';
 
 interface State {
   positions: Record<string, ReadonlyArray<RoomPosition>>;
-  getPlacedCount: (structure: string) => number;
+  getPlacedCount: (structure: string | null) => number;
   addStructure: (structure: string, position: RoomPosition) => void;
   removeStructure: (structure: string, position: RoomPosition) => void;
   reset: () => void;
@@ -11,7 +11,7 @@ interface State {
 
 export const useStructurePositions = create<State>((set, get) => ({
   positions: {},
-  getPlacedCount: (structure: string) => get().positions[structure]?.length || 0,
+  getPlacedCount: (structure: string | null) => (structure ? (get().positions[structure]?.length || 0) : 0),
   addStructure: (structure: string, position: RoomPosition) =>
     set((state) => ({
       positions: {

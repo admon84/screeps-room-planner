@@ -16,7 +16,6 @@ import { useTileTerrain } from '../state/TileTerrain';
 import { useCallback } from 'react';
 
 export default function RoomGrid() {
-  const brush = useSettings((state) => state.brush);
   const rcl = useSettings((state) => state.rcl);
   const unsetBrush = useSettings((state) => state.unsetBrush);
   const tileStructures = useTileStructures((state) => state.structures);
@@ -29,18 +28,17 @@ export default function RoomGrid() {
   const tileTerrainMap = useTileTerrain((state) => state.terrain);
   const roomTiles = [...Array(ROOM_SIZE * ROOM_SIZE)].map((_, i) => i);
 
-  const addStructure = useCallback((tile: number) => {
-    if (!brush) return;
-    const placed = getPlacedCount(brush);
+  const addStructure = useCallback((tile: number, structure: string) => {
+    const placed = getPlacedCount(structure);
     const terrain = tileTerrainMap[tile];
-    if (structureCanBePlaced(brush, rcl, placed, terrain)) {
+    if (structureCanBePlaced(structure, rcl, placed, terrain)) {
       // remove existing structures at this position except ramparts
-      structuresToRemove(brush).forEach((structure) => removeStructure(tile, structure));
+      structuresToRemove(structure).forEach((structure) => removeStructure(tile, structure));
       // add structures
-      addStructurePosition(brush, getRoomPosition(tile));
-      addTileStructure(tile, brush);
-      // deselect active brush when 0 remaining
-      if (!structureCanBePlaced(brush, rcl, placed + 1, terrain)) {
+      addStructurePosition(structure, getRoomPosition(tile));
+      addTileStructure(tile, structure);
+      // deselect active structure when 0 remaining
+      if (!structureCanBePlaced(structure, rcl, placed + 1, terrain)) {
         unsetBrush();
       }
     }
@@ -83,20 +81,12 @@ export default function RoomGrid() {
         {roomTiles.map((tile) => {
           const terrain = tileTerrainMap[tile];
           const placedStructures = tileStructures[tile] || [];
-          const placedCount = brush ? getPlacedCount(brush) : 0;
-          const brushCanBePlaced =
-            !!brush &&
-            brush !== STRUCTURE_ROAD &&
-            !placedStructures.includes(brush) &&
-            structureCanBePlaced(brush, rcl, placedCount, terrain);
           return (
             <RoomGridTile
               key={tile}
               tile={tile}
               rcl={rcl}
-              brush={brush}
               terrain={terrain}
-              brushCanBePlaced={brushCanBePlaced}
               placedStructures={placedStructures}
               nearbyRoads={getNearbyRoads(tile)}
               addStructure={addStructure}
