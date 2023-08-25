@@ -21,4 +21,4 @@ export type ScreepsGameRoomTerrain = {
   terrain: Array<{ _id: string; room: string; terrain: string; type: 'terrain' }>;
 };
 
-export type NearbyRoadsData = { [tile: number]: { dx: number; dy: number } };
+export type StructuresNearbyData = { dx: number; dy: number; structures: readonly string[] };

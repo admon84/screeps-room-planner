@@ -3,7 +3,7 @@ import { CONTROLLER_STRUCTURES } from '../utils/constants';
 
 interface State {
   positions: Record<string, ReadonlyArray<string>>;
-  getPlacedCount: (structure: string) => number;
+  getPlacedCount: (structure: string | null) => number;
   addStructure: (structure: string, position: string) => void;
   removeStructure: (structure: string, position: string) => void;
   reset: () => void;
@@ -14,7 +14,7 @@ const initialPositions = Object.keys(CONTROLLER_STRUCTURES).reduce((acc, s) => (
 
 export const useStructurePositions = create<State>((set, get) => ({
   positions: initialPositions,
-  getPlacedCount: (structure) => get().positions[structure].length,
+  getPlacedCount: (structure) => (structure ? get().positions[structure].length : 0),
   addStructure: (structure, position) =>
     set((state) => ({
       positions: {
