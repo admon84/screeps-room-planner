@@ -20,10 +20,11 @@ type Props = {
 };
 
 export default memo(({ structures, tile, terrain, rcl, addStructure, removeStructure, getStructuresNearby }: Props) => {
-  console.log(`-- rendering tile ${tile} --`);
+  // console.log(`-- rendering tile ${tile} --`);
   const brush = useSettings((state) => state.brush);
-  const placedBrushCount = 0; //useStructurePositions((state) => state.getPlacedCount(brush));
+  const placedBrushCount = useStructurePositions((state) => state.getPlacedCount(brush));
   const resetHoverTile = useHoverTile((state) => state.reset);
+  const setHover = useHoverTile((state) => state.setHover);
   const [isHovered, setIsHovered] = useState(false);
   const structureBrushes = getStructureBrushes(rcl);
   const tileClass = 'tile';
@@ -45,7 +46,7 @@ export default memo(({ structures, tile, terrain, rcl, addStructure, removeStruc
     e.preventDefault();
 
     setIsHovered(true);
-    useHoverTile.setState({ tile });
+    setHover(tile);
 
     if (e.buttons === 1 && brush) {
       addStructure(tile, brush);

@@ -18,7 +18,7 @@ import { useHoverTile } from '../state/HoverTile';
 import { useCallback } from 'react';
 
 export default function RoomGrid() {
-  console.log(`-- RENDERING ROOM GRID --`);
+  // console.log(`-- RENDERING ROOM GRID --`);
   const rcl = useSettings((state) => state.rcl);
   const unsetBrush = useSettings((state) => state.unsetBrush);
   const tileStructures = useTileStructures((state) => state.structures);
