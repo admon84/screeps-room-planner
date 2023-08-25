@@ -13,6 +13,7 @@ import { useSettings } from '../state/Settings';
 import { useTileStructures } from '../state/TileStructures';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useTileTerrain } from '../state/TileTerrain';
+import { useCallback } from 'react';
 
 export default function RoomGrid() {
   const brush = useSettings((state) => state.brush);
@@ -28,7 +29,7 @@ export default function RoomGrid() {
   const tileTerrainMap = useTileTerrain((state) => state.terrain);
   const roomTiles = [...Array(ROOM_SIZE * ROOM_SIZE)].map((_, i) => i);
 
-  const addStructure = (tile: number) => {
+  const addStructure = useCallback((tile: number) => {
     if (!brush) return;
     const placed = getPlacedCount(brush);
     const terrain = tileTerrainMap[tile];
@@ -43,12 +44,12 @@ export default function RoomGrid() {
         unsetBrush();
       }
     }
-  };
+  }, []);
 
-  const removeStructure = (tile: number, structure: string) => {
+  const removeStructure = useCallback((tile: number, structure: string) => {
     removeTileStructure(tile, structure);
     removeStructurePosition(structure, getRoomPosition(tile));
-  };
+  }, []);
 
   const getNearbyRoads = (tile: number) => {
     const origin = getRoomPosition(tile);
