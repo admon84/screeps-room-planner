@@ -9,16 +9,15 @@ import {
   structuresToRemove,
 } from '../utils/helpers';
 import RoomGridTile from './RoomGridTile';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../state/Settings';
 import { useTileStructures } from '../state/TileStructures';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useTileTerrain } from '../state/TileTerrain';
 
 export default function RoomGrid() {
-  const {
-    settings: { brush, rcl },
-    updateSettings,
-  } = useSettings();
+  const brush = useSettings((state) => state.brush);
+  const rcl = useSettings((state) => state.rcl);
+  const unsetBrush = useSettings((state) => state.unsetBrush);
   const tileStructures = useTileStructures((state) => state.structures);
   const addTileStructure = useTileStructures((state) => state.addStructure);
   const removeTileStructure = useTileStructures((state) => state.removeStructure);
@@ -41,7 +40,7 @@ export default function RoomGrid() {
       addTileStructure(tile, brush);
       // deselect active brush when 0 remaining
       if (!structureCanBePlaced(brush, rcl, placed + 1, terrain)) {
-        updateSettings({ type: 'unset_brush' });
+        unsetBrush();
       }
     }
   };

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ROOM_SIZE, TERRAIN_MASK, TERRAIN_MASK_SWAMP, TERRAIN_MASK_WALL } from '../utils/constants';
 import { getRoomTile } from '../utils/helpers';
 import { ScreepsGameRoomTerrain } from '../utils/types';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../state/Settings';
 import { useTileTerrain } from '../state/TileTerrain';
 import StyledDialog from '../common/StyledDialog';
 import { useTileStructures } from '../state/TileStructures';
@@ -14,8 +14,12 @@ import DialogTitle from '../common/DialogTitle';
 
 export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
   const { palette } = Mui.useTheme();
-  const { settings, updateSettings } = useSettings();
-  const { shard, room } = settings;
+
+  const shard = useSettings((state) => state.shard);
+  const room = useSettings((state) => state.room);
+  const setShard = useSettings((state) => state.setShard);
+  const setRoom = useSettings((state) => state.setRoom);
+
   const resetTileStructures = useTileStructures((state) => state.reset);
   const resetStructurePositions = useStructurePositions((state) => state.reset);
   const resetTileTerrain = useTileTerrain((state) => state.reset);
@@ -47,7 +51,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                   defaultValue={shard}
                   onChange={(e) => {
                     setFormError(null);
-                    updateSettings({ type: 'set_shard', shard: e.target.value });
+                    setShard(e.target.value);
                   }}
                 />
               </Mui.FormControl>
@@ -59,7 +63,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                   defaultValue={room}
                   onChange={(e) => {
                     setFormError(null);
-                    updateSettings({ type: 'set_room', room: e.target.value });
+                    setRoom(e.target.value);
                   }}
                 />
               </Mui.FormControl>

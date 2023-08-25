@@ -1,19 +1,20 @@
 import * as Mui from '@mui/material';
 import { useStructurePositions } from '../state/StructurePositions';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../state/Settings';
 
 import HighlightCode from './HighlightCode';
 
 export default function BottomDrawer() {
-  const { settings, updateSettings } = useSettings();
-  const { codeDrawerOpen, rcl } = settings;
+  const rcl = useSettings((state) => state.rcl);
+  const codeDrawerOpen = useSettings((state) => state.codeDrawerOpen);
+  const toggleCodeDrawer = useSettings((state) => state.toggleCodeDrawer);
   const structurePositions = useStructurePositions((state) => state.positions);
 
   return (
     <Mui.Drawer
       anchor='bottom'
       open={codeDrawerOpen}
-      onClose={() => updateSettings({ type: 'toggle_code_drawer' })}
+      onClose={toggleCodeDrawer}
       sx={{
         flexShrink: 0,
         [`& .MuiDrawer-paper`]: {

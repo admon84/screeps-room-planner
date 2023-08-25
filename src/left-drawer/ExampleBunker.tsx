@@ -2,13 +2,13 @@ import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { MAX_RCL, SAMPLE_JSON } from '../utils/constants';
 import { getRoomTile } from '../utils/helpers';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../state/Settings';
 import { useTileStructures } from '../state/TileStructures';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useTileTerrain } from '../state/TileTerrain';
 
 export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
-  const { updateSettings } = useSettings();
+  const setRCL = useSettings((state) => state.setRCL);
   const addTileStructure = useTileStructures((state) => state.addStructure);
   const resetTileStructures = useTileStructures((state) => state.reset);
   const resetStructurePositions = useStructurePositions((state) => state.reset);
@@ -21,7 +21,7 @@ export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
         resetTileStructures();
         resetStructurePositions();
         resetTileTerrain();
-        updateSettings({ type: 'set_rcl', rcl: MAX_RCL });
+        setRCL(MAX_RCL);
 
         Object.entries(SAMPLE_JSON.structures).forEach(([structure, positions]) => {
           positions.forEach((pos) => {

@@ -8,7 +8,7 @@ import { NearbyRoadsData } from '../utils/types';
 type Props = {
   brush: string | null;
   nearbyRoads: NearbyRoadsData;
-  placedStructures: string[];
+  placedStructures: readonly string[];
   brushCanBePlaced: boolean;
   tile: number;
   terrain: string;
@@ -28,7 +28,7 @@ export default memo(function RoomGridTile({
   removeStructure,
   nearbyRoads,
 }: Props) {
-  // console.log(`-- rendering tile ${tile} --`);
+  console.log(`-- rendering tile ${tile} --`);
   const resetHoverTile = useHoverTile((state) => state.reset);
   const [isHovered, setIsHovered] = useState(false);
   const structureBrushes = getStructureBrushes(rcl);
