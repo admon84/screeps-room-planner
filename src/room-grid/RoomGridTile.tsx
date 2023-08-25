@@ -4,7 +4,6 @@ import { STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '
 import { getStructureBrushes, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../state/HoverTile';
 import { useSettings } from '../state/Settings';
-import { useStructurePositions } from '../state/StructurePositions';
 import { StructuresNearbyData } from '../utils/types';
 import { structureCanBePlaced } from '../utils/helpers';
 
@@ -22,7 +21,6 @@ type Props = {
 export default memo(({ structures, tile, terrain, rcl, addStructure, removeStructure, getStructuresNearby }: Props) => {
   console.log(`-- rendering tile ${tile} --`);
   const brush = useSettings((state) => state.brush);
-  const placedBrushCount = 0; //useStructurePositions((state) => state.getPlacedCount(brush));
   const resetHoverTile = useHoverTile((state) => state.reset);
   const setHover = useHoverTile((state) => state.setHover);
   const [isHovered, setIsHovered] = useState(false);
@@ -37,10 +35,7 @@ export default memo(({ structures, tile, terrain, rcl, addStructure, removeStruc
   };
 
   const brushCanBePlaced =
-    !!brush &&
-    brush !== STRUCTURE_ROAD &&
-    !structures.includes(brush) &&
-    structureCanBePlaced(brush, rcl, placedBrushCount, terrain);
+    !!brush && brush !== STRUCTURE_ROAD && !structures.includes(brush) && structureCanBePlaced(brush, rcl, 0, terrain);
 
   const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();

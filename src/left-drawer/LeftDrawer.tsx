@@ -65,7 +65,7 @@ export default function LeftDrawer() {
   const unsetBrush = useSettings((state) => state.unsetBrush);
   const setRCL = useSettings((state) => state.setRCL);
   const toggleCodeDrawer = useSettings((state) => state.toggleCodeDrawer);
-  const { getPlacedCount } = useStructurePositions();
+  const structurePositions = useStructurePositions((state) => state.positions);
 
   const [roomMenuExpanded, setRoomMenuExpanded] = useState(true);
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
@@ -141,7 +141,7 @@ export default function LeftDrawer() {
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {structureBrushes.map(({ key, image, total, name }) => {
-                  const placed = getPlacedCount(key);
+                  const placed = structurePositions[key].length;
                   const disabled = !structureCanBePlaced(key, rcl, placed, TERRAIN_PLAIN);
                   const error = total < placed;
                   const locked = !error && rcl < getRequiredRCL(key);
