@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default memo(({ structures, tile, terrain, rcl, addStructure, removeStructure, getStructuresNearby }: Props) => {
-  console.log(`-- rendering tile ${tile} --`);
+  // console.log(`-- rendering tile ${tile} --`);
   const brush = useSettings((state) => state.brush);
   const resetHoverTile = useHoverTile((state) => state.reset);
   const setHover = useHoverTile((state) => state.setHover);
