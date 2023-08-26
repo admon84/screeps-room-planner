@@ -27,7 +27,18 @@ export default function BottomDrawer() {
           <HighlightCode>
             {JSON.stringify({
               rcl,
-              structures: structurePositions,
+              structures: Object.fromEntries(
+                Object.entries(structurePositions)
+                  .map(([k, o]) => [
+                    k,
+                    o.map((o) => {
+                      // convert short position string to RoomPosition
+                      const [x, y] = o.split('-');
+                      return { x: +x, y: +y };
+                    }),
+                  ])
+                  .filter(([_, o]) => o.length)
+              ),
             })}
           </HighlightCode>
         </Mui.CardContent>

@@ -5,7 +5,6 @@ import { getStructureBrushes, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../state/HoverTile';
 import { useSettings } from '../state/Settings';
 import { StructuresNearbyData } from '../utils/types';
-import { structureCanBePlaced } from '../utils/helpers';
 
 type Props = {
   structures: readonly string[];
@@ -34,8 +33,7 @@ export default memo(({ structures, tile, terrain, rcl, addStructure, removeStruc
     height: '100%',
   };
 
-  const brushCanBePlaced =
-    !!brush && brush !== STRUCTURE_ROAD && !structures.includes(brush) && structureCanBePlaced(brush, rcl, 0, terrain);
+  const brushCanBePlaced = !!brush && brush !== STRUCTURE_ROAD && !structures.includes(brush);
 
   const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
