@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { ROOM_GRID } from '../utils/constants';
 
 interface State {
-  structures: Record<number, readonly string[]>;
-  getStructures: (tile: number) => readonly string[];
+  structures: Record<number, string[]>;
+  getStructures: (tile: number) => string[];
   addStructure: (tile: number, structure: string) => void;
   removeStructure: (tile: number, structure: string) => void;
   reset: () => void;

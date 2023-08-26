@@ -7,7 +7,7 @@ import { useSettings } from '../state/Settings';
 import { StructuresNearbyData } from '../utils/types';
 
 type Props = {
-  structures: readonly string[];
+  structures: string[];
   tile: number;
   terrain: string;
   rcl: number;
@@ -18,7 +18,6 @@ type Props = {
 };
 
 export default memo(({ structures, tile, terrain, rcl, addStructure, removeStructure, getStructuresNearby }: Props) => {
-  console.log('-- rendering tile --', tile);
   const brush = useSettings((state) => state.brush);
   const resetHoverTile = useHoverTile((state) => state.reset);
   const setHover = useHoverTile((state) => state.setHover);

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { CONTROLLER_STRUCTURES } from '../utils/constants';
 
 interface State {
-  positions: Record<string, readonly string[]>;
+  positions: Record<string, string[]>;
   getPlacedCount: (structure: string | null) => number;
   addStructure: (structure: string, position: string) => void;
   removeStructure: (structure: string, position: string) => void;
