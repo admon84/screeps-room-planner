@@ -88,7 +88,7 @@ export const EXTENSION_ENERGY_CAPACITY = {
 };
 
 // prettier-ignore
-export const SAMPLE_JSON = {
+export const EXAMPLE_BUNKER = {
   rcl: 8,
   structures: {
     container: ['5-5','7-5','7-7','5-7','7-9'],

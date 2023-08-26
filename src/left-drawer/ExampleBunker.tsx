@@ -1,6 +1,6 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import { MAX_RCL, SAMPLE_JSON } from '../utils/constants';
+import { MAX_RCL, EXAMPLE_BUNKER } from '../utils/constants';
 import { getTileForShort } from '../utils/helpers';
 import { useSettings } from '../state/Settings';
 import { useTileStructures } from '../state/TileStructures';
@@ -23,7 +23,7 @@ export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
         resetTileTerrain();
         setRCL(MAX_RCL);
 
-        Object.entries(SAMPLE_JSON.structures).forEach(([structure, positions]) => {
+        Object.entries(EXAMPLE_BUNKER.structures).forEach(([structure, positions]) => {
           positions.forEach((shortPoint) => {
             const tile = getTileForShort(shortPoint);
             addTileStructure(tile, structure);

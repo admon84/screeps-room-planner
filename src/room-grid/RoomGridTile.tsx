@@ -5,6 +5,7 @@ import { getStructureBrushes, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../state/HoverTile';
 import { useSettings } from '../state/Settings';
 import { StructuresNearbyData } from '../utils/types';
+import RoadSvg from './RoadSvg';
 
 type Props = {
   structures: string[];
@@ -108,9 +109,16 @@ export default memo(({ structures, tile, terrain, rcl, addStructure, removeStruc
             }}
           />
         )}
-        {getRoadLines(roadStyle, previewIcon)}
+        <RoadSvg
+          tile={tile}
+          structures={structures}
+          roadStyle={roadStyle}
+          previewIcon={previewIcon}
+          isHovered={isHovered}
+          getStructuresNearby={getStructuresNearby}
+        />
         {structureBrushes
-          .filter((o) => ![STRUCTURE_RAMPART, STRUCTURE_ROAD].includes(o.key) && drawStructures.includes(o.key))
+          .filter(({ key }) => ![STRUCTURE_RAMPART, STRUCTURE_ROAD].includes(key) && drawStructures.includes(key))
           .map(({ key, image }) => (
             <Box
               key={key}
@@ -127,64 +135,6 @@ export default memo(({ structures, tile, terrain, rcl, addStructure, removeStruc
           ))}
       </>
     );
-  };
-
-  const getRoadLines = (roadStyle: CSSProperties, previewIcon = false) => {
-    const tileHasRoad = structures.includes(STRUCTURE_ROAD);
-    const preview = brush === STRUCTURE_ROAD && !tileHasRoad && isHovered;
-    const previewColor = 'rgba(107,107,107,0.4)';
-    const solidColor = '#6b6b6b';
-    const roadColor = preview || previewIcon ? previewColor : solidColor;
-
-    if (preview || tileHasRoad) {
-      const roads: Array<JSX.Element | null> = [
-        <svg key={tile} style={roadStyle}>
-          <circle cx='50%' cy='50%' r='1' fill={roadColor} />
-        </svg>,
-      ];
-
-      const adjacentRoads = getStructuresNearby(tile).map((o) => {
-        if (!o.structures.includes(STRUCTURE_ROAD)) {
-          return null;
-        }
-        const key = `${tile}-${o.dx}-${o.dy}`;
-        return o.dx === -1 && o.dy === -1 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='0' y1='0' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : o.dx === 0 && o.dy === -1 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='50%' y1='0' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : o.dx === 1 && o.dy === -1 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='100%' y1='0' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : o.dx === 1 && o.dy === 0 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='100%' y1='50%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : o.dx === 1 && o.dy === 1 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='100%' y1='100%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : o.dx === 0 && o.dy === 1 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='50%' y1='100%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : o.dx === -1 && o.dy === 1 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='0' y1='100%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : o.dx === -1 && o.dy === 0 ? (
-          <svg key={key} style={roadStyle}>
-            <line x1='0' y1='50%' x2='50%' y2='50%' stroke={roadColor} strokeWidth={2} />
-          </svg>
-        ) : null;
-      });
-      return roads.concat(adjacentRoads);
-    }
-    return null;
   };
 
   return (
@@ -210,7 +160,7 @@ export default memo(({ structures, tile, terrain, rcl, addStructure, removeStruc
         sx={{
           backgroundColor: ({ palette }) => palette.secondary.light,
           ...tilePosition,
-          // Hover tile highlight styling
+          // hover tile highlight styling
           ':after': {
             ...tilePosition,
             content: '""',
