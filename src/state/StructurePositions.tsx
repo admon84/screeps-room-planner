@@ -2,14 +2,13 @@ import { create } from 'zustand';
 import { CONTROLLER_STRUCTURES } from '../utils/constants';
 
 interface State {
-  positions: Record<string, ReadonlyArray<string>>;
+  positions: Record<string, readonly string[]>;
   getPlacedCount: (structure: string | null) => number;
   addStructure: (structure: string, position: string) => void;
   removeStructure: (structure: string, position: string) => void;
   reset: () => void;
 }
 
-// fill out the initial positions object with keys for all possible structures
 const initialPositions = Object.keys(CONTROLLER_STRUCTURES).reduce((acc, s) => ({ ...acc, [s]: [] }), {});
 
 export const useStructurePositions = create<State>((set, get) => ({

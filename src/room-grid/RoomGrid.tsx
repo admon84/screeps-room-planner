@@ -1,78 +1,68 @@
+import * as Helpers from '../utils/helpers';
 import { Box, Paper } from '@mui/material';
-import { StructuresNearbyData, Point } from '../utils/types';
-import { GRID_SIZE } from '../utils/constants';
-import {
-  getPoint,
-  getShortPoint,
-  getRoomTile,
-  positionIsValid,
-  structureCanBePlaced,
-  structuresToRemove,
-} from '../utils/helpers';
-import RoomGridTile from './RoomGridTile';
+import { StructuresNearbyData } from '../utils/types';
 import { useSettings } from '../state/Settings';
 import { useTileStructures } from '../state/TileStructures';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useTileTerrain } from '../state/TileTerrain';
 import { useHoverTile } from '../state/HoverTile';
 import { useCallback } from 'react';
+import RoomGridTile from './RoomGridTile';
 
 export default function RoomGrid() {
-  // console.log('-- RENDERING GRID --');
   const rcl = useSettings((state) => state.rcl);
   const unsetBrush = useSettings((state) => state.unsetBrush);
   const tileStructures = useTileStructures((state) => state.structures);
   const getStructures = useTileStructures((state) => state.getStructures);
   const addTileStructure = useTileStructures((state) => state.addStructure);
   const removeTileStructure = useTileStructures((state) => state.removeStructure);
-
   const getPlacedCount = useStructurePositions((state) => state.getPlacedCount);
   const addStructurePosition = useStructurePositions((state) => state.addStructure);
   const removeStructurePosition = useStructurePositions((state) => state.removeStructure);
   const tileTerrainMap = useTileTerrain((state) => state.terrain);
-  const gridTiles = Array.from(Array(GRID_SIZE).keys());
   const hoverTile = useHoverTile((state) => state.tile);
-  const hoverPoint = getPoint(hoverTile ?? 0);
 
-  const getDistance = (a: Point, b: Point) => Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y));
+  const hoverPoint = Helpers.getPointForTile(hoverTile ?? 0);
 
   const addStructure = useCallback((tile: number, structure: string) => {
     const placed = getPlacedCount(structure);
     const terrain = tileTerrainMap[tile];
-    if (structureCanBePlaced(structure, rcl, placed, terrain)) {
+    if (Helpers.structureCanBePlaced(structure, rcl, placed, terrain)) {
       // remove existing structures at this position except ramparts
-      structuresToRemove(structure).forEach((structure) => {
-        removeStructure(tile, structure);
+      Helpers.structuresToRemove(structure).forEach((s) => {
+        removeStructure(tile, s);
       });
       // add structures
-      addStructurePosition(structure, getShortPoint(tile));
+      addStructurePosition(structure, Helpers.getShortForTile(tile));
       addTileStructure(tile, structure);
       // deselect active structure when 0 remaining
-      if (!structureCanBePlaced(structure, rcl, placed + 1, terrain)) {
+      if (!Helpers.structureCanBePlaced(structure, rcl, placed + 1, terrain)) {
         unsetBrush();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const removeStructure = useCallback((tile: number, structure: string) => {
     removeTileStructure(tile, structure);
-    removeStructurePosition(structure, getShortPoint(tile));
+    removeStructurePosition(structure, Helpers.getShortForTile(tile));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getStructuresNearby = useCallback((tile: number) => {
     const structuresNearby: StructuresNearbyData[] = [];
-    const origin = getPoint(tile);
+    const origin = Helpers.getPointForTile(tile);
     for (const dx of [-1, 0, 1]) {
       for (const dy of [-1, 0, 1]) {
         if (dx === 0 && dy === 0) continue;
         const [x, y] = [origin.x + dx, origin.y + dy];
-        if (positionIsValid(x, y)) {
-          const nearTile = getRoomTile(x, y);
-          structuresNearby.push({ dx, dy, structures: getStructures(nearTile) });
+        if (Helpers.positionIsValid(x, y)) {
+          structuresNearby.push({ dx, dy, structures: getStructures(Helpers.getTile(x, y)) });
         }
       }
     }
     return structuresNearby;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -86,23 +76,24 @@ export default function RoomGrid() {
       }}
     >
       <Box display='grid' gridTemplateColumns='repeat(50, minmax(2%, 1fr))' gap={0}>
-        {gridTiles.map((tile) => {
-          const point = getPoint(tile);
-
-          return (
-            <RoomGridTile
-              key={tile}
-              tile={tile}
-              rcl={rcl}
-              terrain={tileTerrainMap[tile]}
-              isNearHoverTile={getDistance(point, hoverPoint) === 1}
-              structures={tileStructures[tile]}
-              getStructuresNearby={getStructuresNearby}
-              addStructure={addStructure}
-              removeStructure={removeStructure}
-            />
-          );
-        })}
+        {Object.keys(tileStructures)
+          .map((tile) => +tile)
+          .map((tile) => {
+            const tilePoint = Helpers.getPointForTile(tile);
+            return (
+              <RoomGridTile
+                key={tile}
+                tile={tile}
+                rcl={rcl}
+                terrain={tileTerrainMap[tile]}
+                structures={tileStructures[tile]}
+                getStructuresNearby={getStructuresNearby}
+                addStructure={addStructure}
+                removeStructure={removeStructure}
+                renderNearHoverTile={Helpers.getDistance(tilePoint, hoverPoint) === 1}
+              />
+            );
+          })}
       </Box>
     </Paper>
   );

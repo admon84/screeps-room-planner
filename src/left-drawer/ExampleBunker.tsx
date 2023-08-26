@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { MAX_RCL, SAMPLE_JSON } from '../utils/constants';
-import { getRoomTile } from '../utils/helpers';
+import { getTileForShort } from '../utils/helpers';
 import { useSettings } from '../state/Settings';
 import { useTileStructures } from '../state/TileStructures';
 import { useStructurePositions } from '../state/StructurePositions';
@@ -24,11 +24,10 @@ export default function ExampleBunker(props: { toggleModalOpen: () => void }) {
         setRCL(MAX_RCL);
 
         Object.entries(SAMPLE_JSON.structures).forEach(([structure, positions]) => {
-          positions.forEach((pos) => {
-            const [x, y] = pos.split('-');
-            const tile = getRoomTile(+x, +y);
+          positions.forEach((shortPoint) => {
+            const tile = getTileForShort(shortPoint);
             addTileStructure(tile, structure);
-            addStructurePosition(structure, pos);
+            addStructurePosition(structure, shortPoint);
           });
         });
         props.toggleModalOpen();

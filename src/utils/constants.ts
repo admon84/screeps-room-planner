@@ -1,7 +1,7 @@
 export const MAX_RCL = 8;
 
 export const ROOM_SIZE = 50;
-export const GRID_SIZE = ROOM_SIZE * ROOM_SIZE;
+export const ROOM_GRID = Array.from(Array(ROOM_SIZE * ROOM_SIZE).keys());
 
 export const STRUCTURE_EXTENSION = 'extension';
 export const STRUCTURE_RAMPART = 'rampart';

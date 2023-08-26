@@ -1,7 +1,6 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { useState } from 'react';
-
 import StyledDialog from '../common/StyledDialog';
 import { useTileTerrain } from '../state/TileTerrain';
 import { useTileStructures } from '../state/TileStructures';
@@ -13,6 +12,7 @@ import LoadStructuresJson from './LoadStructuresJson';
 
 export default function RoomActions() {
   const { palette } = Mui.useTheme();
+
   const resetTileStructures = useTileStructures((state) => state.reset);
   const resetStructurePositions = useStructurePositions((state) => state.reset);
   const resetTileTerrain = useTileTerrain((state) => state.reset);

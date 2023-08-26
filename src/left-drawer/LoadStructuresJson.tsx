@@ -1,6 +1,6 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import { getRoomTile } from '../utils/helpers';
+import { getTileForShort } from '../utils/helpers';
 import { RoomStructuresJson } from '../utils/types';
 import { useTileTerrain } from '../state/TileTerrain';
 import { useState } from 'react';
@@ -103,11 +103,10 @@ export default function LoadStructuresJson(props: { toggleModalOpen: () => void 
               resetStructurePositions();
 
               Object.entries(json.structures).forEach(([structure, positions]) => {
-                positions.forEach((pos) => {
-                  const [x, y] = pos.split('-');
-                  const tile = getRoomTile(+x, +y);
+                positions.forEach((shortPoint) => {
+                  const tile = getTileForShort(shortPoint);
                   addTileStructure(tile, structure);
-                  addStructurePosition(structure, pos);
+                  addStructurePosition(structure, shortPoint);
                 });
               });
 

@@ -11,19 +11,22 @@ type Props = {
   tile: number;
   terrain: string;
   rcl: number;
-  isNearHoverTile: boolean; // trigger re-rendering for nearby tiles
   addStructure: (tile: number, structure: string) => void;
   removeStructure: (tile: number, structure: string) => void;
   getStructuresNearby: (tile: number) => StructuresNearbyData[];
+  renderNearHoverTile: boolean;
 };
 
 export default memo(({ structures, tile, terrain, rcl, addStructure, removeStructure, getStructuresNearby }: Props) => {
-  // console.log(`-- rendering tile ${tile} --`);
+  console.log('-- rendering tile --', tile);
   const brush = useSettings((state) => state.brush);
   const resetHoverTile = useHoverTile((state) => state.reset);
   const setHover = useHoverTile((state) => state.setHover);
+
   const [isHovered, setIsHovered] = useState(false);
   const structureBrushes = getStructureBrushes(rcl);
+  const brushCanBePlaced = !!brush && brush !== STRUCTURE_ROAD && !structures.includes(brush);
+
   const tileClass = 'tile';
   const tilePosition = {
     position: 'absolute',
@@ -32,8 +35,6 @@ export default memo(({ structures, tile, terrain, rcl, addStructure, removeStruc
     width: '100%',
     height: '100%',
   };
-
-  const brushCanBePlaced = !!brush && brush !== STRUCTURE_ROAD && !structures.includes(brush);
 
   const handleMouseEvent = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();

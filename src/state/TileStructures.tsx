@@ -1,17 +1,15 @@
 import { create } from 'zustand';
-import { GRID_SIZE } from '../utils/constants';
+import { ROOM_GRID } from '../utils/constants';
 
 interface State {
-  structures: Record<number, ReadonlyArray<string>>;
-  getStructures: (tile: number) => ReadonlyArray<string>;
+  structures: Record<number, readonly string[]>;
+  getStructures: (tile: number) => readonly string[];
   addStructure: (tile: number, structure: string) => void;
   removeStructure: (tile: number, structure: string) => void;
   reset: () => void;
 }
 
-// fill out the initial structures object with keys for all possible tiles
-// this makes it so RoomGridTile will only re-render when the list of structures changes for the related tile
-const initialStructures = Array.from(Array(GRID_SIZE).keys()).reduce((acc, i) => ({ ...acc, [i]: [] }), {});
+const initialStructures = ROOM_GRID.reduce((acc, tile) => ({ ...acc, [tile]: [] }), {});
 
 export const useTileStructures = create<State>((set, get) => ({
   structures: initialStructures,

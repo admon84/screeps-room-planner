@@ -2,10 +2,10 @@ import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 
 export default function DialogTitle(props: Mui.DialogTitleProps & { onClose?: () => void }) {
-  const { children, onClose, ...other } = props;
+  const { children, onClose, ...otherProps } = props;
 
   return (
-    <Mui.DialogTitle sx={{ m: 0, p: 2 }} {...other}>
+    <Mui.DialogTitle sx={{ m: 0, p: 2 }} {...otherProps}>
       {children}
       {onClose ? (
         <Mui.IconButton

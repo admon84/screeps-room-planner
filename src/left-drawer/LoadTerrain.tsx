@@ -3,7 +3,7 @@ import * as Icons from '@mui/icons-material';
 import axios from 'axios';
 import { useState } from 'react';
 import { ROOM_SIZE, TERRAIN_MASK, TERRAIN_MASK_SWAMP, TERRAIN_MASK_WALL } from '../utils/constants';
-import { getRoomTile } from '../utils/helpers';
+import { getTile } from '../utils/helpers';
 import { ScreepsGameRoomTerrain } from '../utils/types';
 import { useSettings } from '../state/Settings';
 import { useTileTerrain } from '../state/TileTerrain';
@@ -19,7 +19,6 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
   const room = useSettings((state) => state.room);
   const setShard = useSettings((state) => state.setShard);
   const setRoom = useSettings((state) => state.setRoom);
-
   const resetTileStructures = useTileStructures((state) => state.reset);
   const resetStructurePositions = useStructurePositions((state) => state.reset);
   const resetTileTerrain = useTileTerrain((state) => state.reset);
@@ -117,7 +116,7 @@ export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
                         roomTiles.forEach((_, x) => {
                           const terrain = +bytes.shift()!;
                           if (terrain === TERRAIN_MASK_WALL || terrain === TERRAIN_MASK_SWAMP) {
-                            const tile = getRoomTile(x, y);
+                            const tile = getTile(x, y);
                             setTileTerrain(tile, TERRAIN_MASK[terrain]);
                           }
                         });
