@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useSettings } from '../state/Settings';
-
+import { getPointFromString } from '../utils/helpers';
 import HighlightCode from './HighlightCode';
 
 export default function BottomDrawer() {
@@ -29,15 +29,8 @@ export default function BottomDrawer() {
               rcl,
               structures: Object.fromEntries(
                 Object.entries(structurePositions)
-                  .map(([k, o]) => [
-                    k,
-                    o.map((o) => {
-                      // convert short position string to Point
-                      const [x, y] = o.split('-');
-                      return { x: +x, y: +y };
-                    }),
-                  ])
-                  .filter(([_, o]) => o.length)
+                  .map(([structure, positions]) => [structure, positions.map(getPointFromString)])
+                  .filter(([_, positions]) => positions.length)
               ),
             })}
           </HighlightCode>

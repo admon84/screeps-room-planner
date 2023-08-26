@@ -44,6 +44,11 @@ export const getShortPoint = (tile: number) => {
   return `${x}-${y}`;
 };
 
+export const getPointFromString = (shortPoint: string) => {
+  const [x, y] = shortPoint.split('-');
+  return { x: +x, y: +y };
+};
+
 export const positionIsValid = (x: number, y: number) => x >= 0 && x < ROOM_SIZE && y >= 0 && y < ROOM_SIZE;
 
 export const structureCanBePlaced = (structure: string, rcl: number, placed: number, terrain: string) => {
