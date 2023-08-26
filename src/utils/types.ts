@@ -1,4 +1,4 @@
-export type RoomPosition = { x: number; y: number };
+export type Point = { x: number; y: number };
 
 export type RoomStructures = { [structure: string]: string[] };
 

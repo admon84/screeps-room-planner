@@ -1,9 +1,9 @@
 import { Box, Paper } from '@mui/material';
-import { StructuresNearbyData, RoomPosition } from '../utils/types';
-import { GRID_SIZE, STRUCTURE_ROAD } from '../utils/constants';
+import { StructuresNearbyData, Point } from '../utils/types';
+import { GRID_SIZE } from '../utils/constants';
 import {
-  getRoomPoint,
-  getRoomPosition,
+  getPoint,
+  getShortPoint,
   getRoomTile,
   positionIsValid,
   structureCanBePlaced,
@@ -18,7 +18,7 @@ import { useHoverTile } from '../state/HoverTile';
 import { useCallback } from 'react';
 
 export default function RoomGrid() {
-  // console.log(`-- RENDERING ROOM GRID --`);
+  // console.log('-- RENDERING GRID --');
   const rcl = useSettings((state) => state.rcl);
   const unsetBrush = useSettings((state) => state.unsetBrush);
   const tileStructures = useTileStructures((state) => state.structures);
@@ -32,9 +32,9 @@ export default function RoomGrid() {
   const tileTerrainMap = useTileTerrain((state) => state.terrain);
   const gridTiles = Array.from(Array(GRID_SIZE).keys());
   const hoverTile = useHoverTile((state) => state.tile);
-  const hoverPoint = getRoomPoint(hoverTile ?? 0);
+  const hoverPoint = getPoint(hoverTile ?? 0);
 
-  const getDistance = (a: RoomPosition, b: RoomPosition) => Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y));
+  const getDistance = (a: Point, b: Point) => Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y));
 
   const addStructure = useCallback((tile: number, structure: string) => {
     const placed = getPlacedCount(structure);
@@ -45,7 +45,7 @@ export default function RoomGrid() {
         removeStructure(tile, structure);
       });
       // add structures
-      addStructurePosition(structure, getRoomPosition(tile));
+      addStructurePosition(structure, getShortPoint(tile));
       addTileStructure(tile, structure);
       // deselect active structure when 0 remaining
       if (!structureCanBePlaced(structure, rcl, placed + 1, terrain)) {
@@ -56,12 +56,12 @@ export default function RoomGrid() {
 
   const removeStructure = useCallback((tile: number, structure: string) => {
     removeTileStructure(tile, structure);
-    removeStructurePosition(structure, getRoomPosition(tile));
+    removeStructurePosition(structure, getShortPoint(tile));
   }, []);
 
   const getStructuresNearby = useCallback((tile: number) => {
     const structuresNearby: StructuresNearbyData[] = [];
-    const origin = getRoomPoint(tile);
+    const origin = getPoint(tile);
     for (const dx of [-1, 0, 1]) {
       for (const dy of [-1, 0, 1]) {
         if (dx === 0 && dy === 0) continue;
@@ -87,7 +87,7 @@ export default function RoomGrid() {
     >
       <Box display='grid' gridTemplateColumns='repeat(50, minmax(2%, 1fr))' gap={0}>
         {gridTiles.map((tile) => {
-          const point = getRoomPoint(tile);
+          const point = getPoint(tile);
 
           return (
             <RoomGridTile

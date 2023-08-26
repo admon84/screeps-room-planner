@@ -1,13 +1,13 @@
 import * as Mui from '@mui/material';
 import { useHoverTile } from '../state/HoverTile';
-import { getRoomPoint } from '../utils/helpers';
+import { getPoint } from '../utils/helpers';
 
 const HoverTilePanel = () => {
   const tile = useHoverTile((state) => state.tile);
   if (tile === null) {
     return null;
   }
-  const { x, y } = getRoomPoint(tile);
+  const { x, y } = getPoint(tile);
   return (
     <Mui.Chip
       label={`X: ${x}, Y: ${y}`}

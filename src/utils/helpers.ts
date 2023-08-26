@@ -23,9 +23,8 @@ const getStructureIconPath = (key: string, rcl = MAX_RCL) => {
   const path = window.location.pathname.replace(/\/$/, '');
   if (key === STRUCTURE_CONTROLLER) {
     return `${path}/images/controller/${rcl}.png`;
-  }
-  if (key === STRUCTURE_EXTENSION) {
-    return `${path}/images/extension/` + (rcl === 8 || rcl === 7 ? `${rcl}.png` : `3.png`);
+  } else if (key === STRUCTURE_EXTENSION) {
+    return `${path}/images/extension/` + (rcl === 8 || rcl === 7 ? `${rcl}.png` : '3.png');
   }
   return `${path}/images/structures/${key}.png`;
 };
@@ -38,11 +37,10 @@ export const getRequiredRCL = (structure: string) =>
 
 export const getRoomTile = (x: number, y: number) => y * ROOM_SIZE + x;
 
-export const getRoomPoint = (tile: number) => ({ x: tile % ROOM_SIZE, y: Math.floor(tile / ROOM_SIZE) });
+export const getPoint = (tile: number) => ({ x: tile % ROOM_SIZE, y: Math.floor(tile / ROOM_SIZE) });
 
-export const getRoomPosition = (tile: number) => {
-  const x = tile % ROOM_SIZE;
-  const y = Math.floor(tile / ROOM_SIZE);
+export const getShortPoint = (tile: number) => {
+  const { x, y } = getPoint(tile);
   return `${x}-${y}`;
 };
 

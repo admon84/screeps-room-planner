@@ -32,7 +32,7 @@ export default function BottomDrawer() {
                   .map(([k, o]) => [
                     k,
                     o.map((o) => {
-                      // convert short position string to RoomPosition
+                      // convert short position string to Point
                       const [x, y] = o.split('-');
                       return { x: +x, y: +y };
                     }),
