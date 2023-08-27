@@ -293,10 +293,8 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
+          width: drawerWidth,
+          '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', backgroundImage: 'none' },
         }}
       >
         {drawer}
