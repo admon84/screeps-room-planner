@@ -35,6 +35,8 @@ export const getStructureProps = (key: string, rcl = Constants.MAX_RCL) => ({
   image: getStructureIconPath(key, rcl),
   name: Constants.STRUCTURE_BRUSHES[key],
   total: Constants.CONTROLLER_STRUCTURES[key][rcl] || 0,
+  object: Constants.STRUCTURE_OBJECTS[key],
+  description: Constants.STRUCTURE_DESCRIPTIONS[key],
 });
 
 const getStructureIconPath = (key: string, rcl = Constants.MAX_RCL) => {

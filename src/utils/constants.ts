@@ -75,6 +75,48 @@ export const STRUCTURE_BRUSHES: Record<string, string> = {
   [STRUCTURE_ROAD]: STRUCTURE_ROAD,
 };
 
+export const STRUCTURE_OBJECTS: Record<string, string> = {
+  [STRUCTURE_CONTROLLER]: 'Controller',
+  [STRUCTURE_SPAWN]: 'Spawn',
+  [STRUCTURE_CONTAINER]: 'Container',
+  [STRUCTURE_EXTENSION]: 'Extension',
+  [STRUCTURE_TOWER]: 'Tower',
+  [STRUCTURE_STORAGE]: 'Storage',
+  [STRUCTURE_LINK]: 'Link',
+  [STRUCTURE_TERMINAL]: 'Terminal',
+  [STRUCTURE_LAB]: 'Lab',
+  [STRUCTURE_EXTRACTOR]: 'Extractor',
+  [STRUCTURE_FACTORY]: 'Factory',
+  [STRUCTURE_OBSERVER]: 'Observer',
+  [STRUCTURE_POWER_SPAWN]: 'PowerSpawn',
+  [STRUCTURE_NUKER]: 'Nuker',
+  [STRUCTURE_RAMPART]: 'Rampart',
+  [STRUCTURE_WALL]: 'Wall',
+  [STRUCTURE_ROAD]: 'Road',
+};
+
+export const STRUCTURE_DESCRIPTIONS: Record<string, string> = {
+  [STRUCTURE_CONTROLLER]:
+    'Claim this structure to take control over the room. The controller cannot be damaged or destroyed.',
+  [STRUCTURE_SPAWN]: 'Spawn is your colony station. This structure can create, renew, and recycle creeps.',
+  [STRUCTURE_CONTAINER]: 'A small container that can be used to store resources. This is a walkable structure.',
+  [STRUCTURE_EXTENSION]: 'Contains energy which can be spent on spawning larger creeps.',
+  [STRUCTURE_TOWER]: 'Remotely attacks or heals creeps, or repairs structures.',
+  [STRUCTURE_STORAGE]: 'A structure that can store huge amount of resource units.',
+  [STRUCTURE_LINK]: 'Remotely transfers energy to another Link in the same room.',
+  [STRUCTURE_TERMINAL]:
+    'Sends resources to a terminal in another room. The destination terminal can belong to any player.',
+  [STRUCTURE_LAB]: 'Produces mineral compounds from base minerals, boosts and unboosts creeps.',
+  [STRUCTURE_EXTRACTOR]: 'Allows harvesting a mineral deposit.',
+  [STRUCTURE_FACTORY]: 'Produces trade commodities from base minerals and other commodities.',
+  [STRUCTURE_OBSERVER]: 'Provides visibility into a distant room from your script.',
+  [STRUCTURE_POWER_SPAWN]: 'Processes power into your account, and spawns power creeps with special unique powers.',
+  [STRUCTURE_NUKER]: 'Launches a nuke to another room dealing huge damage to the landing area.',
+  [STRUCTURE_RAMPART]: 'Blocks movement of hostile creeps, and defends your creeps and structures on the same tile.',
+  [STRUCTURE_WALL]: 'Blocks movement of all creeps.',
+  [STRUCTURE_ROAD]: 'Decreases creep movement cost. Using roads allows creating creeps with less MOVE body parts.',
+};
+
 export const EXTENSION_ENERGY_CAPACITY = {
   0: 50,
   1: 50,

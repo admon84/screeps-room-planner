@@ -81,7 +81,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const brushClass = 'brush';
   const structureBrushes = getStructureBrushes(rcl);
   const controller = structureBrushes.find((b) => b.key === STRUCTURE_CONTROLLER);
-  const drawerWidth = 300;
+  const width = 300;
 
   const getBrush = (target: HTMLElement): string => {
     if (target.classList.contains(brushClass)) {
@@ -188,7 +188,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           <StyledAccordionDetails>
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
-                {structureBrushes.map(({ key, image, total, name }) => {
+                {structureBrushes.map(({ key, image, total, name, object, description }) => {
                   const placed = structurePositions[key].length;
                   const disabled = !structureCanBePlaced(key, rcl, placed, TERRAIN_PLAIN);
                   const error = total < placed;
@@ -200,17 +200,32 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                       key={key}
                       disabled={disabled}
                       endIcon={
-                        <Mui.Box
-                          sx={{
-                            backgroundImage: `url(${image})`,
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundSize: 'contain',
-                            height: iconSize,
-                            width: iconSize,
-                            opacity: disabled ? 0.2 : 1,
-                          }}
-                        />
+                        <Mui.Tooltip
+                          arrow
+                          placement='right'
+                          title={
+                            <Mui.Box display='flex' flexDirection='column' justifyContent='center'>
+                              <Mui.Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
+                                {description}
+                              </Mui.Typography>
+                              <Mui.Link href={'https://docs.screeps.com/api/#Structure' + object} target='_blank'>
+                                View Documentation
+                              </Mui.Link>
+                            </Mui.Box>
+                          }
+                        >
+                          <Mui.Box
+                            sx={{
+                              backgroundImage: `url(${image})`,
+                              backgroundPosition: 'center',
+                              backgroundRepeat: 'no-repeat',
+                              backgroundSize: 'contain',
+                              height: iconSize,
+                              width: iconSize,
+                              opacity: disabled ? 0.2 : 1,
+                            }}
+                          />
+                        </Mui.Tooltip>
                       }
                       onMouseDown={(e) => {
                         const newBrush = getBrush(e.target as HTMLElement);
@@ -236,7 +251,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         flexGrow='1'
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
-                        <Mui.Tooltip title={`${total - placed} Remaining`}>
+                        <Mui.Tooltip arrow placement='left' title={`${total - placed} remaining`}>
                           <Mui.Chip
                             color={error ? 'error' : 'default'}
                             icon={locked ? <Icons.Lock /> : <></>}
@@ -293,8 +308,8 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
-          width: drawerWidth,
-          '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', backgroundImage: 'none' },
+          width,
+          '& .MuiDrawer-paper': { width, boxSizing: 'border-box', backgroundImage: 'none' },
         }}
       >
         {drawer}
@@ -304,8 +319,8 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
         sx={{
           display: { xs: 'none', md: 'block' },
           flexShrink: 0,
-          width: drawerWidth,
-          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, overflow: 'hidden' },
+          width,
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width, overflow: 'hidden' },
         }}
         open
       >
