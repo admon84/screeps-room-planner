@@ -50,10 +50,12 @@ const StyledAccordionDetails = Mui.styled(Mui.AccordionDetails)({
 
 const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(({ theme }) => ({
   '& .MuiBadge-badge': {
-    right: 15,
-    top: 15,
-    border: `2px solid ${theme.palette.background.paper}`,
-    padding: '0 4px',
+    right: 12,
+    top: 12,
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
+    fontSize: '0.6rem',
   },
 }));
 
@@ -113,8 +115,8 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                   flexGrow={1}
                   justifyContent='space-between'
                 >
-                  <Mui.Typography>Map Zoom</Mui.Typography>
-                  <Mui.Typography>{zoom}</Mui.Typography>
+                  <Mui.Typography variant='body2'>Map Zoom</Mui.Typography>
+                  <Mui.Typography variant='body2'>{zoom * 25 + 50}%</Mui.Typography>
                 </Mui.Box>
                 <Mui.Paper variant='outlined' sx={{ px: 2.4, pt: 0.8 }}>
                   <Mui.Slider
@@ -149,11 +151,11 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                   flexGrow={1}
                   justifyContent='space-between'
                 >
-                  <Mui.Typography>Room Controller Level</Mui.Typography>
+                  <Mui.Typography variant='body2'>Room Controller Level</Mui.Typography>
                   <Mui.Box>
                     {controller && (
                       <StyledBadge badgeContent={rcl} color='secondary'>
-                        <Mui.Avatar alt={controller.name} src={controller.image} sx={{ width: 30, height: 30 }} />
+                        <Mui.Avatar alt={controller.name} src={controller.image} sx={{ width: 24, height: 24 }} />
                       </StyledBadge>
                     )}
                   </Mui.Box>
