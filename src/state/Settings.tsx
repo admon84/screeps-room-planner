@@ -1,16 +1,18 @@
 import { create } from 'zustand';
-import { MAX_RCL } from '../utils/constants';
+import { BrushType, MAX_RCL } from '../utils/constants';
 
 interface State {
   settings: {
     codeDrawerOpen: boolean;
     brush: string | null;
+    brushType: BrushType;
     rcl: number;
     room: string;
     shard: string;
     zoom: number;
   };
   setBrush: (brush: string) => void;
+  setBrushType: (brushType: BrushType) => void;
   setRCL: (rcl: number) => void;
   setRoom: (room: string) => void;
   setShard: (shard: string) => void;
@@ -22,6 +24,7 @@ interface State {
 const initialSettings = {
   codeDrawerOpen: false,
   brush: null,
+  brushType: BrushType.Structure,
   rcl: MAX_RCL,
   room: 'E3S1',
   shard: 'shard0',
@@ -31,6 +34,7 @@ const initialSettings = {
 export const useSettings = create<State>((set) => ({
   settings: initialSettings,
   setBrush: (brush) => set((state) => ({ settings: { ...state.settings, brush } })),
+  setBrushType: (brushType) => set((state) => ({ settings: { ...state.settings, brushType } })),
   setRCL: (rcl) => set((state) => ({ settings: { ...state.settings, rcl } })),
   setRoom: (room) => set((state) => ({ settings: { ...state.settings, room } })),
   setShard: (shard) => set((state) => ({ settings: { ...state.settings, shard } })),

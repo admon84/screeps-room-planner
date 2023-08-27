@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import { MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '../utils/constants';
-import { getRequiredRCL, getStructureBrushes, structureCanBePlaced } from '../utils/helpers';
+import { BrushType, MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '../utils/constants';
+import { getRequiredRCL, getStructureBrushes, getObjectBrushes, structureCanBePlaced } from '../utils/helpers';
 import { useSettings } from '../state/Settings';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useState } from 'react';
@@ -69,25 +69,35 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const brush = useSettings((state) => state.settings.brush);
   const rcl = useSettings((state) => state.settings.rcl);
   const setBrush = useSettings((state) => state.setBrush);
+  const setBrushType = useSettings((state) => state.setBrushType);
   const resetBrush = useSettings((state) => state.resetBrush);
   const setRCL = useSettings((state) => state.setRCL);
   const setZoom = useSettings((state) => state.setZoom);
   const toggleCodeDrawer = useSettings((state) => state.toggleCodeDrawer);
   const structurePositions = useStructurePositions((state) => state.positions);
 
-  const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
   const [settingsMenuExpanded, setSettingsMenuExpanded] = useState(true);
+  const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
+  const [objectsMenuExpanded, setObjectsMenuExpanded] = useState(true);
   const [actionsMenuExpanded, setActionsMenuExpanded] = useState(true);
   const brushClass = 'brush';
+  const objectClass = 'object';
   const structureBrushes = getStructureBrushes(rcl);
   const controller = structureBrushes.find((b) => b.key === STRUCTURE_CONTROLLER);
   const width = 300;
 
-  const getBrush = (target: HTMLElement): string => {
+  const getStructureBrush = (target: HTMLElement): string => {
     if (target.classList.contains(brushClass)) {
       return (target as HTMLElement).dataset.structure!;
     }
-    return getBrush(target.parentElement as HTMLElement);
+    return getStructureBrush(target.parentElement as HTMLElement);
+  };
+
+  const getObjectBrush = (target: HTMLElement): string => {
+    if (target.classList.contains(objectClass)) {
+      return (target as HTMLElement).dataset.object!;
+    }
+    return getObjectBrush(target.parentElement as HTMLElement);
   };
 
   const updateZoom = (_: any, value: number | number[]) => setZoom(Array.isArray(value) ? value[0] : value);
@@ -122,7 +132,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                   <Mui.Slider
                     marks={false}
                     max={2}
-                    min={1}
+                    min={0}
                     step={0.1}
                     value={zoom}
                     onChange={updateZoom}
@@ -228,11 +238,12 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         </Mui.Tooltip>
                       }
                       onMouseDown={(e) => {
-                        const newBrush = getBrush(e.target as HTMLElement);
+                        const newBrush = getStructureBrush(e.target as HTMLElement);
                         if (brush === newBrush) {
                           resetBrush();
                         } else {
                           setBrush(newBrush);
+                          setBrushType(BrushType.Structure);
                         }
                       }}
                       sx={{
@@ -278,6 +289,67 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             </Mui.Box>
           </StyledAccordionDetails>
         </StyledAccordion>
+
+        <StyledAccordion expanded={objectsMenuExpanded} onChange={() => setObjectsMenuExpanded(!objectsMenuExpanded)}>
+          <StyledAccordionSummary>
+            <Mui.Typography>Objects</Mui.Typography>
+          </StyledAccordionSummary>
+          <StyledAccordionDetails>
+            <Mui.Box display='flex' flexDirection='column' overflow='auto'>
+              <Mui.Stack direction='column' sx={{ m: 2 }}>
+                {getObjectBrushes().map(({ key, image, name }) => {
+                  return (
+                    <StyledButton
+                      className={objectClass}
+                      data-object={key}
+                      key={key}
+                      endIcon={
+                        <Mui.Box
+                          sx={{
+                            backgroundImage: `url(${image})`,
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundSize: 'contain',
+                            height: iconSize,
+                            width: iconSize,
+                            opacity: 1,
+                          }}
+                        />
+                      }
+                      onMouseDown={(e) => {
+                        const newBrush = getObjectBrush(e.target as HTMLElement);
+                        if (brush === newBrush) {
+                          resetBrush();
+                        } else {
+                          setBrush(newBrush);
+                          setBrushType(BrushType.Object);
+                        }
+                      }}
+                      sx={{
+                        justifyContent: 'space-between',
+                        '&& .MuiTouchRipple-rippleVisible': {
+                          animationDuration: '200ms',
+                        },
+                      }}
+                      variant={brush === key ? 'contained' : 'outlined'}
+                    >
+                      <Mui.Box
+                        alignItems='center'
+                        display='flex'
+                        flexDirection='row'
+                        justifyContent='space-between'
+                        flexGrow='1'
+                      >
+                        <Mui.Typography variant='body2'>{name}</Mui.Typography>
+                      </Mui.Box>
+                    </StyledButton>
+                  );
+                })}
+              </Mui.Stack>
+            </Mui.Box>
+          </StyledAccordionDetails>
+        </StyledAccordion>
+
         <StyledAccordion expanded={actionsMenuExpanded} onChange={() => setActionsMenuExpanded(!actionsMenuExpanded)}>
           <StyledAccordionSummary>
             <Mui.Typography>Actions</Mui.Typography>

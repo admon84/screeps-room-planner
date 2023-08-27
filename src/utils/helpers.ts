@@ -49,8 +49,21 @@ const getStructureIconPath = (key: string, rcl = Constants.MAX_RCL) => {
   return `${path}/images/structures/${key}.png`;
 };
 
+const getObjectBrushProps = (key: string) => ({
+  key,
+  image: getObjectBrushIconPath(key),
+  name: Constants.OBJECT_BRUSHES[key],
+});
+
+const getObjectBrushIconPath = (key: string) => {
+  const path = window.location.pathname.replace(/\/$/, '');
+  return `${path}/images/objects/${key}.png`;
+};
+
 export const getStructureBrushes = (rcl = Constants.MAX_RCL) =>
   Object.keys(Constants.STRUCTURE_BRUSHES).map((key) => getStructureProps(key, rcl));
+
+export const getObjectBrushes = () => Object.keys(Constants.OBJECT_BRUSHES).map(getObjectBrushProps);
 
 export const getRequiredRCL = (structure: string) =>
   Math.min(...Object.keys(Constants.CONTROLLER_STRUCTURES[structure]).map((v) => +v));

@@ -1,3 +1,9 @@
+export enum BrushType {
+  Structure = 1,
+  Object,
+  Terrain,
+}
+
 export const MAX_RCL = 8;
 
 export const ROOM_SIZE = 50;
@@ -115,6 +121,26 @@ export const STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   [STRUCTURE_RAMPART]: 'Blocks movement of hostile creeps, and defends your creeps and structures on the same tile.',
   [STRUCTURE_WALL]: 'Blocks movement of all creeps.',
   [STRUCTURE_ROAD]: 'Decreases creep movement cost. Using roads allows creating creeps with less MOVE body parts.',
+};
+
+export const SOURCE = 'source';
+export const RESOURCE_HYDROGEN = 'H';
+export const RESOURCE_OXYGEN = 'O';
+export const RESOURCE_UTRIUM = 'U';
+export const RESOURCE_LEMERGIUM = 'L';
+export const RESOURCE_KEANIUM = 'K';
+export const RESOURCE_ZYNTHIUM = 'Z';
+export const RESOURCE_CATALYST = 'X';
+
+export const OBJECT_BRUSHES: Record<string, string> = {
+  [SOURCE]: SOURCE,
+  [RESOURCE_HYDROGEN]: 'hydrogen',
+  [RESOURCE_OXYGEN]: 'oxygen',
+  [RESOURCE_UTRIUM]: 'utrium',
+  [RESOURCE_LEMERGIUM]: 'lemergium',
+  [RESOURCE_KEANIUM]: 'keanium',
+  [RESOURCE_ZYNTHIUM]: 'zynthium',
+  [RESOURCE_CATALYST]: 'catalyst',
 };
 
 export const EXTENSION_ENERGY_CAPACITY = {
