@@ -7,7 +7,6 @@ import { useStructurePositions } from '../state/StructurePositions';
 import { useState } from 'react';
 import RoomActions from './RoomActions';
 
-export const drawerWidth = 300;
 const iconSize = '1.5rem';
 
 const StyledButton = Mui.styled(Mui.Button)<Mui.ButtonProps>(({ theme, variant }) => ({
@@ -58,21 +57,29 @@ const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(({ theme }) => ({
   },
 }));
 
-export default function LeftDrawer() {
-  const brush = useSettings((state) => state.brush);
-  const rcl = useSettings((state) => state.rcl);
+type Props = {
+  mobileOpen: boolean;
+  handleDrawerToggle: () => void;
+};
+
+export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
+  const zoom = useSettings((state) => state.settings.zoom);
+  const brush = useSettings((state) => state.settings.brush);
+  const rcl = useSettings((state) => state.settings.rcl);
   const setBrush = useSettings((state) => state.setBrush);
-  const unsetBrush = useSettings((state) => state.unsetBrush);
+  const resetBrush = useSettings((state) => state.resetBrush);
   const setRCL = useSettings((state) => state.setRCL);
+  const setZoom = useSettings((state) => state.setZoom);
   const toggleCodeDrawer = useSettings((state) => state.toggleCodeDrawer);
   const structurePositions = useStructurePositions((state) => state.positions);
 
-  const [roomMenuExpanded, setRoomMenuExpanded] = useState(true);
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
+  const [settingsMenuExpanded, setSettingsMenuExpanded] = useState(true);
   const [actionsMenuExpanded, setActionsMenuExpanded] = useState(true);
   const brushClass = 'brush';
   const structureBrushes = getStructureBrushes(rcl);
   const controller = structureBrushes.find((b) => b.key === STRUCTURE_CONTROLLER);
+  const drawerWidth = 300;
 
   const getBrush = (target: HTMLElement): string => {
     if (target.classList.contains(brushClass)) {
@@ -81,37 +88,76 @@ export default function LeftDrawer() {
     return getBrush(target.parentElement as HTMLElement);
   };
 
-  return (
-    <Mui.Drawer
-      variant='permanent'
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        [`& .MuiDrawer-paper`]: {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-        },
-      }}
-    >
+  const updateZoom = (_: any, value: number | number[]) => setZoom(Array.isArray(value) ? value[0] : value);
+
+  const drawer = (
+    <>
       <Mui.Toolbar variant='dense' />
       <Mui.Box sx={{ overflowY: 'auto' }}>
-        <StyledAccordion expanded={roomMenuExpanded} onChange={() => setRoomMenuExpanded(!roomMenuExpanded)}>
+        <StyledAccordion
+          expanded={settingsMenuExpanded}
+          onChange={() => setSettingsMenuExpanded(!settingsMenuExpanded)}
+        >
           <StyledAccordionSummary>
             <Mui.Box alignItems='center' display='flex' flexDirection='row' flexGrow={1} justifyContent='space-between'>
-              <Mui.Typography>Room Controller Level</Mui.Typography>
-              <Mui.Box>
-                {controller && (
-                  <StyledBadge badgeContent={rcl} color='secondary'>
-                    <Mui.Avatar alt={controller.name} src={controller.image} sx={{ width: 30, height: 30 }} />
-                  </StyledBadge>
-                )}
-              </Mui.Box>
+              <Mui.Typography>Settings</Mui.Typography>
             </Mui.Box>
           </StyledAccordionSummary>
           <StyledAccordionDetails>
-            <Mui.Box display='flex' flexDirection='column' overflow='auto'>
-              <Mui.Stack direction='column' sx={{ m: 2 }}>
+            <Mui.Stack direction='column' spacing={{ xs: 0, md: 2 }} sx={{ m: 2 }}>
+              <Mui.Stack direction='column' spacing={1} sx={{ display: { xs: 'none', md: 'block' } }}>
+                <Mui.Box
+                  alignItems='center'
+                  display='flex'
+                  flexDirection='row'
+                  flexGrow={1}
+                  justifyContent='space-between'
+                >
+                  <Mui.Typography>Map Zoom</Mui.Typography>
+                  <Mui.Typography>{zoom}</Mui.Typography>
+                </Mui.Box>
+                <Mui.Paper variant='outlined' sx={{ px: 2.4, pt: 0.8 }}>
+                  <Mui.Slider
+                    marks={false}
+                    max={2}
+                    min={1}
+                    step={0.1}
+                    value={zoom}
+                    onChange={updateZoom}
+                    onChangeCommitted={updateZoom}
+                    sx={{
+                      '& .MuiSlider-track': {
+                        border: 'none',
+                      },
+                      '& .MuiSlider-thumb': {
+                        '&:before': {
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+                        },
+                        '&:hover, &.Mui-focusVisible, &.Mui-active': {
+                          boxShadow: 'none',
+                        },
+                      },
+                    }}
+                  />
+                </Mui.Paper>
+              </Mui.Stack>
+              <Mui.Stack direction='column' spacing={1}>
+                <Mui.Box
+                  alignItems='center'
+                  display='flex'
+                  flexDirection='row'
+                  flexGrow={1}
+                  justifyContent='space-between'
+                >
+                  <Mui.Typography>Room Controller Level</Mui.Typography>
+                  <Mui.Box>
+                    {controller && (
+                      <StyledBadge badgeContent={rcl} color='secondary'>
+                        <Mui.Avatar alt={controller.name} src={controller.image} sx={{ width: 30, height: 30 }} />
+                      </StyledBadge>
+                    )}
+                  </Mui.Box>
+                </Mui.Box>
                 <Mui.ToggleButtonGroup
                   color='primary'
                   exclusive
@@ -127,7 +173,7 @@ export default function LeftDrawer() {
                   ))}
                 </Mui.ToggleButtonGroup>
               </Mui.Stack>
-            </Mui.Box>
+            </Mui.Stack>
           </StyledAccordionDetails>
         </StyledAccordion>
         <StyledAccordion
@@ -167,7 +213,7 @@ export default function LeftDrawer() {
                       onMouseDown={(e) => {
                         const newBrush = getBrush(e.target as HTMLElement);
                         if (brush === newBrush) {
-                          unsetBrush();
+                          resetBrush();
                         } else {
                           setBrush(newBrush);
                         }
@@ -192,7 +238,9 @@ export default function LeftDrawer() {
                           <Mui.Chip
                             color={error ? 'error' : 'default'}
                             icon={locked ? <Icons.Lock /> : <></>}
-                            label={locked ? `RCL ${getRequiredRCL(key)}` : placed + ' / ' + total}
+                            label={
+                              locked ? `RCL ${getRequiredRCL(key)}` : total === 2500 ? placed : placed + ' / ' + total
+                            }
                             disabled={disabled}
                             size='small'
                             sx={{
@@ -221,7 +269,6 @@ export default function LeftDrawer() {
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }} spacing={1}>
                 <RoomActions />
-
                 <Mui.Button onMouseDown={toggleCodeDrawer} variant='outlined' endIcon={<Icons.DataObject />}>
                   Generate Map JSON
                 </Mui.Button>
@@ -230,6 +277,40 @@ export default function LeftDrawer() {
           </StyledAccordionDetails>
         </StyledAccordion>
       </Mui.Box>
-    </Mui.Drawer>
+    </>
+  );
+
+  return (
+    <>
+      <Mui.Drawer
+        variant='temporary'
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        {drawer}
+      </Mui.Drawer>
+      <Mui.Drawer
+        variant='permanent'
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          flexShrink: 0,
+          width: drawerWidth,
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, overflow: 'hidden' },
+        }}
+        open
+      >
+        {drawer}
+      </Mui.Drawer>
+    </>
   );
 }

@@ -10,8 +10,9 @@ import { useCallback } from 'react';
 import RoomGridTile from './RoomGridTile';
 
 export default function RoomGrid() {
-  const rcl = useSettings((state) => state.rcl);
-  const unsetBrush = useSettings((state) => state.unsetBrush);
+  const zoom = useSettings((state) => state.settings.zoom);
+  const rcl = useSettings((state) => state.settings.rcl);
+  const resetBrush = useSettings((state) => state.resetBrush);
   const tileStructures = useTileStructures((state) => state.structures);
   const getStructures = useTileStructures((state) => state.getStructures);
   const addTileStructure = useTileStructures((state) => state.addStructure);
@@ -37,7 +38,7 @@ export default function RoomGrid() {
       addTileStructure(tile, structure);
       // deselect active structure when 0 remaining
       if (!Helpers.structureCanBePlaced(structure, rcl, placed + 1, terrain)) {
-        unsetBrush();
+        resetBrush();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,9 +71,13 @@ export default function RoomGrid() {
       elevation={6}
       sx={{
         borderRadius: 0,
-        minWidth: '500px',
-        maxWidth: 'calc(100vh - 6.25rem)',
+        // minWidth: '500px',
+        // maxWidth: 'calc(100vh - 6.25rem)',
+        // transform: `scale(${zoom})`,
+        // minWidth: '500px',
         width: '100%',
+        maxWidth: { xs: '100%', md: `calc(${zoom * 25 + 50}vw - 300px)` },
+        // maxWidth: `${zoom * 1000}px`,
       }}
     >
       <Box display='grid' gridTemplateColumns='repeat(50, minmax(2%, 1fr))' gap={0}>
@@ -84,7 +89,6 @@ export default function RoomGrid() {
               <RoomGridTile
                 key={tile}
                 tile={tile}
-                rcl={rcl}
                 terrain={tileTerrainMap[tile]}
                 structures={tileStructures[tile]}
                 getStructuresNearby={getStructuresNearby}

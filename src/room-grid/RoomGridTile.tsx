@@ -11,15 +11,15 @@ type Props = {
   structures: string[];
   tile: number;
   terrain: string;
-  rcl: number;
   addStructure: (tile: number, structure: string) => void;
   removeStructure: (tile: number, structure: string) => void;
   getStructuresNearby: (tile: number) => StructuresNearbyData[];
   renderNearHoverTile: boolean;
 };
 
-export default memo(({ structures, tile, terrain, rcl, addStructure, removeStructure, getStructuresNearby }: Props) => {
-  const brush = useSettings((state) => state.brush);
+export default memo(({ structures, tile, terrain, addStructure, removeStructure, getStructuresNearby }: Props) => {
+  const rcl = useSettings((state) => state.settings.rcl);
+  const brush = useSettings((state) => state.settings.brush);
   const resetHoverTile = useHoverTile((state) => state.reset);
   const setHover = useHoverTile((state) => state.setHover);
 

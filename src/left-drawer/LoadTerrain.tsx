@@ -15,8 +15,8 @@ import DialogTitle from '../common/DialogTitle';
 export default function LoadTerrain(props: { toggleModalOpen: () => void }) {
   const { palette } = Mui.useTheme();
 
-  const shard = useSettings((state) => state.shard);
-  const room = useSettings((state) => state.room);
+  const shard = useSettings((state) => state.settings.shard);
+  const room = useSettings((state) => state.settings.room);
   const setShard = useSettings((state) => state.setShard);
   const setRoom = useSettings((state) => state.setRoom);
   const resetTileStructures = useTileStructures((state) => state.reset);

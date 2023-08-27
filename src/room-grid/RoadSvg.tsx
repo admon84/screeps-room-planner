@@ -20,7 +20,7 @@ export default function RoadSvg({
   roadStyle,
   previewIcon = false,
 }: Props) {
-  const brush = useSettings((state) => state.brush);
+  const brush = useSettings((state) => state.settings.brush);
   const tileHasRoad = structures.includes(STRUCTURE_ROAD);
   const preview = brush === STRUCTURE_ROAD && !tileHasRoad && isHovered;
 

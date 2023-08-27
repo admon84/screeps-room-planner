@@ -5,8 +5,8 @@ import { getPointForShort } from '../utils/helpers';
 import HighlightCode from './HighlightCode';
 
 export default function BottomDrawer() {
-  const rcl = useSettings((state) => state.rcl);
-  const codeDrawerOpen = useSettings((state) => state.codeDrawerOpen);
+  const rcl = useSettings((state) => state.settings.rcl);
+  const codeDrawerOpen = useSettings((state) => state.settings.codeDrawerOpen);
   const toggleCodeDrawer = useSettings((state) => state.toggleCodeDrawer);
   const structurePositions = useStructurePositions((state) => state.positions);
 
@@ -17,7 +17,7 @@ export default function BottomDrawer() {
       onClose={toggleCodeDrawer}
       sx={{
         flexShrink: 0,
-        [`& .MuiDrawer-paper`]: {
+        '& .MuiDrawer-paper': {
           boxSizing: 'border-box',
         },
       }}
