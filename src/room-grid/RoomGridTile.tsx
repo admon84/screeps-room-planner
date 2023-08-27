@@ -12,7 +12,8 @@ type Props = {
   tile: number;
   terrain: string;
   addBrush: (tile: number, brush: string, brushType: BrushType) => void;
-  removeBrush: (tile: number, brush: string) => void;
+  removeStructure: (tile: number, brush: string) => void;
+  removeObjects: (tile: number, brush: string) => void;
   getStructuresNearby: (tile: number) => StructuresNearbyData[];
   renderNearHoverTile: boolean;
   hasSource: boolean;
@@ -20,7 +21,17 @@ type Props = {
 };
 
 export default memo(
-  ({ structures, tile, terrain, addBrush, removeBrush, getStructuresNearby, hasSource, hasMineralType }: Props) => {
+  ({
+    structures,
+    tile,
+    terrain,
+    addBrush,
+    removeStructure,
+    removeObjects,
+    getStructuresNearby,
+    hasSource,
+    hasMineralType,
+  }: Props) => {
     const rcl = useSettings((state) => state.settings.rcl);
     const brush = useSettings((state) => state.settings.brush);
     const brushType = useSettings((state) => state.settings.brushType);
@@ -49,7 +60,8 @@ export default memo(
       if (e.buttons === 1 && brush && brushType) {
         addBrush(tile, brush, brushType);
       } else if (e.buttons === 2) {
-        structureBrushes.forEach(({ key }) => removeBrush(tile, key));
+        structureBrushes.forEach(({ key }) => removeStructure(tile, key));
+        removeObjects(tile, 'eraser');
       }
     };
 

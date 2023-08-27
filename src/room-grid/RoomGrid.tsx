@@ -9,18 +9,18 @@ import { useTileTerrain } from '../state/TileTerrain';
 import { useHoverTile } from '../state/HoverTile';
 import { useCallback } from 'react';
 import RoomGridTile from './RoomGridTile';
-import { BrushType, SOURCE } from '../utils/constants';
+import { BrushType, SOURCE, STRUCTURE_EXTRACTOR, STRUCTURE_BRUSHES } from '../utils/constants';
 
 export default function RoomGrid() {
   const zoom = useSettings((state) => state.settings.zoom);
   const rcl = useSettings((state) => state.settings.rcl);
   const resetBrush = useSettings((state) => state.resetBrush);
   const sources = useTileObjects((state) => state.sources);
-  const mineral = useTileObjects((state) => state.mineral);
+  const minerals = useTileObjects((state) => state.minerals);
   const addSource = useTileObjects((state) => state.addSource);
   const addMineral = useTileObjects((state) => state.addMineral);
   const removeSource = useTileObjects((state) => state.removeSource);
-  const resetMineral = useTileObjects((state) => state.resetMineral);
+  const removeMineral = useTileObjects((state) => state.removeMineral);
   const tileStructures = useTileStructures((state) => state.structures);
   const getStructures = useTileStructures((state) => state.getStructures);
   const addTileStructure = useTileStructures((state) => state.addStructure);
@@ -45,7 +45,7 @@ export default function RoomGrid() {
           removeStructurePosition(s, shortPos);
         });
         // remove existing objects
-        removeObjects(tile);
+        removeObjects(tile, brush);
         // add structures
         addStructurePosition(brush, shortPos);
         addTileStructure(tile, brush);
@@ -57,12 +57,13 @@ export default function RoomGrid() {
     } else if (brushType === BrushType.Object) {
       const shortPos = Helpers.getShortForTile(tile);
       // remove existing structures at this position
-      Helpers.structuresToRemove(brush).forEach((s) => {
+      Object.keys(STRUCTURE_BRUSHES).forEach((s) => {
         removeTileStructure(tile, s);
         removeStructurePosition(s, shortPos);
       });
       // remove existing objects
-      removeObjects(tile);
+      removeObjects(tile, brush);
+
       // add objects
       if (brush === SOURCE) {
         addSource(tile);
@@ -73,22 +74,22 @@ export default function RoomGrid() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const removeBrush = useCallback((tile: number, brush: string) => {
+  const removeStructure = useCallback((tile: number, brush: string) => {
     removeTileStructure(tile, brush);
     removeStructurePosition(brush, Helpers.getShortForTile(tile));
-    removeObjects(tile);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const removeObjects = useCallback((tile: number) => {
-    if (sources.includes(tile)) {
+  const removeObjects = useCallback(
+    (tile: number, brush: string) => {
       removeSource(tile);
-    }
-    if (mineral && mineral.tile === tile) {
-      resetMineral();
-    }
+      if (brush !== STRUCTURE_EXTRACTOR) {
+        removeMineral(tile);
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    []
+  );
 
   const getStructuresNearby = useCallback((tile: number) => {
     const structuresNearby: StructuresNearbyData[] = [];
@@ -128,10 +129,11 @@ export default function RoomGrid() {
                 structures={tileStructures[tile]}
                 getStructuresNearby={getStructuresNearby}
                 addBrush={addBrush}
-                removeBrush={removeBrush}
+                removeStructure={removeStructure}
+                removeObjects={removeObjects}
                 renderNearHoverTile={Helpers.getDistance(tilePoint, hoverPoint) === 1}
-                hasSource={sources.includes(tile)}
-                hasMineralType={mineral && mineral.tile === tile ? mineral.type : null}
+                hasSource={sources[tile]}
+                hasMineralType={minerals[tile]}
               />
             );
           })}

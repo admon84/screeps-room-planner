@@ -87,14 +87,14 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const width = 300;
 
   const getStructureBrush = (target: HTMLElement): string => {
-    if (target.classList.contains(brushClass)) {
+    if (target && target.classList.contains(brushClass)) {
       return (target as HTMLElement).dataset.structure!;
     }
     return getStructureBrush(target.parentElement as HTMLElement);
   };
 
   const getObjectBrush = (target: HTMLElement): string => {
-    if (target.classList.contains(objectClass)) {
+    if (target && target.classList.contains(objectClass)) {
       return (target as HTMLElement).dataset.object!;
     }
     return getObjectBrush(target.parentElement as HTMLElement);
