@@ -36,17 +36,21 @@ export default function RoomGrid() {
 
   const addBrush = useCallback((tile: number, brush: string, brushType: Constants.BrushType) => {
     if (brushType === Constants.BrushType.Structure) {
+      // logic for adding structure brush to tile
       const placed = getPlacedCount(brush);
       const terrain = tileTerrainMap[tile];
       if (Helpers.structureCanBePlaced(brush, rcl, terrain, placed)) {
         const shortPos = Helpers.getShortForTile(tile);
+
         // remove existing structures at this position except ramparts
         Helpers.structuresToRemove(brush).forEach((s) => {
           removeTileStructure(tile, s);
           removeStructurePosition(s, shortPos);
         });
+
         // remove existing objects
         removeObjects(tile, brush);
+
         // add structures
         addStructurePosition(brush, shortPos);
         addTileStructure(tile, brush);
@@ -56,12 +60,18 @@ export default function RoomGrid() {
         }
       }
     } else if (brushType === Constants.BrushType.Object) {
+      // logic for adding object brush to tile
       const shortPos = Helpers.getShortForTile(tile);
+
       // remove existing structures at this position
       Object.keys(Constants.STRUCTURE_BRUSHES).forEach((s) => {
+        if (s === Constants.STRUCTURE_EXTRACTOR && brush !== Constants.SOURCE) {
+          return;
+        }
         removeTileStructure(tile, s);
         removeStructurePosition(s, shortPos);
       });
+
       // remove existing objects
       removeObjects(tile, brush);
 
@@ -72,7 +82,9 @@ export default function RoomGrid() {
         addMineral(tile, brush);
       }
     } else if (brushType === Constants.BrushType.Terrain) {
+      // logic for adding terrain brush to tile
       const shortPos = Helpers.getShortForTile(tile);
+
       // remove existing structures at the position when adding terrain wall
       if (brush === Constants.TERRAIN_WALL) {
         Object.keys(Constants.STRUCTURE_BRUSHES).forEach((s) => {
@@ -80,6 +92,7 @@ export default function RoomGrid() {
           removeStructurePosition(s, shortPos);
         });
       }
+
       // update terrain
       setTileTerrain(tile, brush);
     }
@@ -104,18 +117,18 @@ export default function RoomGrid() {
   );
 
   const getStructuresNearby = useCallback((tile: number) => {
-    const structuresNearby: StructuresNearbyData[] = [];
+    const data: StructuresNearbyData[] = [];
     const origin = Helpers.getPointForTile(tile);
     for (const dx of [-1, 0, 1]) {
       for (const dy of [-1, 0, 1]) {
         if (dx === 0 && dy === 0) continue;
         const [x, y] = [origin.x + dx, origin.y + dy];
         if (Helpers.positionIsValid(x, y)) {
-          structuresNearby.push({ dx, dy, structures: getStructures(Helpers.getTile(x, y)) });
+          data.push({ dx, dy, structures: getStructures(Helpers.getTile(x, y)) });
         }
       }
     }
-    return structuresNearby;
+    return data;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

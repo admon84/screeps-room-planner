@@ -109,17 +109,21 @@ export default memo(
       };
       const roadStyle = { ...positionAbsolute, height: width, width };
 
+      const previewTerrain = isHovered && brushType === Constants.BrushType.Terrain;
+      const isTerrain = (terrainType: string) =>
+        (terrain === terrainType && !previewTerrain) || (previewTerrain && brush === terrainType);
+
       return (
         <>
           <Box
             sx={{
               ...backgroundSizeProps,
               ...positionAbsolute,
-              ...(terrain && terrain === Constants.TERRAIN_WALL
+              ...(isTerrain(Constants.TERRAIN_WALL)
                 ? {
                     backgroundColor: '#111111',
                   }
-                : terrain === Constants.TERRAIN_SWAMP
+                : isTerrain(Constants.TERRAIN_SWAMP)
                 ? {
                     backgroundColor: '#292b18',
                     boxShadow: `inset #252715 0 0 0 1px`,
