@@ -145,6 +145,11 @@ export const STRUCTURE_DESCRIPTIONS: Record<string, string> = {
 };
 
 export const SOURCE = 'source';
+export const SOURCE_DESCRIPTION = 'An energy source object. Can be harvested by creeps with a WORK body part.';
+
+export const MINERAL = 'mineral';
+export const MINERAL_DESCRIPTION =
+  'A mineral deposit. Can be harvested by creeps with a WORK body part using the extractor structure.';
 export const RESOURCE_HYDROGEN = 'H';
 export const RESOURCE_OXYGEN = 'O';
 export const RESOURCE_UTRIUM = 'U';

@@ -198,7 +198,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           <StyledAccordionDetails>
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
-                {structureBrushes.map(({ key, image, total, name, object, description }) => {
+                {structureBrushes.map(({ key, image, total, name, anchor, description }) => {
                   const placed = structurePositions[key].length;
                   const disabled = !Helpers.structureCanBePlaced(key, rcl, TERRAIN_PLAIN, placed);
                   const error = total < placed;
@@ -218,7 +218,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                               <Mui.Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
                                 {description}
                               </Mui.Typography>
-                              <Mui.Link href={'https://docs.screeps.com/api/#Structure' + object} target='_blank'>
+                              <Mui.Link href={'https://docs.screeps.com/api/#Structure' + anchor} target='_blank'>
                                 View Documentation
                               </Mui.Link>
                             </Mui.Box>
@@ -304,24 +304,39 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           <StyledAccordionDetails>
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
-                {Helpers.getObjectBrushes().map(({ key, image, name }) => {
+                {Helpers.getObjectBrushes().map(({ key, image, name, anchor, description }) => {
                   return (
                     <StyledButton
                       className={BrushClass.Object}
                       data-object={key}
                       key={key}
                       endIcon={
-                        <Mui.Box
-                          sx={{
-                            backgroundImage: `url(${image})`,
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundSize: 'contain',
-                            height: iconSize,
-                            width: iconSize,
-                            opacity: 1,
-                          }}
-                        />
+                        <Mui.Tooltip
+                          arrow
+                          placement='right'
+                          title={
+                            <Mui.Box display='flex' flexDirection='column' justifyContent='center'>
+                              <Mui.Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
+                                {description}
+                              </Mui.Typography>
+                              <Mui.Link href={'https://docs.screeps.com/api/#' + anchor} target='_blank'>
+                                View Documentation
+                              </Mui.Link>
+                            </Mui.Box>
+                          }
+                        >
+                          <Mui.Box
+                            sx={{
+                              backgroundImage: `url(${image})`,
+                              backgroundPosition: 'center',
+                              backgroundRepeat: 'no-repeat',
+                              backgroundSize: 'contain',
+                              height: iconSize,
+                              width: iconSize,
+                              opacity: 1,
+                            }}
+                          />
+                        </Mui.Tooltip>
                       }
                       onMouseDown={(e) => {
                         const newBrush = getBrushTarget(e.target as HTMLElement);

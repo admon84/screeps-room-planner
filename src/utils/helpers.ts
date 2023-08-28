@@ -35,7 +35,7 @@ export const getStructureProps = (key: string, rcl = Constants.MAX_RCL) => ({
   image: getStructureIconPath(key, rcl),
   name: Constants.STRUCTURE_BRUSHES[key],
   total: Constants.CONTROLLER_STRUCTURES[key][rcl] || 0,
-  object: Constants.STRUCTURE_OBJECTS[key],
+  anchor: Constants.STRUCTURE_OBJECTS[key],
   description: Constants.STRUCTURE_DESCRIPTIONS[key],
 });
 
@@ -49,10 +49,14 @@ const getStructureIconPath = (key: string, rcl = Constants.MAX_RCL) => {
   return `${path}/images/structures/${key}.png`;
 };
 
+const uppercaseFirstLetter = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
 const getObjectBrushProps = (key: string) => ({
   key,
   image: getObjectBrushIconPath(key),
   name: Constants.OBJECT_BRUSHES[key],
+  anchor: uppercaseFirstLetter(key === Constants.SOURCE ? Constants.SOURCE : Constants.MINERAL),
+  description: key === Constants.SOURCE ? Constants.SOURCE_DESCRIPTION : Constants.MINERAL_DESCRIPTION,
 });
 
 const getObjectBrushIconPath = (key: string) => {
@@ -68,7 +72,7 @@ export const getObjectBrushes = () => Object.keys(Constants.OBJECT_BRUSHES).map(
 export const getTerrainBrushes = () =>
   Object.entries(Constants.TERRAIN_BRUSH_PROPS).map(([key, o]) => ({
     key,
-    name: key.charAt(0).toUpperCase() + key.slice(1),
+    name: uppercaseFirstLetter(key),
     ...o,
   }));
 
