@@ -65,12 +65,22 @@ export const getStructureBrushes = (rcl = Constants.MAX_RCL) =>
 
 export const getObjectBrushes = () => Object.keys(Constants.OBJECT_BRUSHES).map(getObjectBrushProps);
 
+export const getTerrainBrushes = () =>
+  Object.entries(Constants.TERRAIN_BRUSH_PROPS).map(([key, o]) => ({
+    key,
+    name: key.charAt(0).toUpperCase() + key.slice(1),
+    ...o,
+  }));
+
 export const getRequiredRCL = (structure: string) =>
   Math.min(...Object.keys(Constants.CONTROLLER_STRUCTURES[structure]).map((v) => +v));
 
-export const structureCanBePlaced = (structure: string, rcl: number, placed: number, terrain: string) => {
-  if (![Constants.STRUCTURE_ROAD, Constants.STRUCTURE_CONTROLLER, Constants.STRUCTURE_EXTRACTOR].includes(structure)) {
-    if (terrain === Constants.TERRAIN_WALL) return false;
+export const structureCanBePlaced = (structure: string, rcl: number, terrain: string, placed = 0) => {
+  if (
+    terrain === Constants.TERRAIN_WALL &&
+    ![Constants.STRUCTURE_ROAD, Constants.STRUCTURE_CONTROLLER, Constants.STRUCTURE_EXTRACTOR].includes(structure)
+  ) {
+    return false;
   }
   const total = Constants.CONTROLLER_STRUCTURES[structure][rcl];
   return !!total && (!placed || placed < total);

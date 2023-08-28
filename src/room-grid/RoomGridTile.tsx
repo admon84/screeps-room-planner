@@ -1,7 +1,7 @@
+import * as Constants from '../utils/constants';
+import * as Helpers from '../utils/helpers';
 import { CSSProperties, memo, useState } from 'react';
 import { Box } from '@mui/material';
-import { BrushType, SOURCE, STRUCTURE_RAMPART, STRUCTURE_ROAD, TERRAIN_SWAMP, TERRAIN_WALL } from '../utils/constants';
-import { getStructureBrushes, getObjectBrushes, structuresToRemove } from '../utils/helpers';
 import { useHoverTile } from '../state/HoverTile';
 import { useSettings } from '../state/Settings';
 import { StructuresNearbyData } from '../utils/types';
@@ -11,7 +11,7 @@ type Props = {
   structures: string[];
   tile: number;
   terrain: string;
-  addBrush: (tile: number, brush: string, brushType: BrushType) => void;
+  addBrush: (tile: number, brush: string, brushType: Constants.BrushType) => void;
   removeStructure: (tile: number, brush: string) => void;
   removeObjects: (tile: number, brush: string) => void;
   getStructuresNearby: (tile: number) => StructuresNearbyData[];
@@ -39,8 +39,7 @@ export default memo(
     const setHover = useHoverTile((state) => state.setHover);
 
     const [isHovered, setIsHovered] = useState(false);
-    const structureBrushes = getStructureBrushes(rcl);
-    const brushCanBePlaced = !!brush && brush !== STRUCTURE_ROAD && !structures.includes(brush);
+    const structureBrushes = Helpers.getStructureBrushes(rcl);
 
     const tileClass = 'tile';
     const tilePosition = {
@@ -72,16 +71,28 @@ export default memo(
     };
 
     const getCellContent = (): React.ReactNode => {
-      const previewIcon = brushCanBePlaced && isHovered;
+      const previewIcon =
+        isHovered &&
+        !!brush &&
+        (brushType !== Constants.BrushType.Structure ||
+          (brush !== Constants.STRUCTURE_ROAD && !structures.includes(brush)));
 
       let drawStructures = [...structures];
 
       if (previewIcon && brush) {
-        if (brushType === BrushType.Structure) {
+        if (brushType === Constants.BrushType.Structure && Helpers.structureCanBePlaced(brush, rcl, terrain)) {
           drawStructures.push(brush);
-          const previewRemove = structuresToRemove(brush, true);
+          const previewRemove = Helpers.structuresToRemove(brush, true);
           drawStructures = drawStructures.filter((s) => !previewRemove.includes(s));
-        } else if (brushType === BrushType.Object) {
+        } else if (brushType === Constants.BrushType.Object) {
+          if (brush === Constants.SOURCE) {
+            // hide all structures that will be removed if the source is placed
+            drawStructures = [];
+          } else {
+            // hide structures that will be removed if the mineral is placed
+            const previewRemove = Helpers.structuresToRemove(Constants.STRUCTURE_EXTRACTOR, true);
+            drawStructures = drawStructures.filter((s) => !previewRemove.includes(s));
+          }
         }
       }
 
@@ -104,11 +115,11 @@ export default memo(
             sx={{
               ...backgroundSizeProps,
               ...positionAbsolute,
-              ...(terrain && terrain === TERRAIN_WALL
+              ...(terrain && terrain === Constants.TERRAIN_WALL
                 ? {
                     backgroundColor: '#111111',
                   }
-                : terrain === TERRAIN_SWAMP
+                : terrain === Constants.TERRAIN_SWAMP
                 ? {
                     backgroundColor: '#292b18',
                     boxShadow: `inset #252715 0 0 0 1px`,
@@ -118,7 +129,7 @@ export default memo(
                   }),
             }}
           />
-          {drawStructures.includes(STRUCTURE_RAMPART) && (
+          {drawStructures.includes(Constants.STRUCTURE_RAMPART) && (
             <Box
               sx={{
                 ...backgroundSizeProps,
@@ -137,7 +148,10 @@ export default memo(
             getStructuresNearby={getStructuresNearby}
           />
           {structureBrushes
-            .filter(({ key }) => ![STRUCTURE_RAMPART, STRUCTURE_ROAD].includes(key) && drawStructures.includes(key))
+            .filter(
+              ({ key }) =>
+                ![Constants.STRUCTURE_RAMPART, Constants.STRUCTURE_ROAD].includes(key) && drawStructures.includes(key)
+            )
             .map(({ key, image }) => (
               <Box
                 key={key}
@@ -152,8 +166,13 @@ export default memo(
                 }}
               />
             ))}
-          {getObjectBrushes()
-            .filter(({ key }) => (hasSource && key === SOURCE) || hasMineralType === key)
+          {Helpers.getObjectBrushes()
+            .filter(
+              ({ key }) =>
+                (previewIcon && brushType === Constants.BrushType.Object && brush === key) ||
+                ((!previewIcon || brushType !== Constants.BrushType.Object) &&
+                  (hasMineralType === key || (hasSource && key === Constants.SOURCE)))
+            )
             .map(({ key, image }) => (
               <Box
                 key={key}

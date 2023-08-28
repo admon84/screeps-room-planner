@@ -4,6 +4,12 @@ export enum BrushType {
   Terrain,
 }
 
+export enum BrushClass {
+  Structure = 'structure',
+  Object = 'object',
+  Terrain = 'terrain',
+}
+
 export const MAX_RCL = 8;
 
 export const ROOM_SIZE = 50;
@@ -39,6 +45,21 @@ export const TERRAIN_MASK = {
   [TERRAIN_MASK_PLAIN]: TERRAIN_PLAIN,
   [TERRAIN_MASK_SWAMP]: TERRAIN_SWAMP,
   [TERRAIN_MASK_WALL]: TERRAIN_WALL,
+};
+
+export const TERRAIN_BRUSH_PROPS = {
+  [TERRAIN_PLAIN]: {
+    backgroundColor: '#3f4045',
+    boxShadow: 'inset rgba(0, 0, 0, 0.05) 0 0 0 1px',
+  },
+  [TERRAIN_SWAMP]: {
+    backgroundColor: '#292b18',
+    boxShadow: `inset #252715 0 0 0 1px`,
+  },
+  [TERRAIN_WALL]: {
+    backgroundColor: '#111111',
+    boxShadow: 'none',
+  },
 };
 
 export const CONTROLLER_STRUCTURES: Record<string, Record<number, number>> = {

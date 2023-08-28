@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import { BrushType, MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '../utils/constants';
-import { getRequiredRCL, getStructureBrushes, getObjectBrushes, structureCanBePlaced } from '../utils/helpers';
+import { BrushType, BrushClass, MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '../utils/constants';
+import * as Helpers from '../utils/helpers';
 import { useSettings } from '../state/Settings';
 import { useStructurePositions } from '../state/StructurePositions';
 import { useState } from 'react';
@@ -79,25 +79,22 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const [settingsMenuExpanded, setSettingsMenuExpanded] = useState(true);
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
   const [objectsMenuExpanded, setObjectsMenuExpanded] = useState(true);
+  const [terrainMenuExpanded, setTerrainMenuExpanded] = useState(true);
   const [actionsMenuExpanded, setActionsMenuExpanded] = useState(true);
-  const brushClass = 'brush';
-  const objectClass = 'object';
-  const structureBrushes = getStructureBrushes(rcl);
+  const structureBrushes = Helpers.getStructureBrushes(rcl);
   const controller = structureBrushes.find((b) => b.key === STRUCTURE_CONTROLLER);
   const width = 300;
 
-  const getStructureBrush = (target: HTMLElement): string => {
-    if (target && target.classList.contains(brushClass)) {
-      return (target as HTMLElement).dataset.structure!;
+  const getBrushTarget = (target: HTMLElement): string => {
+    for (const brushClass of Object.values(BrushClass)) {
+      if (target && target.classList.contains(brushClass)) {
+        const brushType = (target as HTMLElement).dataset[brushClass];
+        if (brushType) {
+          return brushType;
+        }
+      }
     }
-    return getStructureBrush(target.parentElement as HTMLElement);
-  };
-
-  const getObjectBrush = (target: HTMLElement): string => {
-    if (target && target.classList.contains(objectClass)) {
-      return (target as HTMLElement).dataset.object!;
-    }
-    return getObjectBrush(target.parentElement as HTMLElement);
+    return getBrushTarget(target.parentElement as HTMLElement);
   };
 
   const updateZoom = (_: any, value: number | number[]) => setZoom(Array.isArray(value) ? value[0] : value);
@@ -106,6 +103,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
     <>
       <Mui.Toolbar variant='dense' />
       <Mui.Box sx={{ overflowY: 'auto' }}>
+        {/* Settings Menu */}
         <StyledAccordion
           expanded={settingsMenuExpanded}
           onChange={() => setSettingsMenuExpanded(!settingsMenuExpanded)}
@@ -188,6 +186,8 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             </Mui.Stack>
           </StyledAccordionDetails>
         </StyledAccordion>
+
+        {/* Structures Menu */}
         <StyledAccordion
           expanded={structuresMenuExpanded}
           onChange={() => setStructuresMenuExpanded(!structuresMenuExpanded)}
@@ -200,12 +200,12 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {structureBrushes.map(({ key, image, total, name, object, description }) => {
                   const placed = structurePositions[key].length;
-                  const disabled = !structureCanBePlaced(key, rcl, placed, TERRAIN_PLAIN);
+                  const disabled = !Helpers.structureCanBePlaced(key, rcl, TERRAIN_PLAIN, placed);
                   const error = total < placed;
-                  const locked = !error && rcl < getRequiredRCL(key);
+                  const locked = !error && rcl < Helpers.getRequiredRCL(key);
                   return (
                     <StyledButton
-                      className={brushClass}
+                      className={BrushClass.Structure}
                       data-structure={key}
                       key={key}
                       disabled={disabled}
@@ -238,12 +238,14 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         </Mui.Tooltip>
                       }
                       onMouseDown={(e) => {
-                        const newBrush = getStructureBrush(e.target as HTMLElement);
-                        if (brush === newBrush) {
-                          resetBrush();
-                        } else {
-                          setBrush(newBrush);
-                          setBrushType(BrushType.Structure);
+                        const newBrush = getBrushTarget(e.target as HTMLElement);
+                        if (newBrush) {
+                          if (brush === newBrush) {
+                            resetBrush();
+                          } else {
+                            setBrush(newBrush);
+                            setBrushType(BrushType.Structure);
+                          }
                         }
                       }}
                       sx={{
@@ -267,7 +269,11 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                             color={error ? 'error' : 'default'}
                             icon={locked ? <Icons.Lock /> : <></>}
                             label={
-                              locked ? `RCL ${getRequiredRCL(key)}` : total === 2500 ? placed : placed + ' / ' + total
+                              locked
+                                ? `RCL ${Helpers.getRequiredRCL(key)}`
+                                : total === 2500
+                                ? placed
+                                : placed + ' / ' + total
                             }
                             disabled={disabled}
                             size='small'
@@ -290,6 +296,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           </StyledAccordionDetails>
         </StyledAccordion>
 
+        {/* Objects Menu */}
         <StyledAccordion expanded={objectsMenuExpanded} onChange={() => setObjectsMenuExpanded(!objectsMenuExpanded)}>
           <StyledAccordionSummary>
             <Mui.Typography>Objects</Mui.Typography>
@@ -297,10 +304,10 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           <StyledAccordionDetails>
             <Mui.Box display='flex' flexDirection='column' overflow='auto'>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
-                {getObjectBrushes().map(({ key, image, name }) => {
+                {Helpers.getObjectBrushes().map(({ key, image, name }) => {
                   return (
                     <StyledButton
-                      className={objectClass}
+                      className={BrushClass.Object}
                       data-object={key}
                       key={key}
                       endIcon={
@@ -317,12 +324,14 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         />
                       }
                       onMouseDown={(e) => {
-                        const newBrush = getObjectBrush(e.target as HTMLElement);
-                        if (brush === newBrush) {
-                          resetBrush();
-                        } else {
-                          setBrush(newBrush);
-                          setBrushType(BrushType.Object);
+                        const newBrush = getBrushTarget(e.target as HTMLElement);
+                        if (newBrush) {
+                          if (brush === newBrush) {
+                            resetBrush();
+                          } else {
+                            setBrush(newBrush);
+                            setBrushType(BrushType.Object);
+                          }
                         }
                       }}
                       sx={{
@@ -350,6 +359,70 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           </StyledAccordionDetails>
         </StyledAccordion>
 
+        {/* Terrain Menu */}
+        <StyledAccordion expanded={terrainMenuExpanded} onChange={() => setTerrainMenuExpanded(!terrainMenuExpanded)}>
+          <StyledAccordionSummary>
+            <Mui.Typography>Terrain</Mui.Typography>
+          </StyledAccordionSummary>
+          <StyledAccordionDetails>
+            <Mui.Box display='flex' flexDirection='column' overflow='auto'>
+              <Mui.Stack direction='column' sx={{ m: 2 }}>
+                {Helpers.getTerrainBrushes().map(({ key, name, backgroundColor, boxShadow }) => {
+                  return (
+                    <StyledButton
+                      className={BrushClass.Terrain}
+                      data-terrain={key}
+                      key={key}
+                      endIcon={
+                        <Mui.Box
+                          sx={{
+                            backgroundColor,
+                            boxShadow,
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            height: iconSize,
+                            width: iconSize,
+                            opacity: 1,
+                          }}
+                        />
+                      }
+                      onMouseDown={(e) => {
+                        const newBrush = getBrushTarget(e.target as HTMLElement);
+                        if (newBrush) {
+                          if (brush === newBrush) {
+                            resetBrush();
+                          } else {
+                            setBrush(newBrush);
+                            setBrushType(BrushType.Terrain);
+                          }
+                        }
+                      }}
+                      sx={{
+                        justifyContent: 'space-between',
+                        '&& .MuiTouchRipple-rippleVisible': {
+                          animationDuration: '200ms',
+                        },
+                      }}
+                      variant={brush === key ? 'contained' : 'outlined'}
+                    >
+                      <Mui.Box
+                        alignItems='center'
+                        display='flex'
+                        flexDirection='row'
+                        justifyContent='space-between'
+                        flexGrow='1'
+                      >
+                        <Mui.Typography variant='body2'>{name}</Mui.Typography>
+                      </Mui.Box>
+                    </StyledButton>
+                  );
+                })}
+              </Mui.Stack>
+            </Mui.Box>
+          </StyledAccordionDetails>
+        </StyledAccordion>
+
+        {/* Actions Menu */}
         <StyledAccordion expanded={actionsMenuExpanded} onChange={() => setActionsMenuExpanded(!actionsMenuExpanded)}>
           <StyledAccordionSummary>
             <Mui.Typography>Actions</Mui.Typography>
