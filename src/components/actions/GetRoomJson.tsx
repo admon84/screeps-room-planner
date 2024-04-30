@@ -1,12 +1,12 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { useState } from 'react';
-import StyledDialog from '../../dialog/StyledDialog';
+import StyledDialog from '../dialog/StyledDialog';
 import { useStructurePositions } from '@/stores/StructurePositions';
-import DialogTitle from '../../dialog/DialogTitle';
+import DialogTitle from '../dialog/DialogTitle';
 import { useTheme } from '@mui/material';
 import { getPointForShort } from '@/utils/helpers';
-import HighlightCode from '../../highlight-code/HighlightCode';
+import HighlightCode from '../highlight-code/HighlightCode';
 import { useSettings } from '@/stores/Settings';
 
 export default function GetRoomJson() {
@@ -36,11 +36,11 @@ export default function GetRoomJson() {
 
   return (
     <>
-      <Mui.Button onMouseDown={handleOpen} variant='outlined' endIcon={<Icons.SourceOutlined />}>
+      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.SourceOutlined />}>
         Get Room Json
       </Mui.Button>
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
-        <DialogTitle onClose={handleClose}>Room Objects Json</DialogTitle>
+        <DialogTitle onClose={handleClose}>Room Objects JSON</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
           <Mui.Paper sx={{ p: 1, maxHeight: '350px', overflowY: 'auto' }}>
             <HighlightCode>{code}</HighlightCode>
@@ -53,8 +53,9 @@ export default function GetRoomJson() {
               navigator.clipboard.writeText(code);
               handleClose();
             }}
+            startIcon={<Icons.ContentCopy />}
           >
-            Copy to Clipboard
+            Copy
           </Mui.Button>
         </Mui.DialogActions>
       </StyledDialog>

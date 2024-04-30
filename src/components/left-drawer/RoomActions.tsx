@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { useTileTerrain } from '@/stores/TileTerrain';
 import { useTileStructures } from '@/stores/TileStructures';
 import { useStructurePositions } from '@/stores/StructurePositions';
-import LoadExampleBunker from '../actions/load-example-bunker/LoadExampleBunker';
-import ImportRoom from '../actions/import-room/ImportRoom';
-import ImportJsonStructures from '../actions/import-json-structures/ImportJsonStructures';
-import GetRoomJson from '../actions/get-room-json/GetRoomJson';
-import ActionButton from '../actions/action-button/ActionButton';
+import LoadExampleBunker from '../actions/LoadExampleBunker';
+import ImportRoom from '../actions/ImportRoom';
+import ImportJsonStructures from '../actions/ImportFromJson';
+import GetRoomJson from '../actions/GetRoomJson';
+import ActionButton from '../actions/ActionButton';
 
 export default function RoomActions() {
   const resetTileStructures = useTileStructures((state) => state.reset);
@@ -18,28 +18,23 @@ export default function RoomActions() {
   return (
     <Mui.Stack direction='column' spacing={1}>
       <ImportRoom />
-
       <ImportJsonStructures />
-
-      <LoadExampleBunker />
-
+      {/* <LoadExampleBunker /> */}
       <ActionButton
         onClick={() => {
           resetTileStructures();
           resetStructurePositions();
         }}
-        endIcon={<Icons.FormatColorReset />}
+        startIcon={<Icons.FormatColorReset />}
         buttonText='Reset Structures'
         dialogMessage='Do you want to clear all structures from the map?'
       />
-
       <ActionButton
         onClick={resetTileTerrain}
-        endIcon={<Icons.LayersClear />}
+        startIcon={<Icons.LayersClear />}
         buttonText='Reset Terrain'
         dialogMessage='Do you want to reset the room terrain back to plains?'
       />
-
       <GetRoomJson />
     </Mui.Stack>
   );

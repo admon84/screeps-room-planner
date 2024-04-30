@@ -6,6 +6,7 @@ type Props = {
   dialogMessage: string;
   dialogTitle?: string;
   cancelText?: string;
+  startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
   onClick?: () => void;
 };
@@ -15,6 +16,7 @@ export default function ActionButton({
   dialogTitle = 'Confirmation',
   dialogMessage,
   cancelText = 'Cancel',
+  startIcon,
   endIcon,
   onClick,
 }: Props) {
@@ -30,7 +32,7 @@ export default function ActionButton({
 
   return (
     <React.Fragment>
-      <Mui.Button variant='outlined' onClick={handleOpen} endIcon={endIcon}>
+      <Mui.Button variant='outlined' onClick={handleOpen} startIcon={startIcon} endIcon={endIcon}>
         {buttonText}
       </Mui.Button>
       <Mui.Dialog open={open} keepMounted onClose={handleClose}>
@@ -46,6 +48,8 @@ export default function ActionButton({
               onClick?.();
             }}
             variant='outlined'
+            startIcon={startIcon}
+            endIcon={endIcon}
           >
             {buttonText}
           </Mui.Button>

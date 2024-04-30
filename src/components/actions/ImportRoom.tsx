@@ -7,10 +7,10 @@ import { getTile } from '@/utils/helpers';
 import { ScreepsGameRoomTerrain } from '@/types';
 import { useSettings } from '@/stores/Settings';
 import { useTileTerrain } from '@/stores/TileTerrain';
-import StyledDialog from '../../dialog/StyledDialog';
+import StyledDialog from '../dialog/StyledDialog';
 import { useTileStructures } from '@/stores/TileStructures';
 import { useStructurePositions } from '@/stores/StructurePositions';
-import DialogTitle from '../../dialog/DialogTitle';
+import DialogTitle from '../dialog/DialogTitle';
 
 export default function ImportRoom() {
   const { palette } = Mui.useTheme();
@@ -37,9 +37,53 @@ export default function ImportRoom() {
     setOpen(false);
   };
 
+  const handleImportRoom = async () => {
+    setFormError(null);
+
+    if (!room.length) {
+      setFormError(new Error('Room is required'));
+      return;
+    }
+
+    if (!shard.length) {
+      setFormError(new Error('Shard is required'));
+      return;
+    }
+
+    const response = await fetch(`/api/room-terrain?room=${room}&shard=${shard}`);
+    const data = (await response.json()) as ScreepsGameRoomTerrain & { error?: string };
+
+    if (data.error) {
+      setFormError(new Error(data.error));
+      return;
+    }
+
+    if (data.ok) {
+      if (wipeStructuresChecked) {
+        resetTileStructures();
+        resetStructurePositions();
+      }
+      resetTileTerrain();
+      const bytes = Array.from(data.terrain[0].terrain);
+      if (bytes.length) {
+        roomTiles.forEach((_, y) => {
+          roomTiles.forEach((_, x) => {
+            const terrain = +bytes.shift()!;
+            if (terrain === TERRAIN_MASK_WALL || terrain === TERRAIN_MASK_SWAMP) {
+              const tile = getTile(x, y);
+              setTileTerrain(tile, TERRAIN_MASK[terrain]);
+            }
+          });
+        });
+      }
+    }
+
+    handleClose();
+  };
+
   return (
     <>
-      <Mui.Button onMouseDown={handleOpen} variant='outlined' endIcon={<Icons.DownloadForOfflineOutlined />}>
+      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.CloudDownload />}>
         Import Room
       </Mui.Button>
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
@@ -92,48 +136,7 @@ export default function ImportRoom() {
               />
             }
           />
-          <Mui.Button
-            variant='outlined'
-            onMouseDown={() => {
-              setFormError(null);
-
-              if (!room.length) {
-                setFormError(new Error('Room is required'));
-                return;
-              }
-
-              if (!shard.length) {
-                setFormError(new Error('Shard is required'));
-                return;
-              }
-
-              axios
-                .get(`https://screeps.com/api/game/room-terrain?encoded=1&room=${room}&shard=${shard}`)
-                .then(({ data }: { data: ScreepsGameRoomTerrain }) => {
-                  if (data.ok) {
-                    if (wipeStructuresChecked) {
-                      resetTileStructures();
-                      resetStructurePositions();
-                    }
-                    resetTileTerrain();
-                    const bytes = Array.from(data.terrain[0].terrain);
-                    if (bytes.length) {
-                      roomTiles.forEach((_, y) => {
-                        roomTiles.forEach((_, x) => {
-                          const terrain = +bytes.shift()!;
-                          if (terrain === TERRAIN_MASK_WALL || terrain === TERRAIN_MASK_SWAMP) {
-                            const tile = getTile(x, y);
-                            setTileTerrain(tile, TERRAIN_MASK[terrain]);
-                          }
-                        });
-                      });
-                    }
-                  }
-                  handleClose();
-                })
-                .catch(setFormError);
-            }}
-          >
+          <Mui.Button variant='outlined' onClick={handleImportRoom} startIcon={<Icons.CloudDownload />}>
             Import Room
           </Mui.Button>
         </Mui.DialogActions>

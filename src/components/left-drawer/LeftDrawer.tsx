@@ -219,7 +219,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                               <Mui.Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
                                 {description}
                               </Mui.Typography>
-                              <Mui.Link href={'https://docs.screeps.com/api/#Structure' + anchor} target='_blank'>
+                              <Mui.Link href={`https://docs.screeps.com/api/#Structure${anchor}`} target='_blank'>
                                 View Documentation
                               </Mui.Link>
                             </Mui.Box>
@@ -320,7 +320,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                               <Mui.Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
                                 {description}
                               </Mui.Typography>
-                              <Mui.Link href={'https://docs.screeps.com/api/#' + anchor} target='_blank'>
+                              <Mui.Link href={`https://docs.screeps.com/api/#${anchor}`} target='_blank'>
                                 View Documentation
                               </Mui.Link>
                             </Mui.Box>

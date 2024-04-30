@@ -145,7 +145,7 @@ export default function RoomGrid() {
         {Object.keys(tileStructures)
           .map((tile) => +tile)
           .map((tile) => {
-            const tilePoint = Helpers.getPointForTile(tile);
+            const point = Helpers.getPointForTile(tile);
             return (
               <RoomGridTile
                 key={tile}
@@ -156,7 +156,7 @@ export default function RoomGrid() {
                 addBrush={addBrush}
                 removeStructure={removeStructure}
                 removeObjects={removeObjects}
-                renderNearHoverTile={Helpers.getDistance(tilePoint, hoverPoint) === 1}
+                renderNearHoverTile={Helpers.getDistance(point, hoverPoint) === 1}
                 hasSource={sources[tile]}
                 hasMineralType={minerals[tile]}
               />

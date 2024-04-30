@@ -4,10 +4,10 @@ import { getTileForShort } from '@/utils/helpers';
 import { RoomStructuresJson } from '@/types';
 import { useTileTerrain } from '@/stores/TileTerrain';
 import { useState } from 'react';
-import StyledDialog from '../../dialog/StyledDialog';
+import StyledDialog from '../dialog/StyledDialog';
 import { useTileStructures } from '@/stores/TileStructures';
 import { useStructurePositions } from '@/stores/StructurePositions';
-import DialogTitle from '../../dialog/DialogTitle';
+import DialogTitle from '../dialog/DialogTitle';
 import { useTheme } from '@mui/material';
 
 export default function ImportJsonStructures() {
@@ -32,16 +32,55 @@ export default function ImportJsonStructures() {
     setOpen(false);
   };
 
+  const handleLoadTerrain = () => {
+    setFormError(null);
+
+    if (!userJson) {
+      setFormError('JSON is required');
+      return;
+    }
+
+    let json: RoomStructuresJson | null = null;
+
+    try {
+      json = JSON.parse(userJson);
+    } catch {
+      setFormError('Unable to parse JSON (must be valid and stringified)');
+      return;
+    }
+
+    if (!json || !json.structures) {
+      setFormError('Expected "structures" property is missing');
+      return;
+    }
+
+    if (wipeTerrainChecked) {
+      resetTileTerrain();
+    }
+    resetTileStructures();
+    resetStructurePositions();
+
+    Object.entries(json.structures).forEach(([structure, positions]) => {
+      positions.forEach((shortPoint) => {
+        const tile = getTileForShort(shortPoint);
+        addTileStructure(tile, structure);
+        addStructurePosition(structure, shortPoint);
+      });
+    });
+
+    handleClose();
+  };
+
   return (
     <>
-      <Mui.Button onMouseDown={handleOpen} variant='outlined' endIcon={<Icons.SourceOutlined />}>
-        Load Structures
+      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.DataObject />}>
+        Import Json
       </Mui.Button>
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
-        <DialogTitle onClose={handleClose}>Load Structures</DialogTitle>
+        <DialogTitle onClose={handleClose}>Import JSON</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
           <Mui.FormLabel component='div' sx={{ mb: 2 }}>
-            Import room structures from JSON
+            Import room structures from JSON.
           </Mui.FormLabel>
           <Mui.FormControl variant='outlined' fullWidth>
             <Mui.TextField
@@ -77,48 +116,8 @@ export default function ImportJsonStructures() {
               />
             }
           />
-          <Mui.Button
-            variant='outlined'
-            onMouseDown={() => {
-              setFormError(null);
-
-              if (!userJson) {
-                setFormError('JSON is required');
-                return;
-              }
-
-              let json: RoomStructuresJson | null = null;
-
-              try {
-                json = JSON.parse(userJson);
-              } catch {
-                setFormError('Unable to parse JSON (must be valid and stringified)');
-                return;
-              }
-
-              if (!json || !json.structures) {
-                setFormError('Expected "structures" property is missing');
-                return;
-              }
-
-              if (wipeTerrainChecked) {
-                resetTileTerrain();
-              }
-              resetTileStructures();
-              resetStructurePositions();
-
-              Object.entries(json.structures).forEach(([structure, positions]) => {
-                positions.forEach((shortPoint) => {
-                  const tile = getTileForShort(shortPoint);
-                  addTileStructure(tile, structure);
-                  addStructurePosition(structure, shortPoint);
-                });
-              });
-
-              handleClose();
-            }}
-          >
-            Load Terrain
+          <Mui.Button variant='outlined' onClick={handleLoadTerrain} startIcon={<Icons.DataObject />}>
+            Import Json
           </Mui.Button>
         </Mui.DialogActions>
       </StyledDialog>

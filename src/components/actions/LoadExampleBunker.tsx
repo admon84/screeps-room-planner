@@ -6,7 +6,7 @@ import { useSettings } from '@/stores/Settings';
 import { useTileStructures } from '@/stores/TileStructures';
 import { useStructurePositions } from '@/stores/StructurePositions';
 import { useTileTerrain } from '@/stores/TileTerrain';
-import ActionButton from '../action-button/ActionButton';
+import ActionButton from './ActionButton';
 
 export default function LoadExampleBunker() {
   const setRCL = useSettings((state) => state.setRCL);
@@ -32,9 +32,9 @@ export default function LoadExampleBunker() {
           });
         });
       }}
-      endIcon={<Icons.AutoFixHigh />}
+      startIcon={<Icons.AutoFixHigh />}
       buttonText='Load Example Bunker'
-      dialogMessage='Do you want to clear all existing structures and load the example bunker?'
+      dialogMessage='Do you want to clear all structures and load the example bunker?'
     />
   );
 }
