@@ -13,9 +13,9 @@ Introducing the new Screeps Room Planner: a practical tool for players to effici
 
 ## Hosted version
 
-Try the Screeps Room Planner hosted version (everything works except importing room data):
+For your convenience, check out the hosted version:
 
-:link: [admon84.github.io/screeps-room-planner](https://admon84.github.io/screeps-room-planner/)
+:link: [screeps-room-planner.vercel.app](https://screeps-room-planner.vercel.app)
 
 ## Getting started
 
