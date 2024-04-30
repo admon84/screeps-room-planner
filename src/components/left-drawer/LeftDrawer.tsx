@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import { BrushType, BrushClass, MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '@/utils/constants';
 import * as Helpers from '@/utils/helpers';
+import { BrushType, BrushClass, MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '@/utils/constants';
 import { useSettings } from '@/stores/Settings';
 import { useStructurePositions } from '@/stores/StructurePositions';
 import { useState } from 'react';

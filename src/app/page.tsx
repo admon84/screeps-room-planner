@@ -1,5 +1,5 @@
 import RoomPlanner from '@/components/RoomPlanner';
 
-export default function Home() {
+export default function App() {
   return <RoomPlanner />;
 }

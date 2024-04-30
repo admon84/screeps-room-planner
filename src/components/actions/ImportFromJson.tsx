@@ -8,10 +8,9 @@ import StyledDialog from '../dialog/StyledDialog';
 import { useTileStructures } from '@/stores/TileStructures';
 import { useStructurePositions } from '@/stores/StructurePositions';
 import DialogTitle from '../dialog/DialogTitle';
-import { useTheme } from '@mui/material';
 
 export default function ImportJsonStructures() {
-  const { palette } = useTheme();
+  const { palette } = Mui.useTheme();
 
   const addTileStructure = useTileStructures((state) => state.addStructure);
   const resetTileStructures = useTileStructures((state) => state.reset);

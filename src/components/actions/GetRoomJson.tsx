@@ -4,13 +4,12 @@ import { useState } from 'react';
 import StyledDialog from '../dialog/StyledDialog';
 import { useStructurePositions } from '@/stores/StructurePositions';
 import DialogTitle from '../dialog/DialogTitle';
-import { useTheme } from '@mui/material';
 import { getPointForShort } from '@/utils/helpers';
 import HighlightCode from '../highlight-code/HighlightCode';
 import { useSettings } from '@/stores/Settings';
 
 export default function GetRoomJson() {
-  const { palette } = useTheme();
+  const { palette } = Mui.useTheme();
 
   const rcl = useSettings((state) => state.settings.rcl);
   const structurePositions = useStructurePositions((state) => state.positions);

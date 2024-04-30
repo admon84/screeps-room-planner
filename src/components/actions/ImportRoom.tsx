@@ -1,6 +1,5 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import axios from 'axios';
 import { useState } from 'react';
 import { ROOM_SIZE, TERRAIN_MASK, TERRAIN_MASK_SWAMP, TERRAIN_MASK_WALL } from '@/utils/constants';
 import { getTile } from '@/utils/helpers';

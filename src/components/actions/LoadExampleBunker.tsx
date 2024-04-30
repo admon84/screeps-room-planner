@@ -1,4 +1,3 @@
-import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { MAX_RCL, EXAMPLE_BUNKER } from '@/utils/constants';
 import { getTileForShort } from '@/utils/helpers';
