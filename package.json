@@ -16,6 +16,8 @@
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.15",
     "@mui/material-nextjs": "^5.15.11",
+    "@screeps/renderer": "^1.5.19",
+    "@screeps/renderer-metadata": "^1.5.18",
     "next": "14.2.3",
     "prismjs": "^1.29.0",
     "react": "^18",
