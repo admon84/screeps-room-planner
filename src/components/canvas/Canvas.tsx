@@ -19,22 +19,10 @@ const Canvas = ({ onMetricsUpdate, samples, terrain, onGameLoop }: CanvasProps) 
 
   useEffect(() => {
     const createGameApp = async () => {
-      if (!gameCanvasRef.current) {
-        return;
-      }
+      if (!gameCanvasRef.current) return;
 
-      // const startTime = new Date();
-      // decorations.forEach((decorationItem) => {
-      //   if (decorationItem.decoration.type === 'metadata') {
-      //     Object.assign(resourceMap, decorationItem.decoration.resources);
-      //     worldConfigs.metadata.objects[decorationItem.decoration.objectType] = decorationItem.decoration.metadata;
-      //   }
-      // });
-
-      // console.log(`compile at ${startTime} with config:`, { worldConfigs });
       await GameRenderer.compileMetadata(worldConfigs.metadata);
 
-      // console.log(`compiled in ${Date.now() - startTime.getTime()}`);
       const game = new GameRenderer({
         size: {
           width: gameCanvasRef.current.clientWidth,
@@ -62,16 +50,12 @@ const Canvas = ({ onMetricsUpdate, samples, terrain, onGameLoop }: CanvasProps) 
     };
 
     async function initGameApp() {
-      if (!gameApp) {
-        return;
-      }
+      if (!gameApp) return;
 
-      if (onMetricsUpdate) {
-        metricsUpdate();
-      }
+      metricsUpdate();
 
       await gameApp.init(gameCanvasRef.current);
-      console.log('gameApp initialized', gameApp);
+      // console.log('gameApp initialized', gameApp);
 
       await gameApp.setTerrain(terrain);
 
@@ -82,21 +66,17 @@ const Canvas = ({ onMetricsUpdate, samples, terrain, onGameLoop }: CanvasProps) 
 
       const applySamples = () => {
         const sample = samples[i];
-        // const startApplyTime = new Date();
-        // console.log(`run sample #${i} at ${startApplyTime}`);
         gameApp.applyState(sample, TICK_DURATION);
-        // console.log(`applied in ${Date.now() - startApplyTime.getTime()}`);
-        if (i < samples.length - 1) {
-          i += 1;
-        } else {
-          i = 0;
-        }
+        i = (i + 1) % samples.length;
         setTimeout(applySamples, 1000 * TICK_DURATION);
       };
 
       applySamples();
 
-      // game.setDecorations(decorations);
+      // PIXI interaction events
+      // gameApp.app.renderer.plugins.interaction.on('pointermove', (event: any) => {
+      //   console.log('pointermove', event);
+      // });
     }
 
     initGameApp();
@@ -111,6 +91,12 @@ const Canvas = ({ onMetricsUpdate, samples, terrain, onGameLoop }: CanvasProps) 
       gameApp.pan(e.pageX - pan.x, e.pageY - pan.y);
       setPan({ x: e.pageX, y: e.pageY });
     }
+    // debug mouse position
+    // if (gameApp) {
+    //   // console.log('renderer plugins', safeStringify(gameApp.app.renderer.plugins));
+    //   const { mouse } = gameApp.app.renderer.plugins.interaction;
+    //   console.log('mouse moved', mouse.global.x, mouse.global.y, mouse.buttons);
+    // }
   };
 
   const handleMouseUp = () => {
@@ -139,3 +125,13 @@ const Canvas = ({ onMetricsUpdate, samples, terrain, onGameLoop }: CanvasProps) 
 };
 
 export default Canvas;
+
+// function safeStringify(obj: any) {
+//   const cache = new Set();
+//   return JSON.stringify(obj, (_, value) => {
+//     if (typeof value === 'object' && value !== null && !cache.has(value)) {
+//       cache.add(value);
+//     }
+//     return value;
+//   });
+// }
