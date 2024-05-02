@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import * as Mui from '@mui/material';
 import Canvas from './Canvas';
 import CanvasDebugPanel from './CanvasDebugPanel';
 import { EXAMPLE_STRUCTURES, EXAMPLE_TERRAIN } from '../../utils/constants';

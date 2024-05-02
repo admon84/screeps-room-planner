@@ -1,11 +1,5 @@
 import '@screeps/renderer-metadata';
 
-declare global {
-  const RENDERER_METADATA: any;
-}
-
-console.log('renderer metadata:', RENDERER_METADATA);
-
 export const worldConfigs = {
   ATTACK_PENETRATION: 10,
   CELL_SIZE: 100,
