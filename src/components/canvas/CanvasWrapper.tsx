@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import Canvas from './Canvas';
 import CanvasDebugPanel from './CanvasDebugPanel';
-import { EXAMPLE_STRUCTURES, EXAMPLE_TERRAIN } from '../../utils/constants';
+import { SAMPLE_TERRAIN } from '@/utils/sampleTerrain';
 import type { Metrics } from '@/types';
 
 export default function CanvasWrapper() {
@@ -15,7 +15,7 @@ export default function CanvasWrapper() {
 
   return (
     <>
-      <Canvas samples={EXAMPLE_STRUCTURES} terrain={EXAMPLE_TERRAIN} onMetricsUpdate={handleMetricsUpdate} />
+      <Canvas terrain={SAMPLE_TERRAIN} onMetricsUpdate={handleMetricsUpdate} />
       <CanvasDebugPanel metrics={metrics} />
     </>
   );
