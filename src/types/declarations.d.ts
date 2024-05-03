@@ -1,5 +1,3 @@
-type PIXI = typeof import('pixi.js');
-
 // Types for the `@screeps/renderer-metadata` package
 declare module '@screeps/renderer-metadata' {
   declare global {
@@ -59,7 +57,7 @@ declare module '@screeps/renderer' {
 
     setTerrain(terrain: ObjectState[]): void;
 
-    resize(newSize: Size): void;
+    resize(newSize?: Size): void;
 
     animate(): void;
 
