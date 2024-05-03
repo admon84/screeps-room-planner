@@ -3,9 +3,10 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import LeftDrawer from './left-drawer/LeftDrawer';
-import RoomGrid from './room-grid/RoomGrid';
+// import RoomGrid from './room-grid/RoomGrid';
 import HoverTilePanel from './room-grid/HoverTilePanel';
 import { useState } from 'react';
+import CanvasWrapper from './canvas/CanvasWrapper';
 
 export default function RoomPlanner() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -67,8 +68,9 @@ export default function RoomPlanner() {
             <HoverTilePanel />
           </Mui.Box>
           <Mui.Toolbar variant='dense' />
-          <Mui.Box display='flex' justifyContent='center' padding={3} position='relative' sx={{ overflowY: 'auto' }}>
-            <RoomGrid />
+          <Mui.Box position='relative' sx={{ overflow: 'hidden' }}>
+            {/* <RoomGrid /> */}
+            <CanvasWrapper />
           </Mui.Box>
         </Mui.Box>
       </Mui.Box>

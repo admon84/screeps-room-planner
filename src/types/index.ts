@@ -22,3 +22,14 @@ export type ScreepsGameRoomTerrain = {
 };
 
 export type StructuresNearbyData = { dx: number; dy: number; structures: string[] };
+
+export interface Metrics {
+  fps: number;
+  gameObjectCounter?: number;
+  rendererCounter?: number;
+  devicePixelRatio?: number;
+  renderer?: {
+    size: number;
+    maxSvgSize: number;
+  };
+}

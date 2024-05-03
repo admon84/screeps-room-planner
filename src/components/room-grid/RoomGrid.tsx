@@ -123,7 +123,7 @@ export default function RoomGrid() {
       for (const dy of [-1, 0, 1]) {
         if (dx === 0 && dy === 0) continue;
         const [x, y] = [origin.x + dx, origin.y + dy];
-        if (Helpers.positionIsValid(x, y)) {
+        if (Helpers.isRoomPosition(x, y)) {
           data.push({ dx, dy, structures: getStructures(Helpers.getTile(x, y)) });
         }
       }
