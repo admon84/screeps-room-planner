@@ -6,8 +6,6 @@ interface CanvasDebugPanelProps {
 }
 
 export default function CanvasDebugPanel({ metrics }: CanvasDebugPanelProps) {
-  const { fps, gameObjectCounter, rendererCounter, renderer } = metrics;
-
   return (
     <Mui.Card
       sx={{
