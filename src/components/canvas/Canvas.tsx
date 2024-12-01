@@ -34,7 +34,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
     // console.log('Canvas > mouse down', hoverPos, e);
     setIsMouseDown(true);
 
-    if (e.shiftKey) {
+    if (e.shiftKey && e.buttons === 1) {
       setPan({ x: e.clientX, y: e.clientY });
       return;
     }
@@ -53,7 +53,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     // console.log('Canvas > mouse move', hoverPos, e);
     if (e.shiftKey) {
-      if (pan) {
+      if (pan && e.buttons === 1) {
         gameApp?.pan(e.movementX, e.movementY);
         setPan({ x: e.clientX, y: e.clientY });
         gameApp?.app.renderer.plugins.interaction.setCursorMode('grabbing');
@@ -82,9 +82,9 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   };
 
   const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
-    // console.log('Canvas > wheel', hoverPos, e);
+    // console.log('Canvas > wheel', hoverPos, { deltaX: e.deltaX, deltaY: e.deltaY });
     if (e.shiftKey) {
-      if (e.deltaY < 0) {
+      if (e.deltaX < 0) {
         gameApp?.zoomTo(gameApp.zoomLevel + 0.05, e.clientX, e.clientY);
       } else {
         gameApp?.zoomTo(Math.max(gameApp.zoomLevel - 0.05, 0.1), e.clientX, e.clientY);
