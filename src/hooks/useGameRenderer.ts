@@ -92,6 +92,16 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
       // Convert mouse coordinates to room position
       gameApp.app.stage
         .on('mousemove', (event: any) => {
+          if (
+            (event.data.originalEvent.shiftKey && event.data.originalEvent.buttons === 1) ||
+            event.data.originalEvent.buttons === 4
+          ) {
+            highlight.visible = false;
+            return;
+          }
+
+          highlight.visible = true;
+
           const roomPos = convertGlobalToRoomPosition(event.data.global, gameApp.app.stage);
           setHoverPos(roomPos);
 
@@ -119,26 +129,19 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
     if (!gameApp || !isGameAppInitialized) return;
 
     const updateGameState = () => {
+      // try {
       gameApp.applyState(gameStateRef.current as any, TICK_DURATION);
+      // } catch (error) {
+      //   console.error('Error applying game state:', error);
+      // } finally {
       setTimeout(updateGameState, 1000 * TICK_DURATION);
+      // }
     };
+
     const timeoutId = setTimeout(updateGameState, 0);
 
     return () => clearTimeout(timeoutId);
   }, [gameApp, gameState, isGameAppInitialized]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (!gameCanvasRef.current || !gameApp) return;
-      const newSize = gameCanvasRef.current.getBoundingClientRect();
-      gameApp?.resize(newSize);
-    };
-
-    document.addEventListener('resize', handleResize);
-    return () => {
-      document.removeEventListener('resize', handleResize);
-    };
-  }, [gameApp]);
 
   return { gameApp, hoverPos };
 };

@@ -1,4 +1,4 @@
-import React, { WheelEvent, useRef, useState } from 'react';
+import React, { WheelEvent, useEffect, useRef, useState } from 'react';
 import { useGameRenderer } from '@/hooks/useGameRenderer';
 import { Point } from '@/types';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
@@ -20,6 +20,23 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const removeObject = useGameObjectStore((state) => state.removeObject);
   const brush = useSettings((state) => state.settings.brush);
 
+  useEffect(() => {
+    if (!gameCanvasRef.current || !gameApp) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        gameApp.resize({ width, height });
+      }
+    });
+
+    resizeObserver.observe(gameCanvasRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [gameApp]);
+
   const handleMouseOver = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (e.shiftKey) {
       gameApp?.app.renderer.plugins.interaction.setCursorMode('grab');
@@ -31,10 +48,10 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    // console.log('Canvas > mouse down', hoverPos, e);
+    // console.log('Canvas > mouse down', hoverPos, e.buttons);
     setIsMouseDown(true);
 
-    if (e.shiftKey && e.buttons === 1) {
+    if (e.buttons === 4 || (e.shiftKey && e.buttons === 1)) {
       setPan({ x: e.clientX, y: e.clientY });
       return;
     }
@@ -51,16 +68,17 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    // console.log('Canvas > mouse move', hoverPos, e);
-    if (e.shiftKey) {
-      if (pan && e.buttons === 1) {
-        gameApp?.pan(e.movementX, e.movementY);
-        setPan({ x: e.clientX, y: e.clientY });
-        gameApp?.app.renderer.plugins.interaction.setCursorMode('grabbing');
-      } else {
-        gameApp?.app.renderer.plugins.interaction.setCursorMode('grab');
-      }
+    // console.log('Canvas > mouse move', hoverPos, e.buttons);
+
+    if (pan && (e.buttons === 4 || (e.shiftKey && e.buttons === 1))) {
+      gameApp?.pan(e.movementX, e.movementY);
+      setPan({ x: e.clientX, y: e.clientY });
+      gameApp?.app.renderer.plugins.interaction.setCursorMode('grabbing');
       return;
+    }
+
+    if (e.shiftKey) {
+      gameApp?.app.renderer.plugins.interaction.setCursorMode('grab');
     }
 
     if (e.buttons === 1 && isMouseDown && hoverPos) {

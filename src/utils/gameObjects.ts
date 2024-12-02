@@ -202,6 +202,17 @@ export function createTower({
     energyCapacity,
     _id,
     _isDisabled,
+    actionLog: {
+      attack: null,
+      heal: null,
+      repair: null,
+    },
+    store: {
+      energy: 500,
+    },
+    storeCapacityResource: {
+      energy: 1000,
+    },
   });
 }
 
