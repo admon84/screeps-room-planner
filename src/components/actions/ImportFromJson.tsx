@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { getTileForShort } from '@/utils/helpers';
-import { RoomStructuresJson } from '@/types';
+import { Point, RoomStructuresJson } from '@/types';
 import { useTileTerrain } from '@/stores/TileTerrain';
 import { useState } from 'react';
 import StyledDialog from '../dialog/StyledDialog';
@@ -60,7 +60,9 @@ export default function ImportJsonStructures() {
     resetStructurePositions();
 
     Object.entries(json.structures).forEach(([structure, positions]) => {
-      positions.forEach((shortPoint) => {
+      positions.forEach((pos) => {
+        let point = pos as Point;
+        let shortPoint = point.x + "-" + point.y;
         const tile = getTileForShort(shortPoint);
         addTileStructure(tile, structure);
         addStructurePosition(structure, shortPoint);
