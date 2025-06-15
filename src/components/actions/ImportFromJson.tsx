@@ -60,7 +60,8 @@ export default function ImportJsonStructures() {
     resetStructurePositions();
 
     Object.entries(json.structures).forEach(([structure, positions]) => {
-      positions.forEach((shortPoint) => {
+      positions.forEach((point) => {
+        let shortPoint = point.x + '-' + point.y;
         const tile = getTileForShort(shortPoint);
         addTileStructure(tile, structure);
         addStructurePosition(structure, shortPoint);
