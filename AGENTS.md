@@ -87,19 +87,4 @@ the canvas path reaches feature parity; ask before pruning either side.
 ## Contributing
 
 - Never commit directly to `main`; branch and open a PR.
-- Commit subjects are lowercase and imperative (`fix tower object data to prevent render errors`).
-  Prefix in-progress renderer work with `wip:`.
 - No secrets in the repo. The Screeps API is called unauthenticated through the local proxy route.
-
-## Maintaining This File
-
-Every line here is loaded into the agent's context on every session, so it competes with the actual
-task for attention. Keep it under ~150 lines and prune aggressively:
-
-- Include only what an agent **cannot** infer by reading the code: commands, non-obvious invariants,
-  migration state, and traps.
-- Cut anything derivable from the source -- file listings, dependency lists, restated type
-  signatures, prose about what a function obviously does.
-- Prefer one concrete, verifiable sentence over a paragraph of advice.
-- When a rule goes stale (the renderer migration lands, a test suite arrives), delete or rewrite it.
-  A wrong rule is worse than a missing one.
