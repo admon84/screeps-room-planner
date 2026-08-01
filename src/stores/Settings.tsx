@@ -25,7 +25,7 @@ const initialSettings = {
   rcl: MAX_RCL,
   room: 'E3S1',
   shard: 'shard0',
-  zoom: 1.0,
+  zoom: 0.2,
 };
 
 export const useSettings = create<State>((set) => ({

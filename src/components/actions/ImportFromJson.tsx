@@ -1,22 +1,19 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import { getTileForShort } from '@/utils/helpers';
-import { RoomStructuresJson } from '@/types';
-import { useTileTerrain } from '@/stores/TileTerrain';
 import { useState } from 'react';
+import { getPointForShort, isRoomPosition } from '@/utils/helpers';
+import { createObjectFromType, GameObject } from '@/utils/gameObjects';
+import { RoomStructuresJson } from '@/types';
+import { useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
-import { useTileStructures } from '@/stores/TileStructures';
-import { useStructurePositions } from '@/stores/StructurePositions';
 import DialogTitle from '../dialog/DialogTitle';
 
 export default function ImportJsonStructures() {
   const { palette } = Mui.useTheme();
 
-  const addTileStructure = useTileStructures((state) => state.addStructure);
-  const resetTileStructures = useTileStructures((state) => state.reset);
-  const resetStructurePositions = useStructurePositions((state) => state.reset);
-  const addStructurePosition = useStructurePositions((state) => state.addStructure);
-  const resetTileTerrain = useTileTerrain((state) => state.reset);
+  const setObjects = useGameObjectStore((state) => state.setObjects);
+  const resetTerrain = useTerrainStore((state) => state.reset);
 
   const [wipeTerrainChecked, setWipeTerrainChecked] = useState(true);
   const [modalOpen, setOpen] = useState(false);
@@ -53,20 +50,28 @@ export default function ImportJsonStructures() {
       return;
     }
 
-    if (wipeTerrainChecked) {
-      resetTileTerrain();
+    // Coordinates are validated before anything is stored: a bad short parses to NaN, which the
+    // renderer surfaces as a draw crash rather than a type error.
+    const objects: GameObject[] = [];
+    for (const [type, positions] of Object.entries(json.structures)) {
+      if (!Array.isArray(positions)) {
+        setFormError(`Expected an array of "x-y" positions for "${type}"`);
+        return;
+      }
+      for (const shortPoint of positions) {
+        const { x, y } = getPointForShort(String(shortPoint));
+        if (!isRoomPosition(x, y)) {
+          setFormError(`Invalid position "${shortPoint}" for "${type}" (expected "x-y" inside the room)`);
+          return;
+        }
+        objects.push(createObjectFromType({ type, x, y }));
+      }
     }
-    resetTileStructures();
-    resetStructurePositions();
 
-    Object.entries(json.structures).forEach(([structure, positions]) => {
-      positions.forEach((point) => {
-        let shortPoint = point.x + '-' + point.y;
-        const tile = getTileForShort(shortPoint);
-        addTileStructure(tile, structure);
-        addStructurePosition(structure, shortPoint);
-      });
-    });
+    if (wipeTerrainChecked) {
+      resetTerrain();
+    }
+    setObjects(objects);
 
     handleClose();
   };
@@ -80,7 +85,7 @@ export default function ImportJsonStructures() {
         <DialogTitle onClose={handleClose}>Import JSON</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
           <Mui.FormLabel component='div' sx={{ mb: 2 }}>
-            Import room structures from JSON.
+            Import room structures from JSON. Positions use the &quot;x-y&quot; format produced by Get Room Json.
           </Mui.FormLabel>
           <Mui.FormControl variant='outlined' fullWidth>
             <Mui.TextField
@@ -95,7 +100,7 @@ export default function ImportJsonStructures() {
                 setFormError(null);
                 setUserJson(e.target.value);
               }}
-              placeholder='{"rcl":8,"structures":{"spawn":[{"x":0,"y":0}]}}'
+              placeholder='{"rcl":8,"structures":{"spawn":["25-25"]}}'
             />
           </Mui.FormControl>
           {formError && (

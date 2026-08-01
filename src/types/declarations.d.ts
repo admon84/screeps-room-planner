@@ -1,3 +1,13 @@
+// `@screeps/renderer` assigns window.PIXI at module load, so PIXI is a browser global rather than an
+// import. Types come from the `pixi.js` devDependency, which matches the v7 build the renderer
+// bundles -- it is never imported at runtime.
+declare const PIXI: typeof import('pixi.js');
+
+// Aliases so the ambient declarations below can name PIXI types; `declare const PIXI` only provides
+// PIXI in value position.
+type PixiApplication = import('pixi.js').Application;
+type PixiContainer = import('pixi.js').Container;
+
 // Types for the `@screeps/renderer-metadata` package
 declare module '@screeps/renderer-metadata' {
   declare global {
@@ -9,7 +19,7 @@ declare module '@screeps/renderer-metadata' {
 declare module '@screeps/renderer' {
   export interface WorldOptions extends WorldConfigs {
     actionManager: ActionManager;
-    app: PIXI.Application;
+    app: PixiApplication;
     logger: object;
     objectFilter: ObjectFilterFunc;
     resourceMap: { [key: string]: string };
@@ -21,7 +31,7 @@ declare module '@screeps/renderer' {
     static isWebGLSupported: boolean;
     static compileMetadata(metadata: Metadata): Promise<void>;
     metrics: Metrics;
-    app: PIXI.Application;
+    app: PixiApplication;
     world: World;
     actionManager: ActionManager;
     released?: boolean;
@@ -50,6 +60,8 @@ declare module '@screeps/renderer' {
     animateChecker(): void;
 
     applyState(state: State, tickDuration: number): void;
+
+    get zoomLevel(): number;
 
     set zoomLevel(value: number);
 
@@ -81,35 +93,35 @@ declare module '@screeps/renderer' {
 
     getWorldPosition(): Point;
 
-    createData(options: { layer: string }): PIXI.Container;
+    createData(options: { layer: string }): PixiContainer;
 
-    destroyData(container: PIXI.Container): void;
+    destroyData(container: PixiContainer): void;
 
-    runProcessor(processorMetadata: ProcessorMetadata, processorParams: ProcessorParams): PIXI.Container | void;
+    runProcessor(processorMetadata: ProcessorMetadata, processorParams: ProcessorParams): PixiContainer | void;
 
     destructProcessor(
       processorMetadata: ProcessorMetadata,
       processorParams: ProcessorParams,
-      container: PIXI.Container
+      container: PixiContainer
     ): void;
 
     runActions(
       actionsMeta: Array<ActionMetadata>,
       processorParams: ProcessorParams,
-      container: PIXI.Container
+      container: PixiContainer
     ): Array<Action>;
 
     cancelActions(actions: Array<Action>): void;
 
-    cancelActionsForObj(container: PIXI.Container): void;
+    cancelActionsForObj(container: PixiContainer): void;
 
     finishActions(actions: Array<Action>): void;
 
-    countObjects(container: PIXI.Container): number;
+    countObjects(container: PixiContainer): number;
   }
 
   export class GameObject {
-    rootContainer: PIXI.Container;
+    rootContainer: PixiContainer;
     constructor(id: string, objectMetadata: ObjectMetadata, world: World);
 
     remove(tickDuration: number): void;
@@ -138,10 +150,13 @@ declare module '@screeps/renderer' {
   }
 
   export class ResourceManager {
-    constructor(options: { logger: object; app: Application });
-    load(): Promise<PIXI.loaders.ResourceDictionary>;
-    getResource(name: string, ...params: any[]): Promise<PIXI.loaders.ResourceDictionary>;
-    getCachedResource(name: string): void | PIXI.loaders.Resource;
+    constructor(options: { logger: object; app: PixiApplication });
+    // TODO: PIXI 7 replaced the v4 `loaders` system with the promise-based `Assets` API, so the old
+    // Resource/ResourceDictionary types no longer exist. No runtime code reads these, so they are
+    // left loose rather than reverse-engineered from the bundle.
+    load(): Promise<Record<string, unknown>>;
+    getResource(name: string, ...params: any[]): Promise<Record<string, unknown>>;
+    getCachedResource(name: string): void | unknown;
     release(): void;
   }
 
@@ -435,7 +450,7 @@ declare module '@screeps/renderer' {
     prevCalcs: { [key: string]: any };
     prevState: ObjectState;
     world: World;
-    rootContainer: PIXI.Container;
+    rootContainer: PixiContainer;
     scope: Scope;
     state: ObjectState;
     stateExtra: State;
@@ -449,7 +464,7 @@ declare module '@screeps/renderer' {
   }
 
   export interface LayerParams {
-    app: PIXI.Application;
+    app: PixiApplication;
     resourceManager: ResourceManager;
     world: World;
   }
@@ -485,10 +500,10 @@ declare module '@screeps/renderer' {
   export class ActionManager {
     constructor();
     update(delta: number): void;
-    runAction(container: PIXI.Container, action: Action): ActionHandle;
+    runAction(container: PixiContainer, action: Action): ActionHandle;
     cancelAction(actionHandle: ActionHandle): void;
     finishAction(actionHandle: ActionHandle): void;
-    cancelActionForContainer(container: PIXI.Container): void;
+    cancelActionForContainer(container: PixiContainer): void;
   }
 
   export class Action {
@@ -498,9 +513,9 @@ declare module '@screeps/renderer' {
   }
 
   export class ActionHandle {
-    container: PIXI.Container;
+    container: PixiContainer;
     action: Action;
-    constructor(container: PIXI.Container, action: Action);
+    constructor(container: PixiContainer, action: Action);
     update(delta: number): void;
     isEnded(): boolean;
   }

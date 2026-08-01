@@ -3,8 +3,8 @@ import * as Icons from '@mui/icons-material';
 import * as Helpers from '@/utils/helpers';
 import { BrushType, BrushClass, MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '@/utils/constants';
 import { useSettings } from '@/stores/Settings';
-import { useStructurePositions } from '@/stores/StructurePositions';
-import { useState } from 'react';
+import { countPlacedByType, useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useMemo, useState } from 'react';
 import RoomActions from './RoomActions';
 
 const iconSize = '1.5rem';
@@ -51,7 +51,7 @@ const StyledAccordionDetails = Mui.styled(Mui.AccordionDetails)({
   borderTop: '1px solid rgba(0, 0, 0, .125)',
 });
 
-const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(({ theme }) => ({
+const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(() => ({
   '& .MuiBadge-badge': {
     right: 12,
     top: 12,
@@ -76,7 +76,8 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const resetBrush = useSettings((state) => state.resetBrush);
   const setRCL = useSettings((state) => state.setRCL);
   const setZoom = useSettings((state) => state.setZoom);
-  const structurePositions = useStructurePositions((state) => state.positions);
+  const objects = useGameObjectStore((state) => state.objects);
+  const placedCounts = useMemo(() => countPlacedByType(objects), [objects]);
 
   const [settingsMenuExpanded, setSettingsMenuExpanded] = useState(true);
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
@@ -110,7 +111,15 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           onChange={() => setSettingsMenuExpanded(!settingsMenuExpanded)}
         >
           <StyledAccordionSummary>
-            <Mui.Box alignItems='center' display='flex' flexDirection='row' flexGrow={1} justifyContent='space-between'>
+            <Mui.Box
+              sx={{
+                alignItems: 'center',
+                display: 'flex',
+                flexDirection: 'row',
+                flexGrow: 1,
+                justifyContent: 'space-between',
+              }}
+            >
               <Mui.Typography>Settings</Mui.Typography>
             </Mui.Box>
           </StyledAccordionSummary>
@@ -118,21 +127,23 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             <Mui.Stack direction='column' spacing={{ xs: 0, md: 2 }} sx={{ m: 2 }}>
               <Mui.Stack direction='column' spacing={1} sx={{ display: { xs: 'none', md: 'block' } }}>
                 <Mui.Box
-                  alignItems='center'
-                  display='flex'
-                  flexDirection='row'
-                  flexGrow={1}
-                  justifyContent='space-between'
+                  sx={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexGrow: 1,
+                    justifyContent: 'space-between',
+                  }}
                 >
                   <Mui.Typography variant='body2'>Map Zoom</Mui.Typography>
-                  <Mui.Typography variant='body2'>{zoom * 25 + 50}%</Mui.Typography>
+                  <Mui.Typography variant='body2'>{Math.round(zoom * 100)}%</Mui.Typography>
                 </Mui.Box>
                 <Mui.Paper variant='outlined' sx={{ px: 2.4, pt: 0.8 }}>
                   <Mui.Slider
                     marks={false}
-                    max={2}
-                    min={0}
-                    step={0.1}
+                    max={1}
+                    min={0.1}
+                    step={0.05}
                     value={zoom}
                     onChange={updateZoom}
                     onChangeCommitted={updateZoom}
@@ -154,11 +165,13 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
               </Mui.Stack>
               <Mui.Stack direction='column' spacing={1}>
                 <Mui.Box
-                  alignItems='center'
-                  display='flex'
-                  flexDirection='row'
-                  flexGrow={1}
-                  justifyContent='space-between'
+                  sx={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexGrow: 1,
+                    justifyContent: 'space-between',
+                  }}
                 >
                   <Mui.Typography variant='body2'>Room Controller Level</Mui.Typography>
                   <Mui.Box>
@@ -197,10 +210,10 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             <Mui.Typography>Structures</Mui.Typography>
           </StyledAccordionSummary>
           <StyledAccordionDetails>
-            <Mui.Box display='flex' flexDirection='column' overflow='auto'>
+            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {structureBrushes.map(({ key, image, total, name, anchor, description }) => {
-                  const placed = structurePositions[key].length;
+                  const placed = placedCounts[key] ?? 0;
                   const disabled = !Helpers.structureCanBePlaced(key, rcl, TERRAIN_PLAIN, placed);
                   const error = total < placed;
                   const locked = !error && rcl < Helpers.getRequiredRCL(key);
@@ -215,7 +228,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                           arrow
                           placement='right'
                           title={
-                            <Mui.Box display='flex' flexDirection='column' justifyContent='center'>
+                            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                               <Mui.Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
                                 {description}
                               </Mui.Typography>
@@ -238,7 +251,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                           />
                         </Mui.Tooltip>
                       }
-                      onMouseDown={(e) => {
+                      onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
                         const newBrush = getBrushTarget(e.target as HTMLElement);
                         if (newBrush) {
                           if (brush === newBrush) {
@@ -258,17 +271,21 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                       variant={brush === key ? 'contained' : 'outlined'}
                     >
                       <Mui.Box
-                        alignItems='center'
-                        display='flex'
-                        flexDirection='row'
-                        justifyContent='space-between'
-                        flexGrow='1'
+                        sx={{
+                          alignItems: 'center',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          flexGrow: '1',
+                        }}
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
                         <Mui.Tooltip arrow placement='left' title={`${total - placed} remaining`}>
                           <Mui.Chip
                             color={error ? 'error' : 'default'}
-                            icon={locked ? <Icons.Lock /> : <></>}
+                            // Chip clones this element to inject its own className, and a Fragment
+                            // accepts no className -- so the empty case has to be undefined.
+                            icon={locked ? <Icons.Lock /> : undefined}
                             label={
                               locked
                                 ? `RCL ${Helpers.getRequiredRCL(key)}`
@@ -278,13 +295,13 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                             }
                             disabled={disabled}
                             size='small'
-                            sx={{
-                              ...(brush === key && !disabled && { borderColor: ({ palette }) => palette.text.primary }),
+                            sx={({ palette }) => ({
+                              ...(brush === key && !disabled && { borderColor: palette.text.primary }),
                               cursor: 'pointer',
                               fontSize: '.7rem',
                               fontWeight: 300,
                               transition: 'border-color 250ms ease',
-                            }}
+                            })}
                             variant='outlined'
                           />
                         </Mui.Tooltip>
@@ -303,7 +320,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             <Mui.Typography>Objects</Mui.Typography>
           </StyledAccordionSummary>
           <StyledAccordionDetails>
-            <Mui.Box display='flex' flexDirection='column' overflow='auto'>
+            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {Helpers.getObjectBrushes().map(({ key, image, name, anchor, description }) => {
                   return (
@@ -316,7 +333,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                           arrow
                           placement='right'
                           title={
-                            <Mui.Box display='flex' flexDirection='column' justifyContent='center'>
+                            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                               <Mui.Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
                                 {description}
                               </Mui.Typography>
@@ -339,7 +356,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                           />
                         </Mui.Tooltip>
                       }
-                      onMouseDown={(e) => {
+                      onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
                         const newBrush = getBrushTarget(e.target as HTMLElement);
                         if (newBrush) {
                           if (brush === newBrush) {
@@ -359,11 +376,13 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                       variant={brush === key ? 'contained' : 'outlined'}
                     >
                       <Mui.Box
-                        alignItems='center'
-                        display='flex'
-                        flexDirection='row'
-                        justifyContent='space-between'
-                        flexGrow='1'
+                        sx={{
+                          alignItems: 'center',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          flexGrow: '1',
+                        }}
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
                       </Mui.Box>
@@ -381,7 +400,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             <Mui.Typography>Terrain</Mui.Typography>
           </StyledAccordionSummary>
           <StyledAccordionDetails>
-            <Mui.Box display='flex' flexDirection='column' overflow='auto'>
+            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {Helpers.getTerrainBrushes().map(({ key, name, backgroundColor, boxShadow }) => {
                   return (
@@ -402,7 +421,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                           }}
                         />
                       }
-                      onMouseDown={(e) => {
+                      onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
                         const newBrush = getBrushTarget(e.target as HTMLElement);
                         if (newBrush) {
                           if (brush === newBrush) {
@@ -422,11 +441,13 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                       variant={brush === key ? 'contained' : 'outlined'}
                     >
                       <Mui.Box
-                        alignItems='center'
-                        display='flex'
-                        flexDirection='row'
-                        justifyContent='space-between'
-                        flexGrow='1'
+                        sx={{
+                          alignItems: 'center',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          flexGrow: '1',
+                        }}
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
                       </Mui.Box>
@@ -444,7 +465,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             <Mui.Typography>Actions</Mui.Typography>
           </StyledAccordionSummary>
           <StyledAccordionDetails>
-            <Mui.Box display='flex' flexDirection='column' overflow='auto'>
+            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
               <Mui.Stack direction='column' sx={{ m: 2 }} spacing={1}>
                 <RoomActions />
               </Mui.Stack>
@@ -461,8 +482,10 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
         variant='temporary'
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        ModalProps={{
-          keepMounted: true,
+        slotProps={{
+          root: {
+            keepMounted: true,
+          },
         }}
         sx={{
           display: { xs: 'block', md: 'none' },

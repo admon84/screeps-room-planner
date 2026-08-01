@@ -1,6 +1,12 @@
 export type Point = { x: number; y: number };
 
-export type RoomStructures = { [structure: string]: Point[] };
+/**
+ * Sparse terrain in the shape `@screeps/renderer` consumes: only non-plain tiles are listed, so a
+ * missing entry means plain.
+ */
+export type TerrainTile = { room: string; x: number; y: number; type: string };
+
+export type RoomStructures = { [structure: string]: string[] };
 
 export type RoomStructuresJson = {
   rcl?: number;

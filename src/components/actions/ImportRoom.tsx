@@ -1,14 +1,13 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { useState } from 'react';
-import { ROOM_SIZE, TERRAIN_MASK, TERRAIN_MASK_SWAMP, TERRAIN_MASK_WALL } from '@/utils/constants';
-import { getTile } from '@/utils/helpers';
-import { ScreepsGameRoomTerrain } from '@/types';
+import { ROOM_NAME, TERRAIN_MASK, TERRAIN_MASK_SWAMP, TERRAIN_MASK_WALL } from '@/utils/constants';
+import { getPointForTile } from '@/utils/helpers';
+import { ScreepsGameRoomTerrain, TerrainTile } from '@/types';
 import { useSettings } from '@/stores/Settings';
-import { useTileTerrain } from '@/stores/TileTerrain';
+import { useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
-import { useTileStructures } from '@/stores/TileStructures';
-import { useStructurePositions } from '@/stores/StructurePositions';
 import DialogTitle from '../dialog/DialogTitle';
 
 export default function ImportRoom() {
@@ -18,15 +17,12 @@ export default function ImportRoom() {
   const room = useSettings((state) => state.settings.room);
   const setShard = useSettings((state) => state.setShard);
   const setRoom = useSettings((state) => state.setRoom);
-  const resetTileStructures = useTileStructures((state) => state.reset);
-  const resetStructurePositions = useStructurePositions((state) => state.reset);
-  const resetTileTerrain = useTileTerrain((state) => state.reset);
-  const setTileTerrain = useTileTerrain((state) => state.setTileTerrain);
+  const resetObjects = useGameObjectStore((state) => state.reset);
+  const setTerrain = useTerrainStore((state) => state.setTerrain);
 
   const [wipeStructuresChecked, setWipeStructuresChecked] = useState(true);
   const [modalOpen, setOpen] = useState(false);
   const [formError, setFormError] = useState<Error | null>(null);
-  const roomTiles = Array.from(Array(ROOM_SIZE));
 
   const handleOpen = () => {
     setOpen(true);
@@ -59,22 +55,20 @@ export default function ImportRoom() {
 
     if (data.ok) {
       if (wipeStructuresChecked) {
-        resetTileStructures();
-        resetStructurePositions();
+        resetObjects();
       }
-      resetTileTerrain();
-      const bytes = Array.from(data.terrain[0].terrain);
-      if (bytes.length) {
-        roomTiles.forEach((_, y) => {
-          roomTiles.forEach((_, x) => {
-            const terrain = +bytes.shift()!;
-            if (terrain === TERRAIN_MASK_WALL || terrain === TERRAIN_MASK_SWAMP) {
-              const tile = getTile(x, y);
-              setTileTerrain(tile, TERRAIN_MASK[terrain]);
-            }
-          });
-        });
+
+      // The API returns one terrain-mask digit per tile in row-major order. Skipping plains yields
+      // exactly the sparse array the renderer wants, so it replaces the store in a single write.
+      const bytes = data.terrain[0].terrain;
+      const tiles: TerrainTile[] = [];
+      for (let tile = 0; tile < bytes.length; tile++) {
+        const mask = +bytes[tile];
+        if (mask === TERRAIN_MASK_WALL || mask === TERRAIN_MASK_SWAMP) {
+          tiles.push({ room: ROOM_NAME, ...getPointForTile(tile), type: TERRAIN_MASK[mask] });
+        }
       }
+      setTerrain(tiles);
     }
 
     handleClose();
@@ -92,7 +86,7 @@ export default function ImportRoom() {
             Import room objects from Screeps World.
           </Mui.FormLabel>
           <Mui.Grid container rowSpacing={2} columnSpacing={2}>
-            <Mui.Grid item xs={6}>
+            <Mui.Grid size={6}>
               <Mui.FormControl variant='outlined' fullWidth>
                 <Mui.TextField
                   label='Shard'
@@ -104,7 +98,7 @@ export default function ImportRoom() {
                 />
               </Mui.FormControl>
             </Mui.Grid>
-            <Mui.Grid item xs={6}>
+            <Mui.Grid size={6}>
               <Mui.FormControl variant='outlined' fullWidth>
                 <Mui.TextField
                   label='Room'
