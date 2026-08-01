@@ -1,5 +1,5 @@
 import '@screeps/renderer-metadata';
-import { USER_ID } from './constants';
+import { ROOM_SIZE, USER_ID } from './constants';
 
 export const ATTACK_PENETRATION = 10;
 export const CELL_SIZE = 100;
@@ -13,6 +13,9 @@ export const worldConfigs = {
   ATTACK_PENETRATION,
   CELL_SIZE,
   RENDER_SIZE,
+  // The renderer's terrain/road path builder reads ROOM_SIZE off worldOptions to size its tile
+  // array. Omitting it leaves the array empty and setTerrain() throws on the first tile write.
+  ROOM_SIZE,
   VIEW_BOX,
   BADGE_URL: 'https://screeps.com/api/user/badge-svg?username=%1',
   metadata: RENDERER_METADATA,

@@ -2,20 +2,14 @@ import { GameRenderer } from '@screeps/renderer';
 import { useEffect, useRef, useState } from 'react';
 import { resourceMap, rescaleResources } from '@/utils/resourceMap';
 import { worldConfigs } from '@/utils/worldConfigs';
-import {
-  convertGlobalToCanvasPosition,
-  convertGlobalToRoomPosition,
-  convertRoomToWorldPosition,
-  createHighlight,
-} from '@/utils/canvas';
-import { CELL_SIZE } from '@/utils/worldConfigs';
+import { convertGlobalToRoomPosition, convertRoomToWorldPosition, createHighlight } from '@/utils/canvas';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useGameAppStore } from '@/stores/useGameAppStore';
 import { createGameState } from '@/utils/gameState';
-import { isRoomPosition } from '@/utils/helpers';
-import { createLink, createRoad } from '@/utils/gameObjects';
 import { Point } from '@/types';
 
 const TICK_DURATION = 1;
+const TICK_INTERVAL_MS = 1000 * TICK_DURATION;
 
 interface Props {
   gameCanvasRef: React.RefObject<HTMLDivElement | null>;
@@ -29,119 +23,134 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
   const [hoverPos, setHoverPos] = useState<Point | null>(null);
   const [isGameAppInitialized, setGameAppInitialized] = useState(false);
   const objects = useGameObjectStore((state) => state.objects);
-  const gameState = createGameState(objects);
-  const gameStateRef = useRef(gameState);
-  gameStateRef.current = gameState;
 
+  // Held in a ref so a new callback identity re-points the renderer's hooks instead of tearing down
+  // and rebuilding the WebGL context.
+  const callbacksRef = useRef({ onGameLoop, onMetricsUpdate });
   useEffect(() => {
+    callbacksRef.current = { onGameLoop, onMetricsUpdate };
+  }, [onGameLoop, onMetricsUpdate]);
+
+  // Create, initialize and tear down the renderer. Under React 19 StrictMode this effect is invoked
+  // twice on mount, so every path out of here has to leave no renderer behind.
+  useEffect(() => {
+    const container = gameCanvasRef.current;
+    if (!container) return;
+
+    let renderer: GameRenderer | null = null;
+    let metricsTimer: ReturnType<typeof setInterval> | undefined;
+    let cancelled = false;
+
     const createGameApp = async () => {
-      if (!gameCanvasRef.current) return;
-
       await GameRenderer.compileMetadata(worldConfigs.metadata);
+      if (cancelled) return;
 
-      const options = {
-        size: {
-          width: gameCanvasRef.current.clientWidth,
-          height: gameCanvasRef.current.clientHeight,
-        },
+      const created = new GameRenderer({
+        size: { width: container.clientWidth, height: container.clientHeight },
         resourceMap,
         worldConfigs,
-        onGameLoop,
+        onGameLoop: () => callbacksRef.current.onGameLoop?.(),
         rescaleResources,
         countMetrics: true,
         backgroundColor: 0x050505,
-      };
+      });
+      renderer = created;
 
-      const gameRenderer = new GameRenderer(options);
+      await created.init(container);
 
-      setGameApp(gameRenderer);
+      // init() yields, so the effect may have been cleaned up while it was in flight.
+      if (cancelled) {
+        created.release();
+        renderer = null;
+        return;
+      }
+
+      created.zoomLevel = 0.2;
+
+      metricsTimer = setInterval(() => callbacksRef.current.onMetricsUpdate?.(created.metrics), TICK_INTERVAL_MS);
+
+      const stage = created.app.stage;
+      if (stage) {
+        const highlight = createHighlight();
+        stage.addChild(highlight);
+        // PIXI 7 name for what used to be `interactive = true`; the old property is a deprecation
+        // shim that logs a warning on every assignment.
+        stage.eventMode = 'static';
+
+        stage
+          // Modifier and button state are read straight off the federated event. In PIXI 7
+          // `event.data` is a deprecated self-reference and `event.data.originalEvent` is the root
+          // federated event rather than the native DOM event, so the old path only worked by
+          // accident and can be null.
+          .on('mousemove', (event: any) => {
+            const isPanning = (event.shiftKey && event.buttons === 1) || event.buttons === 4;
+
+            if (isPanning) {
+              highlight.visible = false;
+              return;
+            }
+
+            highlight.visible = true;
+
+            const roomPos = convertGlobalToRoomPosition(event.global, stage);
+            setHoverPos(roomPos);
+            useGameAppStore.getState().setHoverRoomPos(roomPos);
+
+            if (highlight.worldVisible) {
+              const worldPos = convertRoomToWorldPosition(roomPos);
+              highlight.x = worldPos.x;
+              highlight.y = worldPos.y;
+            }
+          })
+          // Hidden rather than clear()ed -- clear() drops the geometry, so the highlight would never
+          // come back after the first mouse-out.
+          .on('mouseout', () => {
+            highlight.visible = false;
+            setHoverPos(null);
+            useGameAppStore.getState().setHoverRoomPos(null);
+          });
+      }
+
+      setGameApp(created);
+      setGameAppInitialized(true);
     };
 
     createGameApp();
-  }, [onGameLoop]);
 
-  useEffect(() => {
-    const metricsUpdate = () => {
-      onMetricsUpdate?.(gameApp?.metrics);
-      setTimeout(metricsUpdate, 1000 * TICK_DURATION);
+    return () => {
+      cancelled = true;
+      clearInterval(metricsTimer);
+      // release() is internally guarded and a no-op before init(), so this is safe on every path.
+      renderer?.release();
+      renderer = null;
+      setGameApp(null);
+      setGameAppInitialized(false);
+      setHoverPos(null);
+      useGameAppStore.getState().setHoverRoomPos(null);
     };
+  }, [gameCanvasRef]);
 
-    async function initGameApp() {
-      if (!gameApp) return;
+  // Terrain gets its own effect: folding it into the init effect would re-run init() -- and rebuild
+  // the WebGL context -- on every terrain change.
+  useEffect(() => {
+    if (!gameApp || !isGameAppInitialized) return;
+    gameApp.setTerrain(terrain);
+  }, [gameApp, isGameAppInitialized, terrain]);
 
-      metricsUpdate();
-
-      // console.log(`initGameApp`, gameApp);
-      await gameApp.init(gameCanvasRef.current);
-      await gameApp.setTerrain(terrain);
-      gameApp.zoomLevel = 0.2;
-      gameApp.applyState(gameState as any, TICK_DURATION);
-
-      if (!gameApp.app.stage) return;
-
-      const highlight = new PIXI.Graphics();
-      highlight.beginFill(0xffffff, 1);
-      highlight.drawRect(0, 0, CELL_SIZE, CELL_SIZE);
-      highlight.endFill();
-      highlight.alpha = 0.4;
-      // const highlight = createHighlight();
-
-      gameApp.app.stage.addChild(highlight);
-      gameApp.app.stage.interactive = true;
-
-      // Convert mouse coordinates to room position
-      gameApp.app.stage
-        .on('mousemove', (event: any) => {
-          if (
-            (event.data.originalEvent.shiftKey && event.data.originalEvent.buttons === 1) ||
-            event.data.originalEvent.buttons === 4
-          ) {
-            highlight.visible = false;
-            return;
-          }
-
-          highlight.visible = true;
-
-          const roomPos = convertGlobalToRoomPosition(event.data.global, gameApp.app.stage);
-          setHoverPos(roomPos);
-
-          const worldPos = convertRoomToWorldPosition(roomPos);
-          // console.log('mouse move', worldPos, event.data);
-
-          if (highlight.visible && highlight.worldVisible) {
-            highlight.x = worldPos.x;
-            highlight.y = worldPos.y;
-          }
-        })
-        .on('mouseout', (event: any) => {
-          // console.log('mouse out', event.data);
-          highlight.clear();
-          setHoverPos(null);
-        });
-
-      setGameAppInitialized(true);
-    }
-
-    initGameApp();
-  }, [gameApp, terrain, onMetricsUpdate]);
-
+  // The renderer interpolates between ticks, so it needs a steady heartbeat as well as an immediate
+  // apply whenever the object list changes.
   useEffect(() => {
     if (!gameApp || !isGameAppInitialized) return;
 
-    const updateGameState = () => {
-      // try {
-      gameApp.applyState(gameStateRef.current as any, TICK_DURATION);
-      // } catch (error) {
-      //   console.error('Error applying game state:', error);
-      // } finally {
-      setTimeout(updateGameState, 1000 * TICK_DURATION);
-      // }
+    const applyLatestState = () => {
+      gameApp.applyState(createGameState(useGameObjectStore.getState().objects) as any, TICK_DURATION);
     };
 
-    const timeoutId = setTimeout(updateGameState, 0);
+    applyLatestState();
+    const stateTimer = setInterval(applyLatestState, TICK_INTERVAL_MS);
 
-    return () => clearTimeout(timeoutId);
-  }, [gameApp, gameState, isGameAppInitialized]);
+    return () => clearInterval(stateTimer);
+  }, [gameApp, isGameAppInitialized, objects]);
 
   return { gameApp, hoverPos };
 };

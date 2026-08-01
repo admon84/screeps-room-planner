@@ -1,18 +1,37 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { useState } from 'react';
-import StyledDialog from '../dialog/StyledDialog';
-import { useStructurePositions } from '@/stores/StructurePositions';
-import DialogTitle from '../dialog/DialogTitle';
-import { getPointForShort } from '@/utils/helpers';
-import HighlightCode from '../highlight-code/HighlightCode';
+import { MINERAL } from '@/utils/constants';
+import { getShortForTile, getTileForPoint } from '@/utils/helpers';
+import { GameObject } from '@/utils/gameObjects';
+import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useSettings } from '@/stores/Settings';
+import StyledDialog from '../dialog/StyledDialog';
+import DialogTitle from '../dialog/DialogTitle';
+import HighlightCode from '../highlight-code/HighlightCode';
+
+/**
+ * Key an object is exported under. Minerals export as their resource letter rather than `mineral`
+ * so the value feeds straight back into `createObjectFromType` on import.
+ */
+const getExportKey = (object: GameObject) =>
+  object.type === MINERAL ? (object as { mineralType?: string }).mineralType : object.type;
+
+const getExportedStructures = (objects: GameObject[]) =>
+  objects.reduce<Record<string, string[]>>((structures, object) => {
+    const key = getExportKey(object);
+    if (!key) return structures;
+
+    if (!structures[key]) structures[key] = [];
+    structures[key].push(getShortForTile(getTileForPoint(object)));
+    return structures;
+  }, {});
 
 export default function GetRoomJson() {
   const { palette } = Mui.useTheme();
 
   const rcl = useSettings((state) => state.settings.rcl);
-  const structurePositions = useStructurePositions((state) => state.positions);
+  const objects = useGameObjectStore((state) => state.objects);
 
   const [modalOpen, setOpen] = useState(false);
 
@@ -24,14 +43,7 @@ export default function GetRoomJson() {
     setOpen(false);
   };
 
-  const code = JSON.stringify({
-    rcl,
-    structures: Object.fromEntries(
-      Object.entries(structurePositions)
-        .map(([structure, positions]) => [structure, positions.map(getPointForShort)])
-        .filter(([_, positions]) => positions.length)
-    ),
-  });
+  const code = JSON.stringify({ rcl, structures: getExportedStructures(objects) });
 
   return (
     <>

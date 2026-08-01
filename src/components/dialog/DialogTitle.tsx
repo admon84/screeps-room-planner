@@ -11,12 +11,12 @@ export default function DialogTitle(props: Mui.DialogTitleProps & { onClose?: ()
         <Mui.IconButton
           aria-label='close'
           onClick={onClose}
-          sx={{
+          sx={(theme) => ({
             position: 'absolute',
             right: 8,
             top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
+            color: theme.palette.grey[500],
+          })}
         >
           <Icons.Close />
         </Mui.IconButton>

@@ -1,5 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
 import * as Constants from './constants';
+
+// Screeps ids are bare hex, so the dashes come off. Note crypto.randomUUID() needs a secure context:
+// it is undefined when `next dev` is reached over a plain-http LAN address rather than localhost.
+const newId = () => crypto.randomUUID().replace(/-/g, '');
 
 export interface GameObject {
   x: number;
@@ -13,7 +16,7 @@ export interface GameObject {
 export function createObjectWithId<T extends GameObject>(object: T): GameObject {
   return {
     ...object,
-    _id: object._id || uuidv4().replace(/-/g, ''),
+    _id: object._id || newId(),
   };
 }
 

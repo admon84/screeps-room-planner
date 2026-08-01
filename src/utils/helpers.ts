@@ -101,3 +101,24 @@ export const structuresToRemove = (brush: string, skipBrush = false) =>
             : [...acc, structure],
         []
       );
+
+/**
+ * Every object type that has to be cleared from a tile before `type` can occupy it.
+ *
+ * Wraps `structuresToRemove()` with the resource-object rules the DOM grid used to apply
+ * separately: sources and minerals displace structures, an extractor is the one structure that
+ * coexists with a mineral, and a type always displaces itself so a tile cannot hold duplicates.
+ */
+export const typesToRemoveForType = (type: string): string[] => {
+  const allStructures = Object.keys(Constants.STRUCTURE_BRUSHES);
+
+  if (type === Constants.SOURCE || type === Constants.MINERAL) {
+    const displacedStructures =
+      type === Constants.MINERAL ? allStructures.filter((s) => s !== Constants.STRUCTURE_EXTRACTOR) : allStructures;
+    return [...displacedStructures, Constants.SOURCE, Constants.MINERAL];
+  }
+
+  const displacedObjects =
+    type === Constants.STRUCTURE_EXTRACTOR ? [Constants.SOURCE] : [Constants.SOURCE, Constants.MINERAL];
+  return [...new Set([type, ...structuresToRemove(type), ...displacedObjects])];
+};

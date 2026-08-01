@@ -1,3 +1,4 @@
+import type { Container } from 'pixi.js';
 import { CELL_SIZE } from './worldConfigs';
 import { Point } from '@/types';
 
@@ -12,7 +13,7 @@ export function createHighlight(worldPos: Point = { x: 0, y: 0 }, color = 0xffff
   return highlight;
 }
 
-export function convertGlobalToRoomPosition(globalPos: Point, stage: PIXI.Container) {
+export function convertGlobalToRoomPosition(globalPos: Point, stage: Container) {
   const localPoint = stage.toLocal(new PIXI.Point(globalPos.x, globalPos.y));
   localPoint.x += CELL_OFFSET;
   localPoint.y += CELL_OFFSET;
@@ -29,7 +30,7 @@ export function convertRoomToWorldPosition(roomPos: Point) {
   };
 }
 
-export function convertGlobalToCanvasPosition(globalPos: Point, stage: PIXI.Container) {
+export function convertGlobalToCanvasPosition(globalPos: Point, stage: Container) {
   const roomPos = convertGlobalToRoomPosition(globalPos, stage);
   return convertRoomToWorldPosition(roomPos);
 }
