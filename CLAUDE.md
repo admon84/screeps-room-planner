@@ -12,10 +12,3 @@ limited to Claude-specific workflow.
   `src/components/room-grid/`); parity between them is a live design question, not a mechanical edit.
 - There is no test suite. After edits, run `npm run lint`, and `npm run build` for anything touching
   the renderer, `dynamic` imports, or App Router files.
-
-## Maintaining These Instructions
-
-Rules load into context on every session and dilute each other as they grow -- adherence drops well
-before 200 lines. Keep `AGENTS.md` plus this file under ~150 lines combined. Add a rule only when
-Claude has made the same mistake twice or a reviewer caught something Claude could not have known
-from the code. Delete rules that go stale; a wrong rule costs more than a missing one.
