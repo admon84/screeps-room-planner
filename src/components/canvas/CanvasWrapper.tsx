@@ -1,6 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import Canvas from './Canvas';
+import dynamic from 'next/dynamic';
 import CanvasDebugPanel from './CanvasDebugPanel';
+
+// @screeps/renderer (and PIXI) reference `window` at module load, which breaks
+// Next's static prerender. Load the canvas client-side only.
+const Canvas = dynamic(() => import('./Canvas'), { ssr: false });
 import { SAMPLE_TERRAIN } from '@/utils/sampleTerrain';
 import type { Metrics } from '@/types';
 
