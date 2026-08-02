@@ -4,16 +4,16 @@ import { ScreepsGameRoomObjects, ScreepsGameRoomTerrain, ScreepsShardsInfo, Terr
 
 /**
  * The official Screeps servers all live on screeps.com behind a path prefix, so a server is just a
- * choice of API base. The API sends permissive CORS headers, so every call here is made directly
- * from the browser, unauthenticated -- there is no proxy to translate a transport failure into a
- * message, hence the try/catch in `apiGet`.
+ * choice of API base. screeps.com does not send CORS headers, so calls go through the same-origin
+ * `/screeps-api` prefix: a vercel.json rewrite forwards it in production, the Vite server/preview
+ * proxy in local runs.
  */
 export type ScreepsServer = 'persistent' | 'season' | 'ptr';
 
 export const SCREEPS_SERVERS: Record<ScreepsServer, { label: string; apiBase: string }> = {
-  persistent: { label: 'Persistent', apiBase: 'https://screeps.com/api' },
-  season: { label: 'Season', apiBase: 'https://screeps.com/season/api' },
-  ptr: { label: 'PTR', apiBase: 'https://screeps.com/ptr/api' },
+  persistent: { label: 'Persistent', apiBase: '/screeps-api/api' },
+  season: { label: 'Season', apiBase: '/screeps-api/season/api' },
+  ptr: { label: 'PTR', apiBase: '/screeps-api/ptr/api' },
 };
 
 async function apiGet<T extends { ok: number }>(url: string): Promise<T> {

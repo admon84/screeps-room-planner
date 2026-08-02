@@ -132,6 +132,8 @@ State behind the canvas:
 ## Contributing
 
 - Never commit directly to `main`; branch and open a PR.
-- No secrets in the repo. The Screeps API is called unauthenticated, directly from the browser --
-  `screeps.com` reflects the request `Origin` in `Access-Control-Allow-Origin`, so no proxy is needed.
-  If that ever changes, imports break and a proxy has to come back.
+- No secrets in the repo. The Screeps API is called unauthenticated, but not directly from the
+  browser: `screeps.com` does not send CORS headers, so requests go through the same-origin
+  `/screeps-api` prefix -- a `vercel.json` rewrite in production, the Vite server/preview proxy
+  locally. The prefix must stay aligned across `vercel.json`, `vite.config.ts`, and
+  `src/utils/screepsApi.ts`.

@@ -41,7 +41,7 @@ export const worldConfigs = {
   // a badge but no `color`, so leaving it off yields an invalid fill and no rampart sprite at all.
   // Enabling it takes the owner/hostile branch instead: green for the player, red for everyone else.
   userOwnerColor: true,
-  BADGE_URL: 'https://screeps.com/api/user/badge-svg?username=%1',
+  BADGE_URL: '/screeps-api/api/user/badge-svg?username=%1',
   metadata: applyMineralFont(RENDERER_METADATA),
   gameData: {
     player: USER_ID,
