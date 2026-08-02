@@ -1,8 +1,10 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 
+// IconButton is a circle by default; these are squared off to read as map controls.
 const buttonSx = {
   background: 'rgba(0,0,0,0.3)',
+  borderRadius: 1,
   color: 'white',
   ':hover': { background: 'rgba(0,0,0,0.5)' },
 };

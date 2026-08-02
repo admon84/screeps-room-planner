@@ -43,7 +43,9 @@ export const useSettings = create<State>()(
     }),
     {
       name: 'screeps-room-planner-settings',
-      version: 1,
+      // Bumped past the short-lived renderer-settings shape so those persisted keys are dropped
+      // rather than merged back in.
+      version: 3,
       // Only `debug` is durable. Persisting the brush would restore the app mid-paint-mode on reload,
       // and rcl/room/shard are per-session planning state.
       partialize: ({ settings: { debug } }) => ({ settings: { debug } }),

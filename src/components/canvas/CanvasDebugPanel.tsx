@@ -6,6 +6,16 @@ interface CanvasDebugPanelProps {
 }
 
 export default function CanvasDebugPanel({ metrics }: CanvasDebugPanelProps) {
+  const rows: Array<[string, string | number | undefined]> = [
+    ['FPS', metrics.fps],
+    ['Objects', metrics.gameObjectCounter],
+    ['Sprites', metrics.rendererCounter],
+    ['WebGL', metrics.renderer?.WebGL],
+    ['GPU', metrics.renderer?.GPU],
+    ['Buffer', metrics.renderer?.size],
+    ['Pixel ratio', metrics.devicePixelRatio],
+  ];
+
   return (
     <Mui.Card
       sx={{
@@ -16,10 +26,17 @@ export default function CanvasDebugPanel({ metrics }: CanvasDebugPanelProps) {
         color: 'white',
         fontSize: '1rem',
         padding: '10px',
+        maxWidth: 320,
       }}
     >
-      <Mui.Typography>FPS: {metrics.fps}</Mui.Typography>
-      <Mui.Typography>Renderer: {JSON.stringify(metrics.renderer)}</Mui.Typography>
+      {rows
+        .filter(([, value]) => value !== undefined)
+        .map(([label, value]) => (
+          <Mui.Typography key={label} sx={{ fontSize: '0.75rem', display: 'flex', gap: 1 }}>
+            <span style={{ opacity: 0.7 }}>{label}:</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
+          </Mui.Typography>
+        ))}
     </Mui.Card>
   );
 }
