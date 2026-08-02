@@ -1,4 +1,4 @@
-import { alpha, createTheme } from '@mui/material/styles';
+import { alpha, createTheme, darken } from '@mui/material/styles';
 
 // The @font-face rules come from the @fontsource/jetbrains-mono weight import in src/main.tsx, which
 // loads weight 500 only -- anything rendered in this stack must stay at that weight or be synthesized.
@@ -153,9 +153,16 @@ const theme = createTheme({
           letterSpacing: 0,
           textTransform: 'none',
         },
+        // The bright `main` blue stays an accent color; as a button fill it would force dark text,
+        // the one dark-on-light element in the UI. The deep shade carries white text at AA (~4.9:1),
+        // and hover darkens rather than lightens -- anything toward `main` drops white text below AA.
         contained: ({ theme, ownerState }) =>
           ownerState.color === 'primary' || ownerState.color === undefined
-            ? { ':hover': { backgroundColor: theme.palette.primary.light } }
+            ? {
+                backgroundColor: theme.palette.primary.dark,
+                color: theme.palette.common.white,
+                ':hover': { backgroundColor: darken(theme.palette.primary.dark, 0.18) },
+              }
             : {},
         // A bare outlined button reads as unstyled default, and a fully saturated border is as
         // loud as a fill. A dimmed border over a faint tint keeps them quiet but deliberate.
