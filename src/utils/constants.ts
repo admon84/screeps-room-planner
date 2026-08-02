@@ -13,8 +13,6 @@ export enum BrushClass {
 export const USER_ID = 'dissi';
 export const ROOM_NAME = 'sim';
 
-export const SCREEPS_ROOM_TERRAIN_URL = 'https://screeps.com/api/game/room-terrain';
-
 export const MAX_RCL = 8;
 
 export const ROOM_SIZE = 50;

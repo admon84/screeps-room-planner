@@ -9,6 +9,7 @@ import CanvasWrapper from './canvas/CanvasWrapper';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import Notifications from '@/components/Notifications';
 import Wordmark from '@/components/Wordmark';
+import { ICON_EDGE_GUTTER } from '@/utils/theme';
 import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useUiStore } from '@/stores/useUiStore';
 
@@ -32,7 +33,10 @@ export default function RoomPlanner() {
       <Mui.CssBaseline />
       <Mui.Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Mui.AppBar position='fixed' sx={(theme) => ({ zIndex: theme.zIndex.drawer + 1 })}>
-          <Mui.Toolbar variant='dense'>
+          {/* The right-hand controls are icon buttons, so the toolbar's right gutter is pulled in to
+              ICON_EDGE_GUTTER -- that puts their glyphs, not their hit areas, on the gutter line the
+              wordmark and the canvas overlay controls share. */}
+          <Mui.Toolbar variant='dense' sx={{ pr: `${ICON_EDGE_GUTTER}px` }}>
             <Mui.IconButton
               color='inherit'
               edge='start'
@@ -48,9 +52,7 @@ export default function RoomPlanner() {
               <BrushIndicator />
               <HoverTilePanel />
             </Mui.Box>
-            {/* The negative margin cancels the small IconButton's 5px padding, so the glyphs -- not
-                their invisible hit areas -- line up with the toolbar's 16px gutter and the drawer. */}
-            <Mui.Box sx={{ alignItems: 'center', display: 'flex', gap: 0.5, mr: '-5px' }}>
+            <Mui.Box sx={{ alignItems: 'center', display: 'flex', gap: 0.5 }}>
               {/* Tooltips do not fire on a disabled button, so each one needs a wrapper that keeps
                   pointer events -- the label matters most in exactly that state. */}
               <Mui.Tooltip title='Undo'>

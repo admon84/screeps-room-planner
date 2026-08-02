@@ -1,15 +1,18 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { MAX_RCL, STRUCTURE_CONTROLLER } from '@/utils/constants';
 import {
-  ROOM_NAME,
-  SCREEPS_ROOM_TERRAIN_URL,
-  TERRAIN_MASK,
-  TERRAIN_MASK_SWAMP,
-  TERRAIN_MASK_WALL,
-} from '@/utils/constants';
-import { getPointForTile } from '@/utils/helpers';
-import { ScreepsGameRoomTerrain, TerrainTile } from '@/types';
+  SCREEPS_SERVERS,
+  ScreepsServer,
+  fetchRoomObjects,
+  fetchRoomTerrain,
+  fetchShards,
+  isValidRoomName,
+  normalizeRoomName,
+  terrainTilesFromEncoded,
+} from '@/utils/screepsApi';
+import { createExampleBunkerObjects, createObjectsFromApi } from '@/utils/gameObjects';
 import { useSettings } from '@/stores/Settings';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useHistoryStore } from '@/stores/useHistoryStore';
@@ -17,22 +20,38 @@ import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
 import DialogTitle from '../dialog/DialogTitle';
 
+type ImportSource = 'world' | 'bunker';
+
 export default function ImportRoom() {
   const { palette } = Mui.useTheme();
 
+  const server = useSettings((state) => state.settings.server);
   const shard = useSettings((state) => state.settings.shard);
   const room = useSettings((state) => state.settings.room);
+  const setServer = useSettings((state) => state.setServer);
   const setShard = useSettings((state) => state.setShard);
   const setRoom = useSettings((state) => state.setRoom);
-  const resetObjects = useGameObjectStore((state) => state.reset);
+  const setRCL = useSettings((state) => state.setRCL);
+  const setObjects = useGameObjectStore((state) => state.setObjects);
   const setTerrain = useTerrainStore((state) => state.setTerrain);
+  const resetTerrain = useTerrainStore((state) => state.reset);
   const commit = useHistoryStore((state) => state.commit);
 
-  const [wipeStructuresChecked, setWipeStructuresChecked] = useState(true);
+  const [source, setSource] = useState<ImportSource>('world');
+  const [includeStructuresChecked, setIncludeStructuresChecked] = useState(true);
+  const [includeTerrainChecked, setIncludeTerrainChecked] = useState(true);
+  // Both results are tagged with the server they came from, so switching servers invalidates them
+  // by derivation instead of a synchronous reset inside the effect.
+  const [shards, setShards] = useState<{ server: ScreepsServer; names: string[] } | null>(null);
+  const [shardsError, setShardsError] = useState<{ server: ScreepsServer; message: string } | null>(null);
   const [modalOpen, setOpen] = useState(false);
   const [formError, setFormError] = useState<Error | null>(null);
 
+  const shardOptions = shards?.server === server ? shards.names : [];
+  const shardsLoading = modalOpen && shards?.server !== server && shardsError?.server !== server;
+
   const handleOpen = () => {
+    setFormError(null);
     setOpen(true);
   };
 
@@ -40,87 +59,154 @@ export default function ImportRoom() {
     setOpen(false);
   };
 
-  const handleImportRoom = async () => {
-    setFormError(null);
-
-    if (!room.length) {
-      setFormError(new Error('Room is required'));
+  // The shard list is fetched per server (memoized in fetchShards), and the stored shard is read
+  // through getState() so picking a shard does not re-run the effect.
+  useEffect(() => {
+    if (!modalOpen || shards?.server === server) {
       return;
     }
-
-    if (!shard.length) {
-      setFormError(new Error('Shard is required'));
-      return;
-    }
-
-    // The Screeps API sends permissive CORS headers, so this is called directly from the browser --
-    // there is no proxy to translate a transport failure into a message, hence the try/catch.
-    let data: ScreepsGameRoomTerrain & { error?: string };
-    try {
-      const response = await fetch(
-        `${SCREEPS_ROOM_TERRAIN_URL}?encoded=1&room=${encodeURIComponent(room)}&shard=${encodeURIComponent(shard)}`
-      );
-      data = await response.json();
-    } catch (error) {
-      setFormError(new Error('Could not reach the Screeps API', { cause: error }));
-      return;
-    }
-
-    if (data.error) {
-      setFormError(new Error(data.error));
-      return;
-    }
-
-    if (data.ok) {
-      commit();
-
-      if (wipeStructuresChecked) {
-        resetObjects();
-      }
-
-      // The API returns one terrain-mask digit per tile in row-major order. Skipping plains yields
-      // exactly the sparse array the renderer wants, so it replaces the store in a single write.
-      const bytes = data.terrain[0].terrain;
-      const tiles: TerrainTile[] = [];
-      for (let tile = 0; tile < bytes.length; tile++) {
-        const mask = +bytes[tile];
-        if (mask === TERRAIN_MASK_WALL || mask === TERRAIN_MASK_SWAMP) {
-          tiles.push({ room: ROOM_NAME, ...getPointForTile(tile), type: TERRAIN_MASK[mask] });
+    let cancelled = false;
+    fetchShards(server)
+      .then((names) => {
+        if (cancelled) return;
+        setShards({ server, names });
+        setShardsError(null);
+        if (names.length && !names.includes(useSettings.getState().settings.shard)) {
+          setShard(names[0]);
         }
-      }
-      setTerrain(tiles);
+      })
+      .catch((error: Error) => {
+        if (!cancelled) setShardsError({ server, message: error.message });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [modalOpen, server, shards, setShard]);
+
+  const handleLoadBunker = () => {
+    commit();
+    resetTerrain();
+    setRCL(MAX_RCL);
+    setObjects(createExampleBunkerObjects());
+  };
+
+  const handleImportFromApi = async () => {
+    const roomName = normalizeRoomName(room);
+    if (!isValidRoomName(roomName)) {
+      setFormError(new Error('Invalid room name (examples: W1N1, E12S34)'));
+      return false;
+    }
+    const shardName = shard.trim();
+    if (!shardName.length) {
+      setFormError(new Error('Shard is required'));
+      return false;
+    }
+    setRoom(roomName);
+
+    let terrainData;
+    let objectsData;
+    try {
+      [terrainData, objectsData] = await Promise.all([
+        includeTerrainChecked ? fetchRoomTerrain(server, shardName, roomName) : null,
+        fetchRoomObjects(server, shardName, roomName),
+      ]);
+    } catch (error) {
+      setFormError(error as Error);
+      return false;
     }
 
-    handleClose();
+    commit();
+    if (terrainData) {
+      setTerrain(terrainTilesFromEncoded(terrainData.terrain[0].terrain));
+    }
+    setObjects(createObjectsFromApi(objectsData.objects, includeStructuresChecked));
+
+    // Unowned and reserved controllers report level 0, which leaves the current RCL alone.
+    const controller = objectsData.objects.find((object) => object.type === STRUCTURE_CONTROLLER);
+    if (controller?.level) {
+      setRCL(controller.level);
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    setFormError(null);
+    if (source === 'bunker') {
+      handleLoadBunker();
+      handleClose();
+      return;
+    }
+    if (await handleImportFromApi()) {
+      handleClose();
+    }
   };
 
   return (
     <>
-      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.CloudDownload />}>
+      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.TravelExploreOutlined />}>
         Import Room
       </Mui.Button>
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
         <DialogTitle onClose={handleClose}>Import Room</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
+          <Mui.ToggleButtonGroup
+            exclusive
+            fullWidth
+            size='small'
+            value={source}
+            onChange={(_event, value: ImportSource | null) => {
+              if (value) {
+                setFormError(null);
+                setSource(value);
+              }
+            }}
+            sx={{ mb: 2 }}
+          >
+            <Mui.ToggleButton value='world'>Screeps World</Mui.ToggleButton>
+            <Mui.ToggleButton value='bunker'>Example Bunker</Mui.ToggleButton>
+          </Mui.ToggleButtonGroup>
           <Mui.FormLabel component='div' sx={{ mb: 2 }}>
-            Import room objects from Screeps World.
+            {source === 'world'
+              ? 'Import terrain and objects from a live room.'
+              : 'Load the example bunker layout at RCL 8. Replaces all structures and resets the terrain.'}
           </Mui.FormLabel>
-          <Mui.Grid container rowSpacing={2} columnSpacing={2}>
-            <Mui.Grid size={6}>
-              <Mui.FormControl variant='outlined' fullWidth>
+          {source === 'world' && (
+            <Mui.Grid container rowSpacing={2} columnSpacing={2}>
+              <Mui.Grid size={4}>
                 <Mui.TextField
-                  label='Shard'
-                  defaultValue={shard}
+                  fullWidth
+                  select
+                  label='Server'
+                  value={server}
                   onChange={(e) => {
                     setFormError(null);
-                    setShard(e.target.value);
+                    setServer(e.target.value as ScreepsServer);
                   }}
+                >
+                  {Object.entries(SCREEPS_SERVERS).map(([key, { label }]) => (
+                    <Mui.MenuItem key={key} value={key}>
+                      {label}
+                    </Mui.MenuItem>
+                  ))}
+                </Mui.TextField>
+              </Mui.Grid>
+              <Mui.Grid size={4}>
+                <Mui.Autocomplete
+                  disableClearable
+                  freeSolo
+                  options={shardOptions}
+                  loading={shardsLoading}
+                  inputValue={shard}
+                  onInputChange={(_event, value) => {
+                    setFormError(null);
+                    setShard(value);
+                  }}
+                  renderInput={(params) => <Mui.TextField {...params} label='Shard' />}
                 />
-              </Mui.FormControl>
-            </Mui.Grid>
-            <Mui.Grid size={6}>
-              <Mui.FormControl variant='outlined' fullWidth>
+              </Mui.Grid>
+              <Mui.Grid size={4}>
                 <Mui.TextField
+                  fullWidth
                   label='Room'
                   defaultValue={room}
                   onChange={(e) => {
@@ -128,9 +214,16 @@ export default function ImportRoom() {
                     setRoom(e.target.value);
                   }}
                 />
-              </Mui.FormControl>
+              </Mui.Grid>
             </Mui.Grid>
-          </Mui.Grid>
+          )}
+          {source === 'world' && shardsError?.server === server && (
+            <Mui.Box sx={{ backgroundColor: palette.divider, mt: 2 }}>
+              <Mui.Alert color='warning' variant='outlined' sx={{ px: 1, py: 0 }}>
+                Could not load the shard list -- enter a shard name manually. ({shardsError.message})
+              </Mui.Alert>
+            </Mui.Box>
+          )}
           {formError && (
             <Mui.Box sx={{ backgroundColor: palette.divider, mt: 2 }}>
               <Mui.Alert color='error' variant='outlined' sx={{ px: 1, py: 0 }}>
@@ -140,17 +233,32 @@ export default function ImportRoom() {
           )}
         </Mui.DialogContent>
         <Mui.DialogActions sx={{ backgroundColor: palette.divider, justifyContent: 'space-between' }}>
-          <Mui.FormControlLabel
-            label='Wipe Structures'
-            control={
-              <Mui.Checkbox
-                defaultChecked={wipeStructuresChecked}
-                onChange={(e) => setWipeStructuresChecked(e.target.checked)}
-              />
-            }
-          />
-          <Mui.Button variant='contained' onClick={handleImportRoom} startIcon={<Icons.CloudDownload />}>
-            Import Room
+          <Mui.Box>
+            {source === 'world' && (
+              <>
+                <Mui.FormControlLabel
+                  label='Structures'
+                  control={
+                    <Mui.Checkbox
+                      checked={includeStructuresChecked}
+                      onChange={(e) => setIncludeStructuresChecked(e.target.checked)}
+                    />
+                  }
+                />
+                <Mui.FormControlLabel
+                  label='Terrain'
+                  control={
+                    <Mui.Checkbox
+                      checked={includeTerrainChecked}
+                      onChange={(e) => setIncludeTerrainChecked(e.target.checked)}
+                    />
+                  }
+                />
+              </>
+            )}
+          </Mui.Box>
+          <Mui.Button variant='contained' onClick={handleSubmit} startIcon={<Icons.TravelExploreOutlined />}>
+            {source === 'world' ? 'Import Room' : 'Load Bunker'}
           </Mui.Button>
         </Mui.DialogActions>
       </StyledDialog>
