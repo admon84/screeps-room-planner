@@ -11,7 +11,6 @@ import '@fontsource/inter/latin-700.css';
 // The wordmark and the room JSON editor use JetBrains Mono, so only the one weight they render at is
 // loaded -- anything else in that stack must stay at weight 500 or be synthesized.
 import '@fontsource/jetbrains-mono/latin-500.css';
-import '@/styles/prism.css';
 
 // Emotion needs no CacheProvider here: MUI's default cache is correct for a client-only app, and
 // the ordering problem AppRouterCacheProvider solved only exists across an SSR boundary.

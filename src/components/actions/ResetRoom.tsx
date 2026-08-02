@@ -6,6 +6,7 @@ import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
 import DialogTitle from '../dialog/DialogTitle';
+import AppBarButton from './AppBarButton';
 
 export default function ResetRoom() {
   const { palette } = Mui.useTheme();
@@ -43,9 +44,7 @@ export default function ResetRoom() {
 
   return (
     <>
-      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.GridOffOutlined />}>
-        Reset
-      </Mui.Button>
+      <AppBarButton icon={<Icons.GridOffOutlined />} label='Reset' onClick={handleOpen} />
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
         <DialogTitle onClose={handleClose}>Reset Room</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>

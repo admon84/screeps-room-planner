@@ -3,6 +3,7 @@ import * as Icons from '@mui/icons-material';
 import LeftDrawer from './left-drawer/LeftDrawer';
 import HoverTilePanel from './canvas/HoverTilePanel';
 import { useState } from 'react';
+import AppBarActions from './AppBarActions';
 import AppBarMenu from './AppBarMenu';
 import BrushIndicator from './BrushIndicator';
 import CanvasWrapper from './canvas/CanvasWrapper';
@@ -46,6 +47,7 @@ export default function RoomPlanner() {
               <Icons.Menu />
             </Mui.IconButton>
             <Wordmark />
+            <AppBarActions />
             <Mui.Box
               sx={{ alignItems: 'center', display: 'flex', flexGrow: 1, gap: 1, justifyContent: 'center', px: 2 }}
             >
