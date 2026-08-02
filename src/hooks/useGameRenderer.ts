@@ -65,8 +65,6 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
         return;
       }
 
-      created.zoomLevel = 0.2;
-
       metricsTimer = setInterval(() => callbacksRef.current.onMetricsUpdate?.(created.metrics), TICK_INTERVAL_MS);
 
       const stage = created.app.stage;
