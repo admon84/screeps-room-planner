@@ -1,7 +1,13 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { useState } from 'react';
-import { ROOM_NAME, TERRAIN_MASK, TERRAIN_MASK_SWAMP, TERRAIN_MASK_WALL } from '@/utils/constants';
+import {
+  ROOM_NAME,
+  SCREEPS_ROOM_TERRAIN_URL,
+  TERRAIN_MASK,
+  TERRAIN_MASK_SWAMP,
+  TERRAIN_MASK_WALL,
+} from '@/utils/constants';
 import { getPointForTile } from '@/utils/helpers';
 import { ScreepsGameRoomTerrain, TerrainTile } from '@/types';
 import { useSettings } from '@/stores/Settings';
@@ -45,8 +51,18 @@ export default function ImportRoom() {
       return;
     }
 
-    const response = await fetch(`/api/room-terrain?room=${room}&shard=${shard}`);
-    const data = (await response.json()) as ScreepsGameRoomTerrain & { error?: string };
+    // The Screeps API sends permissive CORS headers, so this is called directly from the browser --
+    // there is no proxy to translate a transport failure into a message, hence the try/catch.
+    let data: ScreepsGameRoomTerrain & { error?: string };
+    try {
+      const response = await fetch(
+        `${SCREEPS_ROOM_TERRAIN_URL}?encoded=1&room=${encodeURIComponent(room)}&shard=${encodeURIComponent(shard)}`
+      );
+      data = await response.json();
+    } catch (error) {
+      setFormError(new Error('Could not reach the Screeps API', { cause: error }));
+      return;
+    }
 
     if (data.error) {
       setFormError(new Error(data.error));

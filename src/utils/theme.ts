@@ -1,16 +1,9 @@
-'use client';
-import { Inter } from 'next/font/google';
 import { createTheme } from '@mui/material/styles';
-
-const inter = Inter({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 const theme = createTheme({
   typography: {
-    fontFamily: inter.style.fontFamily,
+    // The @font-face rules come from the @fontsource/inter weight imports in src/main.tsx.
+    fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
   },
   palette: {
     mode: 'dark',

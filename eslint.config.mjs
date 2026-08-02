@@ -1,14 +1,24 @@
 import { defineConfig, globalIgnores } from 'eslint/config';
-import nextVitals from 'eslint-config-next/core-web-vitals';
-import nextTs from 'eslint-config-next/typescript';
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
 import prettier from 'eslint-config-prettier/flat';
 
 export default defineConfig([
-  ...nextVitals,
-  ...nextTs,
+  js.configs.recommended,
+  tseslint.configs.recommended,
+  // `configs['recommended-latest']` is still the eslintrc shape; the flat equivalents live under
+  // `configs.flat`.
+  reactHooks.configs.flat['recommended-latest'],
+  reactRefresh.configs.vite,
   // A single config object, not an array -- and it must stay last so its rule-disables win.
   prettier,
   {
+    languageOptions: {
+      globals: globals.browser,
+    },
     rules: {
       // The @screeps/* packages ship no types, so src/types/declarations.d.ts is hand-written and
       // deliberately loose in places. Keep `any` visible without making it a build-stopper.
@@ -19,5 +29,5 @@ export default defineConfig([
       'react-hooks/immutability': 'off',
     },
   },
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  globalIgnores(['dist/**', 'build/**']),
 ]);
