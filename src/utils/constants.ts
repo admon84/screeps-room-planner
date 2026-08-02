@@ -193,6 +193,12 @@ export const EXTENSION_ENERGY_CAPACITY = {
   8: 200,
 };
 
+// The bunker layout is authored at origin, spanning 0..12 on both axes. Offsetting it into the
+// middle of the room keeps it clear of the edges -- the renderer's road processor reads the
+// neighbouring tile at `x - 1`, which is undefined for a road sitting on column 0.
+export const EXAMPLE_BUNKER_SIZE = 13;
+export const EXAMPLE_BUNKER_OFFSET = Math.floor((ROOM_SIZE - EXAMPLE_BUNKER_SIZE) / 2);
+
 // prettier-ignore
 export const EXAMPLE_BUNKER = {
   rcl: 8,

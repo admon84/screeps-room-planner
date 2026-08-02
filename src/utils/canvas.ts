@@ -4,6 +4,41 @@ import { Point } from '@/types';
 
 const CELL_OFFSET = CELL_SIZE / 2;
 
+// wallObjects mixes RenderTextures (indices 0 and 2) with the sprites that display them, so only
+// entries that actually carry `visible` are touched.
+type TerrainEntry = { visible?: boolean };
+type TerrainObjects = {
+  wallObjects?: TerrainEntry[];
+  swampObjects?: TerrainEntry[];
+  wallMask?: { renderable: boolean };
+  previousWallsMd5?: string | null;
+  previousSwampsMd5?: string | null;
+};
+
+/**
+ * Hides the terrain sprites the renderer leaves behind when terrain becomes empty.
+ *
+ * `pathHelper` returns `{ result: false }` when no tile matches its filter, and the terrain
+ * processor treats that as "nothing to redraw" rather than "clear" -- so the previous walls and
+ * swamps stay on screen forever. Ramparts have an explicit `=== false` branch that destroys their
+ * sprite; walls and swamps do not. Hiding them (rather than destroying) keeps the processor's own
+ * bookkeeping valid, and clearing the md5 cache forces a real rebuild on the next non-empty terrain.
+ */
+export function clearTerrainSprites(stage: Container) {
+  const terrainObjects = (stage as Container & { terrainObjects?: TerrainObjects }).terrainObjects;
+  if (!terrainObjects) return;
+
+  const hide = (entries?: TerrainEntry[]) =>
+    entries?.forEach((entry) => {
+      if (entry && 'visible' in entry) entry.visible = false;
+    });
+
+  hide(terrainObjects.wallObjects);
+  hide(terrainObjects.swampObjects);
+  terrainObjects.previousWallsMd5 = null;
+  terrainObjects.previousSwampsMd5 = null;
+}
+
 type GestureState = {
   buttons: number;
   shiftKey?: boolean;

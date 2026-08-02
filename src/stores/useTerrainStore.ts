@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { ROOM_NAME, TERRAIN_PLAIN } from '@/utils/constants';
-import { SAMPLE_TERRAIN } from '@/utils/sampleTerrain';
 import type { TerrainTile } from '@/types';
 
 type State = {
@@ -12,10 +11,11 @@ type State = {
 
 /**
  * Terrain in the sparse `{ room, x, y, type }` shape `GameRenderer.setTerrain()` expects. Plain is
- * the absence of an entry, so painting plain deletes rather than writes.
+ * the absence of an entry, so painting plain deletes rather than writes, and an empty array is a
+ * room of nothing but plains.
  */
 export const useTerrainStore = create<State>((set) => ({
-  terrain: SAMPLE_TERRAIN,
+  terrain: [],
   setTerrain: (terrain) => set(() => ({ terrain })),
   setTerrainAt: (x, y, type) =>
     set((state) => {

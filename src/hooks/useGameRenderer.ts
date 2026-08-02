@@ -2,7 +2,13 @@ import { GameRenderer } from '@screeps/renderer';
 import { useEffect, useRef, useState } from 'react';
 import { resourceMap, rescaleResources } from '@/utils/resourceMap';
 import { worldConfigs } from '@/utils/worldConfigs';
-import { convertGlobalToRoomPosition, convertRoomToWorldPosition, createHighlight, isPanGesture } from '@/utils/canvas';
+import {
+  clearTerrainSprites,
+  convertGlobalToRoomPosition,
+  convertRoomToWorldPosition,
+  createHighlight,
+  isPanGesture,
+} from '@/utils/canvas';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useGameAppStore } from '@/stores/useGameAppStore';
 import { createGameState } from '@/utils/gameState';
@@ -161,6 +167,9 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
   useEffect(() => {
     if (!gameApp || !isGameAppInitialized) return;
     gameApp.setTerrain(terrain);
+    // An empty set leaves the previous walls and swamps drawn -- the processor has no "clear" path
+    // for them -- so they have to be hidden here.
+    if (!terrain.length) clearTerrainSprites(gameApp.app.stage);
   }, [gameApp, isGameAppInitialized, terrain]);
 
   // The renderer interpolates between ticks, so it needs a steady heartbeat as well as an immediate

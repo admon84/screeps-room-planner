@@ -1,5 +1,5 @@
 import * as Icons from '@mui/icons-material';
-import { MAX_RCL, EXAMPLE_BUNKER } from '@/utils/constants';
+import { MAX_RCL, EXAMPLE_BUNKER, EXAMPLE_BUNKER_OFFSET } from '@/utils/constants';
 import { getPointForShort } from '@/utils/helpers';
 import { createObjectFromType } from '@/utils/gameObjects';
 import { useSettings } from '@/stores/Settings';
@@ -19,7 +19,10 @@ export default function LoadExampleBunker() {
         setRCL(MAX_RCL);
         setObjects(
           Object.entries(EXAMPLE_BUNKER.structures).flatMap(([type, positions]) =>
-            positions.map((shortPoint) => createObjectFromType({ type, ...getPointForShort(shortPoint) }))
+            positions.map((shortPoint) => {
+              const { x, y } = getPointForShort(shortPoint);
+              return createObjectFromType({ type, x: x + EXAMPLE_BUNKER_OFFSET, y: y + EXAMPLE_BUNKER_OFFSET });
+            })
           )
         );
       }}
