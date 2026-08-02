@@ -7,6 +7,7 @@ import { useSettings } from '@/stores/Settings';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
 import DialogTitle from '../dialog/DialogTitle';
 import AppBarButton from './AppBarButton';
@@ -16,6 +17,7 @@ export default function EditRoomJson() {
 
   const setRCL = useSettings((state) => state.setRCL);
   const setObjects = useGameObjectStore((state) => state.setObjects);
+  const setTerrain = useTerrainStore((state) => state.setTerrain);
   const commit = useHistoryStore((state) => state.commit);
   const notify = useNotificationStore((state) => state.notify);
 
@@ -27,7 +29,8 @@ export default function EditRoomJson() {
   // getState() rather than a selector -- the plan is only needed at this instant, and subscribing
   // would re-serialize it on every paint stroke. Edits are discarded on close; reopening reseeds.
   const handleOpen = () => {
-    setText(buildRoomJson(useGameObjectStore.getState().objects, useSettings.getState().settings.rcl));
+    const { rcl, room, shard } = useSettings.getState().settings;
+    setText(buildRoomJson(useGameObjectStore.getState().objects, useTerrainStore.getState().terrain, rcl, room, shard));
     setFormError(null);
     setOpen(true);
   };
@@ -44,8 +47,11 @@ export default function EditRoomJson() {
       return;
     }
 
-    commit(); // one snapshot covers objects and rcl, so the whole edit undoes in a single step
+    commit(); // one snapshot covers objects, terrain and rcl, so the whole edit undoes in a single step
     setObjects(result.objects);
+    if (result.terrain !== undefined) {
+      setTerrain(result.terrain);
+    }
     if (result.rcl !== undefined) {
       setRCL(result.rcl);
     }
@@ -66,13 +72,13 @@ export default function EditRoomJson() {
 
   return (
     <>
-      <AppBarButton icon={<Icons.Edit />} label='Edit' onClick={handleOpen} />
+      <AppBarButton icon={<Icons.EditNote />} label='Edit' onClick={handleOpen} />
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
         <DialogTitle onClose={handleClose}>Edit Room JSON</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
           <Mui.FormLabel component='div' sx={{ mb: 2 }}>
-            Edit the room plan as JSON. Positions use the &quot;x-y&quot; format. Applying replaces everything placed
-            and sets the RCL if the JSON carries one; terrain is left alone.
+            Applying replaces everything placed and sets the RCL if the JSON carries one. Terrain is replaced when the
+            JSON includes room features.
           </Mui.FormLabel>
           <Mui.FormControl variant='outlined' fullWidth>
             <Mui.TextField

@@ -44,7 +44,7 @@ export default function ResetRoom() {
 
   return (
     <>
-      <AppBarButton icon={<Icons.GridOffOutlined />} label='Reset' onClick={handleOpen} />
+      <AppBarButton icon={<Icons.LayersClearOutlined />} label='Reset' onClick={handleOpen} />
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
         <DialogTitle onClose={handleClose}>Reset Room</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
@@ -70,7 +70,7 @@ export default function ResetRoom() {
             variant='contained'
             onClick={handleReset}
             disabled={!structuresChecked && !terrainChecked}
-            startIcon={<Icons.GridOffOutlined />}
+            startIcon={<Icons.LayersClearOutlined />}
           >
             Reset
           </Mui.Button>
