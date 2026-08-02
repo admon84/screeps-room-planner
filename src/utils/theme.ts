@@ -1,5 +1,9 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
+// The @font-face rules come from the @fontsource/jetbrains-mono weight import in src/main.tsx, which
+// loads weight 500 only -- anything rendered in this stack must stay at that weight or be synthesized.
+export const MONO_FONT_FAMILY = '"JetBrains Mono", Consolas, Monaco, "Ubuntu Mono", monospace';
+
 const theme = createTheme({
   typography: {
     // The @font-face rules come from the @fontsource/inter weight imports in src/main.tsx.
@@ -51,6 +55,37 @@ const theme = createTheme({
     },
   },
   components: {
+    // Chrome on Windows paints the OS scrollbar in its light default, which reads as a bright seam
+    // between the drawer and the canvas. `color-scheme` is what actually re-themes the scrollbar in
+    // current Chrome and Safari; the explicit colors below tone the thumb down further and cover
+    // engines that ignore it. Both syntaxes are declared on purpose: Chrome 121+ and Firefox honour
+    // the standard `scrollbar-*` properties (and let them win over the pseudo-elements), while older
+    // Chrome and Safari only understand `::-webkit-scrollbar`.
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        ':root': {
+          colorScheme: 'dark',
+        },
+        '*': {
+          scrollbarWidth: 'thin',
+          scrollbarColor: `${theme.palette.grey[800]} transparent`,
+        },
+        '*::-webkit-scrollbar': {
+          width: 8,
+          height: 8,
+        },
+        '*::-webkit-scrollbar-track, *::-webkit-scrollbar-corner': {
+          backgroundColor: 'transparent',
+        },
+        '*::-webkit-scrollbar-thumb': {
+          backgroundColor: theme.palette.grey[800],
+          borderRadius: 4,
+        },
+        '*::-webkit-scrollbar-thumb:hover': {
+          backgroundColor: theme.palette.grey[700],
+        },
+      }),
+    },
     MuiAppBar: {
       styleOverrides: {
         root: ({ theme }) => ({

@@ -8,6 +8,7 @@ import BrushIndicator from './BrushIndicator';
 import CanvasWrapper from './canvas/CanvasWrapper';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import Notifications from '@/components/Notifications';
+import Wordmark from '@/components/Wordmark';
 import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useUiStore } from '@/stores/useUiStore';
 
@@ -40,26 +41,26 @@ export default function RoomPlanner() {
             >
               <Icons.Menu />
             </Mui.IconButton>
-            <Mui.Typography variant='h6' noWrap component='div' sx={{ display: { xs: 'none', sm: 'block' } }}>
-              Screeps Room Planner
-            </Mui.Typography>
+            <Wordmark />
             <Mui.Box
               sx={{ alignItems: 'center', display: 'flex', flexGrow: 1, gap: 1, justifyContent: 'center', px: 2 }}
             >
               <BrushIndicator />
               <HoverTilePanel />
             </Mui.Box>
-            <Mui.Box sx={{ alignItems: 'center', display: 'flex', gap: 0.5 }}>
+            {/* The negative margin cancels the small IconButton's 5px padding, so the glyphs -- not
+                their invisible hit areas -- line up with the toolbar's 16px gutter and the drawer. */}
+            <Mui.Box sx={{ alignItems: 'center', display: 'flex', gap: 0.5, mr: '-5px' }}>
               {/* Tooltips do not fire on a disabled button, so each one needs a wrapper that keeps
                   pointer events -- the label matters most in exactly that state. */}
-              <Mui.Tooltip title='Undo (Ctrl+Z)'>
+              <Mui.Tooltip title='Undo'>
                 <span>
                   <Mui.IconButton size='small' color='inherit' onClick={undo} disabled={!canUndo}>
                     <Icons.UndoRounded fontSize='small' />
                   </Mui.IconButton>
                 </span>
               </Mui.Tooltip>
-              <Mui.Tooltip title='Redo (Ctrl+Shift+Z)'>
+              <Mui.Tooltip title='Redo'>
                 <span>
                   <Mui.IconButton size='small' color='inherit' onClick={redo} disabled={!canRedo}>
                     <Icons.RedoRounded fontSize='small' />
