@@ -6,8 +6,6 @@ export type Point = { x: number; y: number };
  */
 export type TerrainTile = { room: string; x: number; y: number; type: string };
 
-export type RoomStructures = { [structure: string]: string[] };
-
 export interface StructureBrush {
   key: string;
   image: string;

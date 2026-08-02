@@ -106,8 +106,10 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
 
   const [settingsMenuExpanded, setSettingsMenuExpanded] = useState(true);
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
-  const [objectsMenuExpanded, setObjectsMenuExpanded] = useState(true);
-  const [terrainMenuExpanded, setTerrainMenuExpanded] = useState(true);
+  // Objects and Terrain start collapsed: they hold a handful of brushes each, so keeping them shut
+  // puts the much longer Structures list in reach without scrolling. A search expands them anyway.
+  const [objectsMenuExpanded, setObjectsMenuExpanded] = useState(false);
+  const [terrainMenuExpanded, setTerrainMenuExpanded] = useState(false);
   const [query, setQuery] = useState('');
   const width = 300;
 
