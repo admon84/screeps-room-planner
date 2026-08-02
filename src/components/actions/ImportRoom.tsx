@@ -12,6 +12,7 @@ import { getPointForTile } from '@/utils/helpers';
 import { ScreepsGameRoomTerrain, TerrainTile } from '@/types';
 import { useSettings } from '@/stores/Settings';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
 import DialogTitle from '../dialog/DialogTitle';
@@ -25,6 +26,7 @@ export default function ImportRoom() {
   const setRoom = useSettings((state) => state.setRoom);
   const resetObjects = useGameObjectStore((state) => state.reset);
   const setTerrain = useTerrainStore((state) => state.setTerrain);
+  const commit = useHistoryStore((state) => state.commit);
 
   const [wipeStructuresChecked, setWipeStructuresChecked] = useState(true);
   const [modalOpen, setOpen] = useState(false);
@@ -70,6 +72,8 @@ export default function ImportRoom() {
     }
 
     if (data.ok) {
+      commit();
+
       if (wipeStructuresChecked) {
         resetObjects();
       }

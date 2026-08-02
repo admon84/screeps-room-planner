@@ -5,6 +5,7 @@ import { getPointForShort, isRoomPosition } from '@/utils/helpers';
 import { createObjectFromType, GameObject } from '@/utils/gameObjects';
 import { RoomStructuresJson } from '@/types';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
 import DialogTitle from '../dialog/DialogTitle';
@@ -14,6 +15,7 @@ export default function ImportJsonStructures() {
 
   const setObjects = useGameObjectStore((state) => state.setObjects);
   const resetTerrain = useTerrainStore((state) => state.reset);
+  const commit = useHistoryStore((state) => state.commit);
 
   const [wipeTerrainChecked, setWipeTerrainChecked] = useState(true);
   const [modalOpen, setOpen] = useState(false);
@@ -67,6 +69,8 @@ export default function ImportJsonStructures() {
         objects.push(createObjectFromType({ type, x, y }));
       }
     }
+
+    commit();
 
     if (wipeTerrainChecked) {
       resetTerrain();

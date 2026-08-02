@@ -68,6 +68,18 @@ const theme = createTheme({
         }),
       },
     },
+    MuiToolbar: {
+      styleOverrides: {
+        // MUI widens its gutters to spacing(3) from the `sm` breakpoint up, which leaves the app bar
+        // indented further than the drawer rows at spacing(2). Pinned so both edges line up.
+        gutters: ({ theme }) => ({
+          [theme.breakpoints.up('sm')]: {
+            paddingLeft: theme.spacing(2),
+            paddingRight: theme.spacing(2),
+          },
+        }),
+      },
+    },
     MuiButton: {
       defaultProps: {
         disableElevation: true,

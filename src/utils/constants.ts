@@ -52,7 +52,7 @@ export const TERRAIN_MASK = {
   [TERRAIN_MASK_WALL]: TERRAIN_WALL,
 };
 
-export const TERRAIN_BRUSH_PROPS = {
+export const TERRAIN_BRUSH_PROPS: Record<string, { backgroundColor: string; boxShadow: string }> = {
   [TERRAIN_PLAIN]: {
     backgroundColor: '#3f4045',
     boxShadow: 'inset rgba(0, 0, 0, 0.05) 0 0 0 1px',

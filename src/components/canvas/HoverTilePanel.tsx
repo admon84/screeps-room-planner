@@ -11,7 +11,7 @@ const HoverTilePanel = () => {
     <Mui.Chip
       label={`X: ${x}, Y: ${y}`}
       size='small'
-      sx={{ fontSize: '.7rem', fontWeight: 300, position: 'absolute', bottom: -2 }}
+      sx={{ fontSize: '.7rem', fontVariantNumeric: 'tabular-nums', fontWeight: 300 }}
       variant='outlined'
     />
   );
