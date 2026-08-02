@@ -48,10 +48,10 @@ export default function ResetRoom() {
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
         <DialogTitle onClose={handleClose}>Reset Room</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
-          <Mui.FormLabel component='div' sx={{ mb: 1 }}>
-            Choose what to clear. This can be undone.
-          </Mui.FormLabel>
-          <Mui.Stack direction='column'>
+          <Mui.FormLabel component='div'>Choose what to clear. This can be undone.</Mui.FormLabel>
+        </Mui.DialogContent>
+        <Mui.DialogActions sx={{ backgroundColor: palette.divider, justifyContent: 'space-between' }}>
+          <Mui.Box>
             <Mui.FormControlLabel
               label='Structures and objects'
               control={
@@ -62,10 +62,7 @@ export default function ResetRoom() {
               label='Terrain'
               control={<Mui.Checkbox checked={terrainChecked} onChange={(e) => setTerrainChecked(e.target.checked)} />}
             />
-          </Mui.Stack>
-        </Mui.DialogContent>
-        <Mui.DialogActions sx={{ backgroundColor: palette.divider, justifyContent: 'space-between' }}>
-          <Mui.Button onClick={handleClose}>Cancel</Mui.Button>
+          </Mui.Box>
           <Mui.Button
             variant='contained'
             onClick={handleReset}
