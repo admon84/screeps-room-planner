@@ -35,7 +35,7 @@
 **Files:**
 - Create: `src/hooks/useCameraControls.ts`
 
-- [ ] **Step 1: Write the hook**
+- [x] **Step 1: Write the hook**
 
 Create `src/hooks/useCameraControls.ts` with exactly this content:
 
@@ -247,12 +247,12 @@ Notes on non-obvious choices (do not re-derive these):
 - Arrow-key pan direction: pressing ArrowRight moves the viewport right, which moves the stage
   content left, hence `panBy(-step, 0)`.
 
-- [ ] **Step 2: Verify lint and types**
+- [x] **Step 2: Verify lint and types**
 
 Run: `npm run lint && npm run build`
 Expected: both pass. The hook is not yet imported anywhere; that is fine (it is exported, not dead-flagged).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/hooks/useCameraControls.ts
@@ -268,7 +268,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Create: `src/components/canvas/CanvasControls.tsx`
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 Create `src/components/canvas/CanvasControls.tsx` with exactly this content. Styling matches
 `CanvasDebugPanel`'s translucent black look; `zIndex: 1` matches the debug panel so the overlay
@@ -314,12 +314,12 @@ export default function CanvasControls({ onZoomIn, onZoomOut, onFitRoom }: Props
 }
 ```
 
-- [ ] **Step 2: Verify lint and types**
+- [x] **Step 2: Verify lint and types**
 
 Run: `npm run lint && npm run build`
 Expected: both pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/canvas/CanvasControls.tsx
@@ -336,7 +336,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `src/components/canvas/Canvas.tsx`
 - Modify: `src/hooks/useGameRenderer.ts:68`
 
-- [ ] **Step 1: Rewire `Canvas.tsx`**
+- [x] **Step 1: Rewire `Canvas.tsx`**
 
 Apply all of the following edits to `src/components/canvas/Canvas.tsx` (line numbers refer to the
 current file):
@@ -414,7 +414,7 @@ with the clamped helper:
   );
 ```
 
-- [ ] **Step 2: Remove the hardcoded initial zoom**
+- [x] **Step 2: Remove the hardcoded initial zoom**
 
 In `src/hooks/useGameRenderer.ts`, delete line 68:
 
@@ -425,7 +425,7 @@ In `src/hooks/useGameRenderer.ts`, delete line 68:
 The camera hook's init effect calls `fitRoom()` as soon as `gameApp` is set, which now owns the
 initial view.
 
-- [ ] **Step 3: Verify lint and types**
+- [x] **Step 3: Verify lint and types**
 
 Run: `npm run lint && npm run build`
 Expected: both pass. In particular there must be no unused-variable errors left from the removed
@@ -442,7 +442,7 @@ Run: `npm run dev`, open the app, and check:
 - `+`/`-`/`0`/arrows work; typing in the Import Room text field does not trigger them.
 - Left-click paint and right-click erase still work, including drag-painting.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/canvas/Canvas.tsx src/hooks/useGameRenderer.ts
@@ -459,7 +459,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `src/components/left-drawer/LeftDrawer.tsx:71,78,103,127-165`
 - Modify: `src/stores/Settings.tsx`
 
-- [ ] **Step 1: Remove the slider from `LeftDrawer.tsx`**
+- [x] **Step 1: Remove the slider from `LeftDrawer.tsx`**
 
 Apply these edits (line numbers refer to the current file):
 
@@ -482,7 +482,7 @@ Apply these edits (line numbers refer to the current file):
    Paper-wrapped `<Mui.Slider>`). Keep its sibling, the "Room Controller Level" stack, and keep
    the outer `<Mui.Stack direction='column' spacing={{ xs: 0, md: 2 }} sx={{ m: 2 }}>` wrapper.
 
-- [ ] **Step 2: Remove `zoom` from the Settings store**
+- [x] **Step 2: Remove `zoom` from the Settings store**
 
 In `src/stores/Settings.tsx`:
 
@@ -495,17 +495,17 @@ In `src/stores/Settings.tsx`:
   setZoom: (zoom) => set((state) => ({ settings: { ...state.settings, zoom } })),
 ```
 
-- [ ] **Step 3: Verify no zoom-store references remain**
+- [x] **Step 3: Verify no zoom-store references remain**
 
 Run: `grep -rn "setZoom\|settings.zoom" src`
 Expected: no matches.
 
-- [ ] **Step 4: Verify lint and types**
+- [x] **Step 4: Verify lint and types**
 
 Run: `npm run lint && npm run build`
 Expected: both pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/left-drawer/LeftDrawer.tsx src/stores/Settings.tsx
