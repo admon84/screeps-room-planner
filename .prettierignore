@@ -3,9 +3,5 @@ dist/
 build/
 package-lock.json
 public/
-
-# Generated terrain data -- ~4500 lines, never hand-edited.
 src/utils/sampleTerrain.ts
-
-# Vendored Prism theme; keep diffable against upstream.
 src/styles/prism.css

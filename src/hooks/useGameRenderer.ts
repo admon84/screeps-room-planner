@@ -1,21 +1,30 @@
 import { GameRenderer } from '@screeps/renderer';
 import { useEffect, useRef, useState } from 'react';
+import type { Texture } from 'pixi.js';
 import { resourceMap, rescaleResources } from '@/utils/resourceMap';
-import { worldConfigs } from '@/utils/worldConfigs';
+import { CELL_SIZE, worldConfigs } from '@/utils/worldConfigs';
 import {
   clearTerrainSprites,
   convertGlobalToRoomPosition,
   convertRoomToWorldPosition,
+  createGhostSprite,
   createHighlight,
   isPanGesture,
+  parseCssColor,
 } from '@/utils/canvas';
+import { Brush, brushCanBePlacedAt, getBrushProps } from '@/utils/brushPreview';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useGameAppStore } from '@/stores/useGameAppStore';
+import { useTerrainStore } from '@/stores/useTerrainStore';
+import { useSettings } from '@/stores/Settings';
 import { createGameState } from '@/utils/gameState';
 import { Point } from '@/types';
 
 const TICK_DURATION = 1;
 const TICK_INTERVAL_MS = 1000 * TICK_DURATION;
+
+const HIGHLIGHT_TINT_VALID = 0xffffff;
+const HIGHLIGHT_TINT_INVALID = 0xff5555;
 
 // `release()` calls `Assets.reset()` and `destroyTextureCache()`, which tear down PIXI's *global*
 // texture registry rather than anything instance-scoped. If two renderers ever overlap -- as
@@ -44,6 +53,16 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
     callbacksRef.current = { onGameLoop, onMetricsUpdate };
   }, [onGameLoop, onMetricsUpdate]);
 
+  // Same reason as callbacksRef: the ghost preview needs the live brush inside the stage's mousemove
+  // handler, and listing the brush in the init effect's deps would rebuild the WebGL context on every
+  // brush change.
+  const brushRef = useRef<Brush | null>(null);
+  const brushKey = useSettings((state) => state.settings.brush);
+  const brushType = useSettings((state) => state.settings.brushType);
+  useEffect(() => {
+    brushRef.current = brushKey ? { key: brushKey, type: brushType } : null;
+  }, [brushKey, brushType]);
+
   // Create, initialize and tear down the renderer. Under React 19 StrictMode this effect is invoked
   // twice on mount, so every path out of here has to leave no renderer behind.
   useEffect(() => {
@@ -53,6 +72,7 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
     let renderer: GameRenderer | null = null;
     let metricsTimer: ReturnType<typeof setInterval> | undefined;
     let cancelled = false;
+    const ghostTextures = new Map<string, Texture>();
     let releaseDone: () => void;
     const released = new Promise<void>((resolve) => {
       releaseDone = resolve;
@@ -102,10 +122,53 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
       const stage = created.app.stage;
       if (stage) {
         const highlight = createHighlight();
-        stage.addChild(highlight);
+        const ghost = createGhostSprite();
+        stage.addChild(highlight, ghost);
         // PIXI 7 name for what used to be `interactive = true`; the old property is a deprecation
         // shim that logs a warning on every assignment.
         stage.eventMode = 'static';
+
+        // Textures are keyed by brush icon URL rather than rebuilt per mousemove: `Texture.from()`
+        // starts a fresh image load on a cache miss, which would restart on every pointer move.
+        const applyGhostTexture = (url: string) => {
+          let texture = ghostTextures.get(url);
+          if (!texture) {
+            texture = PIXI.Texture.from(url);
+            ghostTextures.set(url, texture);
+          }
+          ghost.texture = texture;
+          // Re-applied after every swap, not just at construction: Sprite stores width/height as a
+          // scale factor over the current frame, and brush icons ship at assorted pixel sizes.
+          ghost.width = CELL_SIZE;
+          ghost.height = CELL_SIZE;
+          ghost.visible = true;
+        };
+
+        const updatePreview = (roomPos: Point) => {
+          const brush = brushRef.current;
+          if (!brush) {
+            ghost.visible = false;
+            highlight.tint = HIGHLIGHT_TINT_VALID;
+            return;
+          }
+
+          const { image, swatch } = getBrushProps(brush);
+          if (swatch) {
+            ghost.visible = false;
+            highlight.tint = parseCssColor(swatch);
+            return;
+          }
+
+          if (image) applyGhostTexture(image);
+          const canPlace = brushCanBePlacedAt(brush, roomPos, {
+            // Read live: a drag paints many tiles between renders, so values captured at render time
+            // would show the preview as valid past the RCL cap.
+            objects: useGameObjectStore.getState().objects,
+            terrain: useTerrainStore.getState().terrain,
+            rcl: useSettings.getState().settings.rcl,
+          });
+          highlight.tint = canPlace ? HIGHLIGHT_TINT_VALID : HIGHLIGHT_TINT_INVALID;
+        };
 
         stage
           // Modifier and button state are read straight off the federated event. In PIXI 7
@@ -115,6 +178,7 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
           .on('mousemove', (event: any) => {
             if (isPanGesture(event)) {
               highlight.visible = false;
+              ghost.visible = false;
               return;
             }
 
@@ -128,12 +192,18 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
               const worldPos = convertRoomToWorldPosition(roomPos);
               highlight.x = worldPos.x;
               highlight.y = worldPos.y;
+              ghost.x = worldPos.x;
+              ghost.y = worldPos.y;
             }
+
+            updatePreview(roomPos);
           })
           // Hidden rather than clear()ed -- clear() drops the geometry, so the highlight would never
-          // come back after the first mouse-out.
+          // come back after the first mouse-out. The ghost follows the same rule: destroying it would
+          // leave nothing to re-show.
           .on('mouseout', () => {
             highlight.visible = false;
+            ghost.visible = false;
             setHoverPos(null);
             useGameAppStore.getState().setHoverRoomPos(null);
           });
@@ -154,6 +224,10 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
       // release() is internally guarded and a no-op before init(), so this is safe on every path.
       renderer?.release();
       renderer = null;
+      // `Texture.from()` registers under the shared TextureCache, which release() above already
+      // destroyed -- destroying again would throw on the freed base texture. Dropping the map is
+      // enough to leave nothing of this renderer's behind.
+      ghostTextures.clear();
       setGameApp(null);
       setGameAppInitialized(false);
       setHoverPos(null);

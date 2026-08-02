@@ -50,7 +50,7 @@ const getStructureIconPath = (key: string, rcl = Constants.MAX_RCL) => {
 
 const uppercaseFirstLetter = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
-const getObjectBrushProps = (key: string) => ({
+export const getObjectProps = (key: string) => ({
   key,
   image: getObjectBrushIconPath(key),
   name: Constants.OBJECT_BRUSHES[key],
@@ -65,14 +65,15 @@ const getObjectBrushIconPath = (key: string) => {
 export const getStructureBrushes = (rcl = Constants.MAX_RCL) =>
   Object.keys(Constants.STRUCTURE_BRUSHES).map((key) => getStructureProps(key, rcl));
 
-export const getObjectBrushes = () => Object.keys(Constants.OBJECT_BRUSHES).map(getObjectBrushProps);
+export const getObjectBrushes = () => Object.keys(Constants.OBJECT_BRUSHES).map(getObjectProps);
 
-export const getTerrainBrushes = () =>
-  Object.entries(Constants.TERRAIN_BRUSH_PROPS).map(([key, o]) => ({
-    key,
-    name: uppercaseFirstLetter(key),
-    ...o,
-  }));
+export const getTerrainProps = (key: string) => ({
+  key,
+  name: uppercaseFirstLetter(key),
+  ...Constants.TERRAIN_BRUSH_PROPS[key],
+});
+
+export const getTerrainBrushes = () => Object.keys(Constants.TERRAIN_BRUSH_PROPS).map(getTerrainProps);
 
 export const getRequiredRCL = (structure: string) =>
   Math.min(...Object.keys(Constants.CONTROLLER_STRUCTURES[structure]).map((v) => +v));

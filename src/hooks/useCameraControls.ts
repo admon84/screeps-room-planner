@@ -4,6 +4,9 @@ import { ROOM_SIZE } from '@/utils/constants';
 import { CELL_SIZE } from '@/utils/worldConfigs';
 import { useGameAppStore } from '@/stores/useGameAppStore';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useHistoryStore } from '@/stores/useHistoryStore';
+import { useSettings } from '@/stores/Settings';
+import { useUiStore } from '@/stores/useUiStore';
 
 const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 1.0;
@@ -193,7 +196,34 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
 
+      // MUI traps focus onto a plain focusable div, so an open dialog does not look like a text
+      // field to the check above -- without this, arrows pan and Delete erases behind the dialog.
+      // Escape never reaches here while one is open: MUI stops its propagation to close the dialog.
+      if (document.querySelector('.MuiModal-root')) return;
+
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
+          case 'z': {
+            const { undo, redo } = useHistoryStore.getState();
+            if (e.shiftKey) redo();
+            else undo();
+            e.preventDefault();
+            return;
+          }
+          case 'y':
+            useHistoryStore.getState().redo();
+            e.preventDefault();
+            return;
+        }
+      }
+
       switch (e.key) {
+        case '?':
+          useUiStore.getState().setShortcutsOpen(true);
+          break;
+        case 'Escape':
+          useSettings.getState().resetBrush();
+          break;
         case '+':
         case '=':
           zoomIn();
@@ -221,7 +251,12 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
         case 'Backspace': {
           const hovered = useGameAppStore.getState().hoverRoomPos;
           if (!hovered) return;
-          useGameObjectStore.getState().removeStructuresAt(hovered.x, hovered.y);
+          const { objects, removeStructuresAt } = useGameObjectStore.getState();
+          // Committing before a tile that holds nothing would push an undo entry that restores an
+          // identical state, so the next Ctrl+Z would appear to do nothing.
+          if (!objects.some((o) => o.x === hovered.x && o.y === hovered.y)) return;
+          useHistoryStore.getState().commit();
+          removeStructuresAt(hovered.x, hovered.y);
           break;
         }
         default:

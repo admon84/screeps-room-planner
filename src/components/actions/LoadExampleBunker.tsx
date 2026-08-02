@@ -4,6 +4,7 @@ import { getPointForShort } from '@/utils/helpers';
 import { createObjectFromType } from '@/utils/gameObjects';
 import { useSettings } from '@/stores/Settings';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
+import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import ActionButton from './ActionButton';
 
@@ -11,10 +12,12 @@ export default function LoadExampleBunker() {
   const setRCL = useSettings((state) => state.setRCL);
   const setObjects = useGameObjectStore((state) => state.setObjects);
   const resetTerrain = useTerrainStore((state) => state.reset);
+  const commit = useHistoryStore((state) => state.commit);
 
   return (
     <ActionButton
       onClick={() => {
+        commit();
         resetTerrain();
         setRCL(MAX_RCL);
         setObjects(

@@ -6,6 +6,8 @@ import { useCameraControls } from '@/hooks/useCameraControls';
 import { isEraseGesture, isPaintGesture, isPanGesture } from '@/utils/canvas';
 import { countPlacedByType, useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
+import { useHistoryStore } from '@/stores/useHistoryStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 import { createObjectFromType } from '@/utils/gameObjects';
 import { useSettings } from '@/stores/Settings';
 import CanvasControls from './CanvasControls';
@@ -16,12 +18,27 @@ interface CanvasProps {
   onMetricsUpdate?: (metrics: any) => void;
 }
 
+const structureRefusalMessage = (structure: string, rcl: number, terrainType: string) => {
+  const cap = Constants.CONTROLLER_STRUCTURES[structure][rcl];
+  if (!cap) return `Cannot place ${structure}: requires RCL ${Helpers.getRequiredRCL(structure)}`;
+  if (terrainType === Constants.TERRAIN_WALL) return `Cannot place ${structure}: blocked by a wall`;
+  return `Cannot place ${structure}: RCL ${rcl} allows ${cap}`;
+};
+
+const objectRefusalMessage = (brush: string) => {
+  const type = Helpers.getObjectTypeForBrush(brush);
+  return `Cannot place ${brush}: limit ${Constants.MAX_OBJECTS[type]} per room`;
+};
+
 export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasProps) {
   const gameCanvasRef = useRef<HTMLDivElement | null>(null);
   // Refs rather than state: a drag fires these on every mousemove, and re-rendering per frame
   // would stall the pan.
   const isMouseDownRef = useRef(false);
   const isPanningRef = useRef(false);
+  // One history entry per gesture: set on the first real mutation of a drag so the remaining tiles
+  // of the same stroke undo together.
+  const hasCommittedRef = useRef(false);
   const { gameApp, hoverPos } = useGameRenderer({ gameCanvasRef, terrain, onGameLoop, onMetricsUpdate });
   const { zoomIn, zoomOut, fitRoom, panSmoothBy } = useCameraControls({ gameApp, containerRef: gameCanvasRef });
   const addObject = useGameObjectStore((state) => state.addObject);
@@ -32,6 +49,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const brushType = useSettings((state) => state.settings.brushType);
   const rcl = useSettings((state) => state.settings.rcl);
   const resetBrush = useSettings((state) => state.resetBrush);
+  const notify = useNotificationStore((state) => state.notify);
 
   useEffect(() => {
     if (!gameCanvasRef.current || !gameApp) return;
@@ -50,6 +68,14 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
     };
   }, [gameApp]);
 
+  // Snapshots the pre-gesture state, but only for the first mutation of the gesture. Callers must
+  // invoke it after every refusal check has passed and before the store write.
+  const commitOnce = () => {
+    if (hasCommittedRef.current) return;
+    hasCommittedRef.current = true;
+    useHistoryStore.getState().commit();
+  };
+
   /**
    * Applies the active brush to a room tile. Structure placement is validated against the RCL cap
    * and the tile's terrain, mirroring the legacy DOM grid's `addBrush`.
@@ -60,19 +86,29 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
     // Routing on brushType rather than the brush string matters: terrain wall ('wall') and the
     // constructed wall structure ('constructedWall') are distinct values that read alike.
     switch (brushType) {
-      case Constants.BrushType.Terrain:
+      case Constants.BrushType.Terrain: {
+        const current =
+          useTerrainStore.getState().terrain.find((t) => t.x === x && t.y === y)?.type ?? Constants.TERRAIN_PLAIN;
+        if (current === brush) return;
+
+        commitOnce();
         setTerrainAt(x, y, brush);
         // Nothing can stand on a terrain wall, so painting one evicts whatever was built there.
         if (brush === Constants.TERRAIN_WALL) removeStructuresAt(x, y);
         return;
+      }
       case Constants.BrushType.Structure: {
         // Drag-painting fires many times between renders, so the placement count and terrain have
         // to be read live -- a value captured at render time would walk past the RCL cap.
         const terrainType =
           useTerrainStore.getState().terrain.find((t) => t.x === x && t.y === y)?.type ?? Constants.TERRAIN_PLAIN;
         const placed = countPlacedByType(useGameObjectStore.getState().objects)[brush] ?? 0;
-        if (!Helpers.structureCanBePlaced(brush, rcl, terrainType, placed)) return;
+        if (!Helpers.structureCanBePlaced(brush, rcl, terrainType, placed)) {
+          notify(structureRefusalMessage(brush, rcl, terrainType), 'warning');
+          return;
+        }
 
+        commitOnce();
         addObject(createObjectFromType({ type: brush, x, y }));
 
         // Counted fresh after the write rather than as `placed + 1`: addObject displaces whatever
@@ -88,14 +124,25 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
         const storedType = Helpers.getObjectTypeForBrush(brush);
         const occupiesTile = objects.some((o) => o.x === x && o.y === y && o.type === storedType);
         const placed = countPlacedByType(objects)[storedType] ?? 0;
-        if (!occupiesTile && !Helpers.objectCanBePlaced(brush, placed)) return;
+        if (!occupiesTile && !Helpers.objectCanBePlaced(brush, placed)) {
+          notify(objectRefusalMessage(brush), 'warning');
+          return;
+        }
 
+        commitOnce();
         addObject(createObjectFromType({ type: brush, x, y }));
 
         const total = countPlacedByType(useGameObjectStore.getState().objects)[storedType] ?? 0;
         if (!Helpers.objectCanBePlaced(brush, total)) resetBrush();
       }
     }
+  };
+
+  const eraseAt = (x: number, y: number) => {
+    if (!useGameObjectStore.getState().objects.some((o) => o.x === x && o.y === y)) return;
+
+    commitOnce();
+    removeObjectsAt(x, y);
   };
 
   // PIXI 7 replaced `renderer.plugins.interaction.setCursorMode()` with the EventSystem. The old
@@ -125,7 +172,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
     if (!hoverPos) return;
 
     if (isEraseGesture(e)) {
-      removeObjectsAt(hoverPos.x, hoverPos.y);
+      eraseAt(hoverPos.x, hoverPos.y);
       return;
     }
 
@@ -146,7 +193,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
     if (!isMouseDownRef.current || !hoverPos) return;
 
     if (isEraseGesture(e)) {
-      removeObjectsAt(hoverPos.x, hoverPos.y);
+      eraseAt(hoverPos.x, hoverPos.y);
       return;
     }
 
@@ -158,6 +205,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const handleMouseUp = () => {
     isMouseDownRef.current = false;
     isPanningRef.current = false;
+    hasCommittedRef.current = false;
     setCursor('default');
   };
 

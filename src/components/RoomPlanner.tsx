@@ -4,10 +4,23 @@ import LeftDrawer from './left-drawer/LeftDrawer';
 import HoverTilePanel from './canvas/HoverTilePanel';
 import { useState } from 'react';
 import AppBarMenu from './AppBarMenu';
+import BrushIndicator from './BrushIndicator';
 import CanvasWrapper from './canvas/CanvasWrapper';
+import KeyboardShortcuts from '@/components/KeyboardShortcuts';
+import Notifications from '@/components/Notifications';
+import { useHistoryStore } from '@/stores/useHistoryStore';
+import { useUiStore } from '@/stores/useUiStore';
 
 export default function RoomPlanner() {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const canUndo = useHistoryStore((state) => state.past.length > 0);
+  const canRedo = useHistoryStore((state) => state.future.length > 0);
+  const undo = useHistoryStore((state) => state.undo);
+  const redo = useHistoryStore((state) => state.redo);
+
+  const shortcutsOpen = useUiStore((state) => state.shortcutsOpen);
+  const setShortcutsOpen = useUiStore((state) => state.setShortcutsOpen);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -30,17 +43,29 @@ export default function RoomPlanner() {
             <Mui.Typography variant='h6' noWrap component='div' sx={{ display: { xs: 'none', sm: 'block' } }}>
               Screeps Room Planner
             </Mui.Typography>
-            <Mui.Box sx={{ display: 'flex', flexGrow: 1 }} />
-            <Mui.Box sx={{ alignItems: 'center', display: 'flex' }}>
-              <Mui.Button
-                size='small'
-                href='https://github.com/admon84/screeps-room-planner'
-                target='_blank'
-                endIcon={<Icons.GitHub />}
-                sx={{ px: 1.5 }}
-              >
-                View Source
-              </Mui.Button>
+            <Mui.Box
+              sx={{ alignItems: 'center', display: 'flex', flexGrow: 1, gap: 1, justifyContent: 'center', px: 2 }}
+            >
+              <BrushIndicator />
+              <HoverTilePanel />
+            </Mui.Box>
+            <Mui.Box sx={{ alignItems: 'center', display: 'flex', gap: 0.5 }}>
+              {/* Tooltips do not fire on a disabled button, so each one needs a wrapper that keeps
+                  pointer events -- the label matters most in exactly that state. */}
+              <Mui.Tooltip title='Undo (Ctrl+Z)'>
+                <span>
+                  <Mui.IconButton size='small' color='inherit' onClick={undo} disabled={!canUndo}>
+                    <Icons.UndoRounded fontSize='small' />
+                  </Mui.IconButton>
+                </span>
+              </Mui.Tooltip>
+              <Mui.Tooltip title='Redo (Ctrl+Shift+Z)'>
+                <span>
+                  <Mui.IconButton size='small' color='inherit' onClick={redo} disabled={!canRedo}>
+                    <Icons.RedoRounded fontSize='small' />
+                  </Mui.IconButton>
+                </span>
+              </Mui.Tooltip>
               <AppBarMenu />
             </Mui.Box>
           </Mui.Toolbar>
@@ -56,24 +81,14 @@ export default function RoomPlanner() {
             background: palette.secondary.dark,
           })}
         >
-          <Mui.Box
-            sx={{
-              display: 'flex',
-              position: 'sticky',
-              width: '100px',
-              top: 33,
-              left: { xs: '45%', md: '55%' },
-              zIndex: 9999,
-            }}
-          >
-            <HoverTilePanel />
-          </Mui.Box>
           <Mui.Toolbar variant='dense' />
           <Mui.Box sx={{ position: 'relative', overflow: 'hidden' }}>
             <CanvasWrapper />
           </Mui.Box>
         </Mui.Box>
       </Mui.Box>
+      <KeyboardShortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <Notifications />
     </>
   );
 }

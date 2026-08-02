@@ -67,14 +67,32 @@ export const isPanGesture = (state: GestureState) => {
 export const isPaintGesture = (state: GestureState) =>
   state.buttons === BUTTONS_LEFT && !isEraseGesture(state) && !isPanGesture(state);
 
+// The renderer's own layers occupy stage zIndex 0..6 under `sortableChildren`, so cursor overlays
+// have to sort past the last of them or placed structures draw over them.
+const OVERLAY_Z_INDEX = 100;
+
 export function createHighlight(worldPos: Point = { x: 0, y: 0 }, color = 0xffffff, alpha = 0.4) {
   const highlight = new PIXI.Graphics();
   highlight.beginFill(color, 1);
   highlight.drawRect(worldPos.x, worldPos.y, CELL_SIZE, CELL_SIZE);
   highlight.endFill();
   highlight.alpha = alpha;
+  highlight.zIndex = OVERLAY_Z_INDEX;
   return highlight;
 }
+
+// Left unsized: Sprite stores width/height as a scale over the current frame, so the caller has to
+// re-apply the cell footprint after every texture swap anyway.
+export function createGhostSprite(alpha = 0.55) {
+  const ghost = new PIXI.Sprite();
+  ghost.alpha = alpha;
+  ghost.zIndex = OVERLAY_Z_INDEX + 1;
+  ghost.visible = false;
+  return ghost;
+}
+
+/** Numeric PIXI tint from the `#rrggbb` strings `TERRAIN_BRUSH_PROPS` holds for the DOM swatches. */
+export const parseCssColor = (color: string) => Number.parseInt(color.replace('#', ''), 16);
 
 export function convertGlobalToRoomPosition(globalPos: Point, stage: Container) {
   const localPoint = stage.toLocal(new PIXI.Point(globalPos.x, globalPos.y));
