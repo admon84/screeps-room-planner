@@ -199,7 +199,9 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
       // MUI traps focus onto a plain focusable div, so an open dialog does not look like a text
       // field to the check above -- without this, arrows pan and Delete erases behind the dialog.
       // Escape never reaches here while one is open: MUI stops its propagation to close the dialog.
-      if (document.querySelector('.MuiModal-root')) return;
+      // Closed-but-keepMounted modals (mobile drawer, action dialogs) stay in the DOM with the
+      // `MuiModal-hidden` class, so only a visible modal root may swallow the key.
+      if (document.querySelector('.MuiModal-root:not(.MuiModal-hidden)')) return;
 
       if (e.ctrlKey || e.metaKey) {
         switch (e.key.toLowerCase()) {
