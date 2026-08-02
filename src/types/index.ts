@@ -34,8 +34,11 @@ export interface Metrics {
   gameObjectCounter?: number;
   rendererCounter?: number;
   devicePixelRatio?: number;
+  stageSize?: number;
   renderer?: {
     size: number;
-    maxSvgSize: number;
+    maxSvgSize?: number;
+    WebGL?: string;
+    GPU?: string;
   };
 }

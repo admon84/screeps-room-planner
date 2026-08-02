@@ -11,6 +11,13 @@ import { Point } from '@/types';
 const TICK_DURATION = 1;
 const TICK_INTERVAL_MS = 1000 * TICK_DURATION;
 
+// `release()` calls `Assets.reset()` and `destroyTextureCache()`, which tear down PIXI's *global*
+// texture registry rather than anything instance-scoped. If two renderers ever overlap -- as
+// StrictMode's double-invoke makes them -- the dying one destroys textures the live one already
+// resolved. Serializing construction keeps that from happening; World.init() re-adds and reloads
+// every asset, so the incoming renderer repopulates the cache it inherits.
+let rendererHandoff: Promise<void> = Promise.resolve();
+
 interface Props {
   gameCanvasRef: React.RefObject<HTMLDivElement | null>;
   terrain: any;
@@ -40,10 +47,22 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
     let renderer: GameRenderer | null = null;
     let metricsTimer: ReturnType<typeof setInterval> | undefined;
     let cancelled = false;
+    let releaseDone: () => void;
+    const released = new Promise<void>((resolve) => {
+      releaseDone = resolve;
+    });
 
     const createGameApp = async () => {
+      // Wait for any previous renderer to finish releasing before touching the shared asset cache.
+      await rendererHandoff;
+      if (cancelled) return;
+
       await GameRenderer.compileMetadata(worldConfigs.metadata);
       if (cancelled) return;
+
+      // The renderer builds its PIXI Application without passing `resolution`, so the device pixel
+      // ratio only reaches it through the global default, which is read in the constructor.
+      PIXI.settings.RESOLUTION = window.devicePixelRatio;
 
       const created = new GameRenderer({
         size: { width: container.clientWidth, height: container.clientHeight },
@@ -64,6 +83,13 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
         renderer = null;
         return;
       }
+
+      // The renderer builds its Application without `autoDensity`, so on a retina display the canvas
+      // element would keep its backing-buffer size as its CSS size and overflow the container. PIXI 7
+      // exposes autoDensity as a read-only getter over the view system, so the flag has to be set on
+      // `_view` itself; resize() then writes the corrected CSS size back onto the element.
+      (created.app.renderer as unknown as { _view: { autoDensity: boolean } })._view.autoDensity = true;
+      created.app.renderer.resize(container.clientWidth, container.clientHeight);
 
       metricsTimer = setInterval(() => callbacksRef.current.onMetricsUpdate?.(created.metrics), TICK_INTERVAL_MS);
 
@@ -113,7 +139,10 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
       setGameAppInitialized(true);
     };
 
-    createGameApp();
+    const started = createGameApp();
+    // The next renderer waits on this build finishing *and* this teardown running, so the two never
+    // race over the global texture cache.
+    rendererHandoff = started.then(() => released);
 
     return () => {
       cancelled = true;
@@ -125,6 +154,7 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
       setGameAppInitialized(false);
       setHoverPos(null);
       useGameAppStore.getState().setHoverRoomPos(null);
+      releaseDone();
     };
   }, [gameCanvasRef]);
 
