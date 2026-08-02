@@ -107,16 +107,20 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const structureBrushes = Helpers.getStructureBrushes(rcl);
   const width = 300;
 
-  const getBrushTarget = (target: HTMLElement): string => {
+  // Walks up from the clicked node to the brush row that carries the data attribute. Returns '' at
+  // the document root: a click can land on a node outside any brush row (a tooltip portal, or a row
+  // that unmounted under the pointer), and recursing past it dereferences a null parent.
+  const getBrushTarget = (target: HTMLElement | null): string => {
+    if (!target) return '';
     for (const brushClass of Object.values(BrushClass)) {
-      if (target && target.classList.contains(brushClass)) {
-        const brushType = (target as HTMLElement).dataset[brushClass];
+      if (target.classList.contains(brushClass)) {
+        const brushType = target.dataset[brushClass];
         if (brushType) {
           return brushType;
         }
       }
     }
-    return getBrushTarget(target.parentElement as HTMLElement);
+    return getBrushTarget(target.parentElement);
   };
 
   const drawer = (
@@ -226,35 +230,33 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         }}
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
-                        <Mui.Tooltip arrow hidden={placed === 0} placement='left' title={`${total - placed} remaining`}>
-                          <Mui.Chip
-                            color={error ? 'error' : 'default'}
-                            // Chip clones this element to inject its own className, and a Fragment
-                            // accepts no className -- so the empty case has to be undefined.
-                            icon={locked ? <Icons.Lock /> : undefined}
-                            label={
-                              locked
-                                ? `RCL ${Helpers.getRequiredRCL(key)}`
-                                : total === 2500
-                                  ? placed
-                                  : placed + ' / ' + total
-                            }
-                            size='small'
-                            sx={({ palette }) => ({
-                              ...(brush === key &&
-                                !disabled && {
-                                  borderColor: palette.primary.main,
-                                  color: palette.primary.light,
-                                }),
-                              ...(disabled && { opacity: palette.action.disabledOpacity }),
-                              cursor: 'pointer',
-                              fontSize: '.7rem',
-                              fontWeight: 500,
-                              transition: 'border-color 250ms ease',
-                            })}
-                            variant='outlined'
-                          />
-                        </Mui.Tooltip>
+                        <Mui.Chip
+                          color={error ? 'error' : 'default'}
+                          // Chip clones this element to inject its own className, and a Fragment
+                          // accepts no className -- so the empty case has to be undefined.
+                          icon={locked ? <Icons.Lock /> : undefined}
+                          label={
+                            locked
+                              ? `RCL ${Helpers.getRequiredRCL(key)}`
+                              : total === 2500
+                                ? placed
+                                : placed + ' / ' + total
+                          }
+                          size='small'
+                          sx={({ palette }) => ({
+                            ...(brush === key &&
+                              !disabled && {
+                                borderColor: palette.primary.main,
+                                color: palette.primary.light,
+                              }),
+                            ...(disabled && { opacity: palette.action.disabledOpacity }),
+                            cursor: 'pointer',
+                            fontSize: '.7rem',
+                            fontWeight: 500,
+                            transition: 'border-color 250ms ease',
+                          })}
+                          variant='outlined'
+                        />
                       </Mui.Box>
                     </StyledButton>
                   );
@@ -342,25 +344,23 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         }}
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
-                        <Mui.Tooltip arrow placement='left' title={`${total - placed} remaining`}>
-                          <Mui.Chip
-                            label={`${placed} / ${total}`}
-                            size='small'
-                            sx={({ palette }) => ({
-                              ...(brush === key &&
-                                !disabled && {
-                                  borderColor: palette.primary.main,
-                                  color: palette.primary.light,
-                                }),
-                              ...(disabled && { opacity: palette.action.disabledOpacity }),
-                              cursor: 'pointer',
-                              fontSize: '.7rem',
-                              fontWeight: 300,
-                              transition: 'border-color 250ms ease',
-                            })}
-                            variant='outlined'
-                          />
-                        </Mui.Tooltip>
+                        <Mui.Chip
+                          label={`${placed} / ${total}`}
+                          size='small'
+                          sx={({ palette }) => ({
+                            ...(brush === key &&
+                              !disabled && {
+                                borderColor: palette.primary.main,
+                                color: palette.primary.light,
+                              }),
+                            ...(disabled && { opacity: palette.action.disabledOpacity }),
+                            cursor: 'pointer',
+                            fontSize: '.7rem',
+                            fontWeight: 300,
+                            transition: 'border-color 250ms ease',
+                          })}
+                          variant='outlined'
+                        />
                       </Mui.Box>
                     </StyledButton>
                   );
@@ -386,15 +386,22 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                       key={key}
                       endIcon={
                         <Mui.Box
-                          sx={{
+                          sx={({ palette }) => ({
                             backgroundColor,
                             boxShadow,
+                            // Wall is near-black and plain is a mid grey, so both need an outline to
+                            // read as swatches against the drawer rather than dissolving into it.
+                            border: `1px solid ${palette.grey[600]}`,
+                            borderRadius: '2px',
+                            // No CssBaseline in this app, so the border would otherwise grow the
+                            // swatch past the icon size the other brush rows align to.
+                            boxSizing: 'border-box',
                             backgroundPosition: 'center',
                             backgroundRepeat: 'no-repeat',
                             height: iconSize,
                             width: iconSize,
                             opacity: 1,
-                          }}
+                          })}
                         />
                       }
                       onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
