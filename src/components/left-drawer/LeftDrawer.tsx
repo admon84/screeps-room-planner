@@ -68,14 +68,12 @@ type Props = {
 };
 
 export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
-  const zoom = useSettings((state) => state.settings.zoom);
   const brush = useSettings((state) => state.settings.brush);
   const rcl = useSettings((state) => state.settings.rcl);
   const setBrush = useSettings((state) => state.setBrush);
   const setBrushType = useSettings((state) => state.setBrushType);
   const resetBrush = useSettings((state) => state.resetBrush);
   const setRCL = useSettings((state) => state.setRCL);
-  const setZoom = useSettings((state) => state.setZoom);
   const objects = useGameObjectStore((state) => state.objects);
   const placedCounts = useMemo(() => countPlacedByType(objects), [objects]);
 
@@ -100,8 +98,6 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
     return getBrushTarget(target.parentElement as HTMLElement);
   };
 
-  const updateZoom = (_: any, value: number | number[]) => setZoom(Array.isArray(value) ? value[0] : value);
-
   const drawer = (
     <>
       <Mui.Toolbar variant='dense' />
@@ -125,44 +121,6 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           </StyledAccordionSummary>
           <StyledAccordionDetails>
             <Mui.Stack direction='column' spacing={{ xs: 0, md: 2 }} sx={{ m: 2 }}>
-              <Mui.Stack direction='column' spacing={1} sx={{ display: { xs: 'none', md: 'block' } }}>
-                <Mui.Box
-                  sx={{
-                    alignItems: 'center',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexGrow: 1,
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Mui.Typography variant='body2'>Map Zoom</Mui.Typography>
-                  <Mui.Typography variant='body2'>{Math.round(zoom * 100)}%</Mui.Typography>
-                </Mui.Box>
-                <Mui.Paper variant='outlined' sx={{ px: 2.4, pt: 0.8 }}>
-                  <Mui.Slider
-                    marks={false}
-                    max={1}
-                    min={0.1}
-                    step={0.05}
-                    value={zoom}
-                    onChange={updateZoom}
-                    onChangeCommitted={updateZoom}
-                    sx={{
-                      '& .MuiSlider-track': {
-                        border: 'none',
-                      },
-                      '& .MuiSlider-thumb': {
-                        '&:before': {
-                          boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
-                        },
-                        '&:hover, &.Mui-focusVisible, &.Mui-active': {
-                          boxShadow: 'none',
-                        },
-                      },
-                    }}
-                  />
-                </Mui.Paper>
-              </Mui.Stack>
               <Mui.Stack direction='column' spacing={1}>
                 <Mui.Box
                   sx={{

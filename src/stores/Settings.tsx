@@ -8,14 +8,12 @@ interface State {
     rcl: number;
     room: string;
     shard: string;
-    zoom: number;
   };
   setBrush: (brush: string) => void;
   setBrushType: (brushType: BrushType) => void;
   setRCL: (rcl: number) => void;
   setRoom: (room: string) => void;
   setShard: (shard: string) => void;
-  setZoom: (zoom: number) => void;
   resetBrush: () => void;
 }
 
@@ -25,7 +23,6 @@ const initialSettings = {
   rcl: MAX_RCL,
   room: 'E3S1',
   shard: 'shard0',
-  zoom: 0.2,
 };
 
 export const useSettings = create<State>((set) => ({
@@ -35,6 +32,5 @@ export const useSettings = create<State>((set) => ({
   setRCL: (rcl) => set((state) => ({ settings: { ...state.settings, rcl } })),
   setRoom: (room) => set((state) => ({ settings: { ...state.settings, room } })),
   setShard: (shard) => set((state) => ({ settings: { ...state.settings, shard } })),
-  setZoom: (zoom) => set((state) => ({ settings: { ...state.settings, zoom } })),
   resetBrush: () => set((state) => ({ settings: { ...state.settings, brush: initialSettings.brush } })),
 }));
