@@ -1,5 +1,24 @@
 import '@screeps/renderer-metadata';
+import type { ProcessorMetadata, TextProcessorPayload } from '@screeps/renderer';
 import { ROOM_SIZE, USER_ID } from './constants';
+
+// The bundled metadata styles the mineral letter as `Roboto, serif`. Roboto is never loaded here, so
+// the letter falls back to the generic serif face; every other label in the metadata uses
+// `Roboto, sans-serif`. Retarget it at the app font before the metadata is compiled.
+const MINERAL_FONT_FAMILY = '"Inter", "Helvetica", "Arial", sans-serif';
+
+const applyMineralFont = (metadata: typeof RENDERER_METADATA) => {
+  const textProcessor = metadata.objects.mineral?.processors?.find(
+    (processor: ProcessorMetadata<TextProcessorPayload>) => processor.type === 'text'
+  );
+  const style = textProcessor?.payload?.style;
+
+  if (style && typeof style === 'object' && 'fontFamily' in style) {
+    style.fontFamily = MINERAL_FONT_FAMILY;
+  }
+
+  return metadata;
+};
 
 export const ATTACK_PENETRATION = 10;
 export const CELL_SIZE = 100;
@@ -18,7 +37,7 @@ export const worldConfigs = {
   ROOM_SIZE,
   VIEW_BOX,
   BADGE_URL: 'https://screeps.com/api/user/badge-svg?username=%1',
-  metadata: RENDERER_METADATA,
+  metadata: applyMineralFont(RENDERER_METADATA),
   gameData: {
     player: USER_ID,
     showMyNames: {
