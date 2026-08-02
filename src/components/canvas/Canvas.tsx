@@ -1,16 +1,14 @@
-import React, { WheelEvent, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as Constants from '@/utils/constants';
 import * as Helpers from '@/utils/helpers';
 import { useGameRenderer } from '@/hooks/useGameRenderer';
+import { useCameraControls } from '@/hooks/useCameraControls';
 import { Point } from '@/types';
 import { countPlacedByType, useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import { createObjectFromType } from '@/utils/gameObjects';
 import { useSettings } from '@/stores/Settings';
-
-const ZOOM_MIN = 0.1;
-const ZOOM_MAX = 1.0;
-const ZOOM_STEP = 0.05;
+import CanvasControls from './CanvasControls';
 
 interface CanvasProps {
   terrain: any;
@@ -23,6 +21,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [pan, setPan] = useState<Point | null>(null);
   const { gameApp, hoverPos } = useGameRenderer({ gameCanvasRef, terrain, onGameLoop, onMetricsUpdate });
+  const { zoomIn, zoomOut, fitRoom, panBy } = useCameraControls({ gameApp, containerRef: gameCanvasRef });
   const addObject = useGameObjectStore((state) => state.addObject);
   const removeObjectsAt = useGameObjectStore((state) => state.removeObjectsAt);
   const removeStructuresAt = useGameObjectStore((state) => state.removeStructuresAt);
@@ -31,8 +30,6 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const brushType = useSettings((state) => state.settings.brushType);
   const rcl = useSettings((state) => state.settings.rcl);
   const resetBrush = useSettings((state) => state.resetBrush);
-  const zoom = useSettings((state) => state.settings.zoom);
-  const setZoom = useSettings((state) => state.setZoom);
 
   useEffect(() => {
     if (!gameCanvasRef.current || !gameApp) return;
@@ -50,16 +47,6 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
       resizeObserver.disconnect();
     };
   }, [gameApp]);
-
-  // Applies the zoom slider to the renderer. The equality check breaks the feedback loop with
-  // handleWheel, which pushes the level it just applied back into the store.
-  useEffect(() => {
-    const container = gameCanvasRef.current;
-    if (!gameApp || !container || zoom === gameApp.zoomLevel) return;
-
-    const { left, top, width, height } = container.getBoundingClientRect();
-    gameApp.zoomTo(zoom, left + width / 2, top + height / 2);
-  }, [gameApp, zoom]);
 
   /**
    * Applies the active brush to a room tile. Structure placement is validated against the RCL cap
@@ -134,7 +121,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
     // console.log('Canvas > mouse move', hoverPos, e.buttons);
 
     if (pan && (e.buttons === 4 || (e.shiftKey && e.buttons === 1))) {
-      gameApp?.pan(e.movementX, e.movementY);
+      panBy(e.movementX, e.movementY);
       setPan({ x: e.clientX, y: e.clientY });
       setCursor('grabbing');
       return;
@@ -162,30 +149,20 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
     setCursor('default');
   };
 
-  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
-    // console.log('Canvas > wheel', hoverPos, { deltaX: e.deltaX, deltaY: e.deltaY });
-    if (!gameApp || !e.shiftKey) return;
-
-    const step = e.deltaX < 0 ? ZOOM_STEP : -ZOOM_STEP;
-    const level = Math.min(Math.max(gameApp.zoomLevel + step, ZOOM_MIN), ZOOM_MAX);
-    gameApp.zoomTo(level, e.clientX, e.clientY);
-    // Keep the drawer slider in sync; zoomTo has already applied the level, so the zoom effect
-    // sees no change and does not re-zoom on the canvas centre.
-    setZoom(level);
-  };
-
   return (
-    <div
-      className='screeps-renderer'
-      ref={gameCanvasRef}
-      style={{ width: 'calc(100vw - 300px)', height: 'calc(100vh - 48px)' }}
-      onContextMenu={(e) => e.preventDefault()}
-      onMouseOver={handleMouseOver}
-      onMouseOut={handleMouseOut}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onWheel={handleWheel}
-    />
+    <>
+      <div
+        className='screeps-renderer'
+        ref={gameCanvasRef}
+        style={{ width: 'calc(100vw - 300px)', height: 'calc(100vh - 48px)' }}
+        onContextMenu={(e) => e.preventDefault()}
+        onMouseOver={handleMouseOver}
+        onMouseOut={handleMouseOut}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      />
+      <CanvasControls onZoomIn={zoomIn} onZoomOut={zoomOut} onFitRoom={fitRoom} />
+    </>
   );
 }
