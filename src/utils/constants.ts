@@ -10,7 +10,7 @@ export enum BrushClass {
   Terrain = 'terrain',
 }
 
-export const USER_ID = 'dissi';
+export const USER_ID = 'Dissi';
 export const ROOM_NAME = 'sim';
 
 export const MAX_RCL = 8;

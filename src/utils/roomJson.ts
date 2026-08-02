@@ -95,9 +95,21 @@ export const buildRoomJson = (
   return json.replace(/\{\n\s+"x": (\d+),\n\s+"y": (\d+)\n\s+\}/g, '{"x":$1,"y":$2}');
 };
 
-/** Positions for one type entry: a bare `[{x, y}]` array, or `{ "pos": [...] }` from pre-2023 exports. */
-const getPointsForEntry = (type: string, entry: unknown): { points: Point[] } | { error: string } => {
-  const positions = Array.isArray(entry) ? entry : isPlainObject(entry) && Array.isArray(entry.pos) ? entry.pos : null;
+/**
+ * Positions for one type entry: a bare `[{x, y}]` array, or -- for `buildings` entries only, since
+ * `roomFeatures` postdates its removal -- the pre-2023 `{ "pos": [...] }` wrapper.
+ */
+const getPointsForEntry = (
+  type: string,
+  entry: unknown,
+  allowPosWrapper: boolean
+): { points: Point[] } | { error: string } => {
+  const positions =
+    allowPosWrapper && isPlainObject(entry) && Array.isArray(entry.pos)
+      ? entry.pos
+      : Array.isArray(entry)
+        ? entry
+        : null;
   if (!positions) {
     return { error: `Expected an array of {"x","y"} positions for "${type}"` };
   }
@@ -170,7 +182,7 @@ export const parseRoomJson = (text: string): RoomJsonParseResult => {
           return { ok: false, error: typeError };
         }
 
-        const result = getPointsForEntry(type, entry);
+        const result = getPointsForEntry(type, entry, true);
         if ('error' in result) {
           return { ok: false, error: result.error };
         }
@@ -195,7 +207,7 @@ export const parseRoomJson = (text: string): RoomJsonParseResult => {
           }
         }
 
-        const result = getPointsForEntry(type, entry);
+        const result = getPointsForEntry(type, entry, false);
         if ('error' in result) {
           return { ok: false, error: result.error };
         }

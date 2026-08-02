@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { BrushType, MAX_RCL } from '@/utils/constants';
+import { BrushType, MAX_RCL, USER_ID } from '@/utils/constants';
 import { ScreepsServer } from '@/utils/screepsApi';
 
 interface State {
@@ -8,6 +8,7 @@ interface State {
     brush: string | null;
     brushType: BrushType;
     debug: boolean;
+    playerName: string;
     rcl: number;
     room: string;
     server: ScreepsServer;
@@ -16,6 +17,7 @@ interface State {
   setBrush: (brush: string) => void;
   setBrushType: (brushType: BrushType) => void;
   setDebug: (debug: boolean) => void;
+  setPlayerName: (playerName: string) => void;
   setRCL: (rcl: number) => void;
   setRoom: (room: string) => void;
   setServer: (server: ScreepsServer) => void;
@@ -27,6 +29,7 @@ const initialSettings = {
   brush: null,
   brushType: BrushType.Structure,
   debug: false,
+  playerName: USER_ID,
   rcl: MAX_RCL,
   room: 'W1N1',
   server: 'persistent' as ScreepsServer,
@@ -40,6 +43,7 @@ export const useSettings = create<State>()(
       setBrush: (brush) => set((state) => ({ settings: { ...state.settings, brush } })),
       setBrushType: (brushType) => set((state) => ({ settings: { ...state.settings, brushType } })),
       setDebug: (debug) => set((state) => ({ settings: { ...state.settings, debug } })),
+      setPlayerName: (playerName) => set((state) => ({ settings: { ...state.settings, playerName } })),
       setRCL: (rcl) => set((state) => ({ settings: { ...state.settings, rcl } })),
       setRoom: (room) => set((state) => ({ settings: { ...state.settings, room } })),
       setServer: (server) => set((state) => ({ settings: { ...state.settings, server } })),
@@ -51,9 +55,12 @@ export const useSettings = create<State>()(
       // Bumped past the short-lived renderer-settings shape so those persisted keys are dropped
       // rather than merged back in.
       version: 3,
-      // Only `debug` is durable. Persisting the brush would restore the app mid-paint-mode on reload,
-      // and rcl/room/shard are per-session planning state.
-      partialize: ({ settings: { debug } }) => ({ settings: { debug } }),
+      // The brush stays per-session: persisting it would restore the app mid-paint-mode on reload.
+      // The room properties (playerName/rcl/room/shard) are durable so a plan's identity -- and the
+      // badge the playerName drives -- survives a reload.
+      partialize: ({ settings: { debug, playerName, rcl, room, shard } }) => ({
+        settings: { debug, playerName, rcl, room, shard },
+      }),
       merge: (persisted, current) => ({
         ...current,
         settings: { ...current.settings, ...(persisted as { settings?: Partial<State['settings']> })?.settings },
