@@ -8,6 +8,8 @@ import '@fontsource/inter/latin-300.css';
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-700.css';
+// Only the wordmark uses JetBrains Mono, so only the one weight it renders at is loaded.
+import '@fontsource/jetbrains-mono/latin-500.css';
 import '@/styles/prism.css';
 
 // Emotion needs no CacheProvider here: MUI's default cache is correct for a client-only app, and

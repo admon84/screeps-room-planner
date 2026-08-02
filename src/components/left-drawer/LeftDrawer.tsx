@@ -139,26 +139,18 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
     <>
       <Mui.Toolbar variant='dense' />
       <Mui.Box sx={{ overflowY: 'auto' }}>
-        <Mui.Box
-          sx={({ palette, zIndex }) => ({
-            backgroundColor: palette.background.paper,
-            position: 'sticky',
-            top: 0,
-            zIndex: zIndex.appBar - 1,
-            p: 1.5,
-          })}
-        >
+        <Mui.Box sx={{ top: 0, p: 2 }}>
           <Mui.TextField
             fullWidth
             size='small'
-            placeholder='Search brushes'
+            placeholder='Search'
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             slotProps={{
               input: {
                 startAdornment: (
                   <Mui.InputAdornment position='start'>
-                    <Icons.Search fontSize='small' />
+                    <Icons.Search fontSize='small' sx={{ color: 'text.disabled' }} />
                   </Mui.InputAdornment>
                 ),
                 endAdornment: searching ? (
@@ -170,13 +162,23 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                 ) : undefined,
               },
             }}
+            sx={({ palette }) => ({
+              fieldset: {
+                border: `1px solid ${palette.divider}`,
+              },
+              input: {
+                fontSize: '14px',
+              },
+            })}
           />
         </Mui.Box>
 
         {noResults && (
-          <Mui.Typography variant='body2' sx={{ color: 'text.secondary', p: 2, textAlign: 'center' }}>
-            No brushes match &quot;{query.trim()}&quot;
-          </Mui.Typography>
+          <Mui.Box sx={({ palette }) => ({ borderTop: `1px solid ${palette.divider}` })}>
+            <Mui.Typography variant='body2' sx={{ color: 'text.secondary', p: 2, textAlign: 'center' }}>
+              No brushes match &quot;{query.trim()}&quot;
+            </Mui.Typography>
+          </Mui.Box>
         )}
 
         {!searching && (
@@ -456,7 +458,9 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                               boxShadow,
                               // Wall is near-black and plain is a mid grey, so both need an outline to
                               // read as swatches against the drawer rather than dissolving into it.
-                              border: `1px solid ${palette.grey[600]}`,
+                              // Same divider color as the accordion and field borders -- enough to
+                              // bound the swatch without the outline outshining the color it frames.
+                              border: `1px solid ${palette.divider}`,
                               borderRadius: '2px',
                               // No CssBaseline in this app, so the border would otherwise grow the
                               // swatch past the icon size the other brush rows align to.
@@ -508,21 +512,20 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           </StyledAccordion>
         )}
 
-        {/* Actions Menu */}
-        {!searching && (
-          <StyledAccordion expanded={actionsMenuExpanded} onChange={() => setActionsMenuExpanded(!actionsMenuExpanded)}>
-            <StyledAccordionSummary>
-              <Mui.Typography>Actions</Mui.Typography>
-            </StyledAccordionSummary>
-            <StyledAccordionDetails>
-              <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-                <Mui.Stack direction='column' sx={{ m: 2 }} spacing={1}>
-                  <RoomActions />
-                </Mui.Stack>
-              </Mui.Box>
-            </StyledAccordionDetails>
-          </StyledAccordion>
-        )}
+        {/* Actions Menu -- deliberately outside the search filter: these are room-wide commands, not
+            brushes, so hiding them would strand the user mid-search with no way to import or export. */}
+        <StyledAccordion expanded={actionsMenuExpanded} onChange={() => setActionsMenuExpanded(!actionsMenuExpanded)}>
+          <StyledAccordionSummary>
+            <Mui.Typography>Actions</Mui.Typography>
+          </StyledAccordionSummary>
+          <StyledAccordionDetails>
+            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+              <Mui.Stack direction='column' sx={{ m: 2 }} spacing={1}>
+                <RoomActions />
+              </Mui.Stack>
+            </Mui.Box>
+          </StyledAccordionDetails>
+        </StyledAccordion>
       </Mui.Box>
     </>
   );
