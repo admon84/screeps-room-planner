@@ -6,28 +6,14 @@ export const isRoomPosition = (x: number, y: number) =>
 
 export const getDistance = (a: Point, b: Point) => Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y));
 
-export const getTile = (x: number, y: number) => y * Constants.ROOM_SIZE + x;
-
-export const getTileForPoint = ({ x, y }: Point) => getTile(x, y);
-
 export const getPointForTile = (tile: number) => ({
   x: tile % Constants.ROOM_SIZE,
   y: Math.floor(tile / Constants.ROOM_SIZE),
 });
 
-export const getShortForTile = (tile: number) => {
-  const { x, y } = getPointForTile(tile);
-  return `${x}-${y}`;
-};
-
 export const getPointForShort = (shortPoint: string) => {
   const [x, y] = shortPoint.split('-');
   return { x: +x, y: +y };
-};
-
-export const getTileForShort = (shortPoint: string) => {
-  const { x, y } = getPointForShort(shortPoint);
-  return getTile(x, y);
 };
 
 export const getStructureProps = (key: string, rcl = Constants.MAX_RCL) => ({

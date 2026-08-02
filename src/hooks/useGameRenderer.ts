@@ -45,6 +45,7 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
   const [hoverPos, setHoverPos] = useState<Point | null>(null);
   const [isGameAppInitialized, setGameAppInitialized] = useState(false);
   const objects = useGameObjectStore((state) => state.objects);
+  const playerName = useSettings((state) => state.settings.playerName);
 
   // Held in a ref so a new callback identity re-points the renderer's hooks instead of tearing down
   // and rebuilding the WebGL context.
@@ -246,20 +247,31 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
     if (!terrain.length) clearTerrainSprites(gameApp.app.stage);
   }, [gameApp, isGameAppInitialized, terrain]);
 
+  // The renderer's userBadge processor resolves the owner's badge only when a sprite is built or the
+  // object's `user` prop changes (metadata props: ["user", "level"]) -- a player rename changes
+  // neither, so sprites already on stage would keep the old badge. Tracked in a ref so the effect
+  // below can clear the scene once per rename, forcing every sprite to rebuild against the new badge.
+  const lastPlayerNameRef = useRef(playerName);
+
   // The renderer interpolates between ticks, so it needs a steady heartbeat as well as an immediate
   // apply whenever the object list changes.
   useEffect(() => {
     if (!gameApp || !isGameAppInitialized) return;
 
+    if (lastPlayerNameRef.current !== playerName) {
+      lastPlayerNameRef.current = playerName;
+      gameApp.applyState(createGameState([], playerName) as any, 0);
+    }
+
     const applyLatestState = () => {
-      gameApp.applyState(createGameState(useGameObjectStore.getState().objects) as any, TICK_DURATION);
+      gameApp.applyState(createGameState(useGameObjectStore.getState().objects, playerName) as any, TICK_DURATION);
     };
 
     applyLatestState();
     const stateTimer = setInterval(applyLatestState, TICK_INTERVAL_MS);
 
     return () => clearInterval(stateTimer);
-  }, [gameApp, isGameAppInitialized, objects]);
+  }, [gameApp, isGameAppInitialized, objects, playerName]);
 
   return { gameApp, hoverPos };
 };
