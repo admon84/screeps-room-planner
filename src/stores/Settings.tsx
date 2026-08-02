@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { BrushType, MAX_RCL } from '@/utils/constants';
+import { ScreepsServer } from '@/utils/screepsApi';
 
 interface State {
   settings: {
@@ -9,6 +10,7 @@ interface State {
     debug: boolean;
     rcl: number;
     room: string;
+    server: ScreepsServer;
     shard: string;
   };
   setBrush: (brush: string) => void;
@@ -16,6 +18,7 @@ interface State {
   setDebug: (debug: boolean) => void;
   setRCL: (rcl: number) => void;
   setRoom: (room: string) => void;
+  setServer: (server: ScreepsServer) => void;
   setShard: (shard: string) => void;
   resetBrush: () => void;
 }
@@ -25,7 +28,8 @@ const initialSettings = {
   brushType: BrushType.Structure,
   debug: false,
   rcl: MAX_RCL,
-  room: 'E3S1',
+  room: 'W1N1',
+  server: 'persistent' as ScreepsServer,
   shard: 'shard0',
 };
 
@@ -38,6 +42,7 @@ export const useSettings = create<State>()(
       setDebug: (debug) => set((state) => ({ settings: { ...state.settings, debug } })),
       setRCL: (rcl) => set((state) => ({ settings: { ...state.settings, rcl } })),
       setRoom: (room) => set((state) => ({ settings: { ...state.settings, room } })),
+      setServer: (server) => set((state) => ({ settings: { ...state.settings, server } })),
       setShard: (shard) => set((state) => ({ settings: { ...state.settings, shard } })),
       resetBrush: () => set((state) => ({ settings: { ...state.settings, brush: initialSettings.brush } })),
     }),

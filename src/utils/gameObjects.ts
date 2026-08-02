@@ -1,4 +1,6 @@
 import * as Constants from './constants';
+import { getPointForShort, isRoomPosition } from './helpers';
+import { ScreepsRoomObject } from '../types';
 
 // Screeps ids are bare hex, so the dashes come off. Note crypto.randomUUID() needs a secure context:
 // it is undefined when `next dev` is reached over a plain-http LAN address rather than localhost.
@@ -75,6 +77,55 @@ export function createObjectFromType<T extends GameObject>(object: T): GameObjec
       return createInvaderCore(object);
   }
   return object;
+}
+
+function isImportableType(type: string, includeStructures: boolean) {
+  if (type === Constants.SOURCE || type === Constants.MINERAL || type === Constants.STRUCTURE_CONTROLLER) {
+    return true;
+  }
+  return includeStructures && type in Constants.STRUCTURE_BRUSHES;
+}
+
+/**
+ * Maps `game/room-objects` entries onto renderer-ready objects. Sources, minerals and the controller
+ * always import; the other placeable structures are gated by `includeStructures`. Everything else the
+ * API returns (creeps, construction sites, dropped resources, keeper lairs, portals) is dropped.
+ */
+export function createObjectsFromApi(apiObjects: ScreepsRoomObject[], includeStructures: boolean): GameObject[] {
+  const objects: GameObject[] = [];
+
+  for (const apiObject of apiObjects) {
+    const { _id, type, x, y, level, mineralType, mineralAmount } = apiObject;
+    if (!isRoomPosition(x, y) || !isImportableType(type, includeStructures)) {
+      continue;
+    }
+
+    // Only plan-relevant fields are copied. The API also reports live state -- damage, partial energy
+    // stores, decay timers, owner -- which would override the factory defaults and draw a plan full of
+    // damaged structures, undersized extensions (the sprite keys off the RCL-dependent capacity) and
+    // ownerless ramparts, which the renderer resolves against USER_ID and would otherwise skip.
+    const object = { _id, type, x, y, level, mineralType, mineralAmount, room: Constants.ROOM_NAME };
+
+    // The API types a mineral as `mineral` with a separate `mineralType`, which createObjectFromType
+    // does not route -- its mineral branch matches the brush letters (H, O, ...) instead.
+    objects.push(type === Constants.MINERAL ? createMineral(object) : createObjectFromType(object));
+  }
+
+  return objects;
+}
+
+/** The built-in example layout, shifted from its origin-anchored coordinates to the room center. */
+export function createExampleBunkerObjects(): GameObject[] {
+  return Object.entries(Constants.EXAMPLE_BUNKER.structures).flatMap(([type, positions]) =>
+    positions.map((shortPoint) => {
+      const { x, y } = getPointForShort(shortPoint);
+      return createObjectFromType({
+        type,
+        x: x + Constants.EXAMPLE_BUNKER_OFFSET,
+        y: y + Constants.EXAMPLE_BUNKER_OFFSET,
+      });
+    })
+  );
 }
 
 interface Controller extends GameObject {

@@ -7,7 +7,7 @@ Introducing the new Screeps Room Planner: a practical tool for players to effici
 - **Material UI**: Experience a clean, modern, and intuitive user interface built with Material UI
 - **Room Visualization**: Get a clear overview of your room in a visually pleasing design
 - **Import Room Data**: Download terrain and structure data from live Screeps MMO rooms
-- **Export Room JSON**: Generate your room layout as JSON for easy integration with your Screeps script
+- **Edit Room JSON**: View, edit and apply your room layout as JSON for easy integration with your Screeps script
 
 ![screeps-room-planner](https://github.com/admon84/screeps-room-planner/assets/10291543/799c51b5-2207-462a-aba9-f40aaae19536)
 

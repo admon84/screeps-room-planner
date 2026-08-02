@@ -4,6 +4,17 @@ import { alpha, createTheme } from '@mui/material/styles';
 // loads weight 500 only -- anything rendered in this stack must stay at that weight or be synthesized.
 export const MONO_FONT_FAMILY = '"JetBrains Mono", Consolas, Monaco, "Ubuntu Mono", monospace';
 
+/** Horizontal gutter shared by the app bar and the left drawer, in px. */
+export const APP_GUTTER = 16;
+
+/**
+ * Where an edge-pinned small IconButton's box has to sit for its glyph to land on the APP_GUTTER
+ * line: the button wraps its icon in 5px of padding, and the eye aligns to the glyph rather than to
+ * the invisible hit area. Used by the app bar's right-hand controls and the canvas overlay, so the
+ * two icon columns share one edge.
+ */
+export const ICON_EDGE_GUTTER = APP_GUTTER - 5;
+
 const theme = createTheme({
   typography: {
     // The @font-face rules come from the @fontsource/inter weight imports in src/main.tsx.
@@ -103,14 +114,31 @@ const theme = createTheme({
         }),
       },
     },
+    // MUI's elevation shadow is black on a near-black page, so it vanishes and the dialog reads as
+    // edgeless. Separation comes from the hairline instead, which has to out-brighten the
+    // divider-coloured band the content and actions sit on. The shadow's job here is the opposite one:
+    // its wide, soft spread darkens the backdrop immediately around the dialog, so the pop survives
+    // over the lighter canvas terrain without touching the backdrop's own opacity.
+    MuiDialog: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          border: `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
+          boxShadow: [
+            '0 0 0 1px rgba(0, 0, 0, 0.8)',
+            '0 18px 44px -12px rgba(0, 0, 0, 0.9)',
+            '0 0 90px 24px rgba(0, 0, 0, 0.55)',
+          ].join(', '),
+        }),
+      },
+    },
     MuiToolbar: {
       styleOverrides: {
         // MUI widens its gutters to spacing(3) from the `sm` breakpoint up, which leaves the app bar
         // indented further than the drawer rows at spacing(2). Pinned so both edges line up.
         gutters: ({ theme }) => ({
           [theme.breakpoints.up('sm')]: {
-            paddingLeft: theme.spacing(2),
-            paddingRight: theme.spacing(2),
+            paddingLeft: APP_GUTTER,
+            paddingRight: APP_GUTTER,
           },
         }),
       },

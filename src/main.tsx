@@ -8,7 +8,8 @@ import '@fontsource/inter/latin-300.css';
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-700.css';
-// Only the wordmark uses JetBrains Mono, so only the one weight it renders at is loaded.
+// The wordmark and the room JSON editor use JetBrains Mono, so only the one weight they render at is
+// loaded -- anything else in that stack must stay at weight 500 or be synthesized.
 import '@fontsource/jetbrains-mono/latin-500.css';
 import '@/styles/prism.css';
 
