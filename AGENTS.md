@@ -60,8 +60,9 @@ State behind the canvas:
 - `useTerrainStore` - sparse `{ room, x, y, type }[]` in the shape `setTerrain()` wants; a missing
   entry means plain. Seeded from `SAMPLE_TERRAIN`.
 - `useGameAppStore` - the hovered room position, published by the canvas for `HoverTilePanel`.
-- `Settings` - brush, brush type, RCL, room/shard, and `zoom` (which is the renderer's `zoomLevel`
-  directly, range 0.1-1.0).
+- `Settings` - brush, brush type, RCL, and room/shard. Camera state is deliberately not here: the
+  renderer's own `zoomLevel` and `stage.position` are the single source of truth, and
+  `useCameraControls` owns every write to them.
 
 ## Domain Rules
 
