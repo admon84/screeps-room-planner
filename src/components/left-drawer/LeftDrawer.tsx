@@ -1,10 +1,11 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import * as Helpers from '@/utils/helpers';
-import { BrushType, BrushClass, MAX_RCL, STRUCTURE_CONTROLLER, TERRAIN_PLAIN } from '@/utils/constants';
+import { BrushType, BrushClass, TERRAIN_PLAIN } from '@/utils/constants';
 import { useSettings } from '@/stores/Settings';
 import { countPlacedByType, useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useMemo, useState } from 'react';
+import MapSettings from './MapSettings';
 import RoomActions from './RoomActions';
 
 const iconSize = '1.5rem';
@@ -51,17 +52,6 @@ const StyledAccordionDetails = Mui.styled(Mui.AccordionDetails)({
   borderTop: '1px solid rgba(0, 0, 0, .125)',
 });
 
-const StyledBadge = Mui.styled(Mui.Badge)<Mui.BadgeProps>(() => ({
-  '& .MuiBadge-badge': {
-    right: 12,
-    top: 12,
-    background: 'transparent',
-    border: 'none',
-    padding: 0,
-    fontSize: '0.6rem',
-  },
-}));
-
 type Props = {
   mobileOpen: boolean;
   handleDrawerToggle: () => void;
@@ -73,7 +63,6 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const setBrush = useSettings((state) => state.setBrush);
   const setBrushType = useSettings((state) => state.setBrushType);
   const resetBrush = useSettings((state) => state.resetBrush);
-  const setRCL = useSettings((state) => state.setRCL);
   const objects = useGameObjectStore((state) => state.objects);
   const placedCounts = useMemo(() => countPlacedByType(objects), [objects]);
 
@@ -83,7 +72,6 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const [terrainMenuExpanded, setTerrainMenuExpanded] = useState(true);
   const [actionsMenuExpanded, setActionsMenuExpanded] = useState(true);
   const structureBrushes = Helpers.getStructureBrushes(rcl);
-  const controller = structureBrushes.find((b) => b.key === STRUCTURE_CONTROLLER);
   const width = 300;
 
   const getBrushTarget = (target: HTMLElement): string => {
@@ -116,46 +104,11 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                 justifyContent: 'space-between',
               }}
             >
-              <Mui.Typography>Settings</Mui.Typography>
+              <Mui.Typography>Map Settings</Mui.Typography>
             </Mui.Box>
           </StyledAccordionSummary>
           <StyledAccordionDetails>
-            <Mui.Stack direction='column' spacing={{ xs: 0, md: 2 }} sx={{ m: 2 }}>
-              <Mui.Stack direction='column' spacing={1}>
-                <Mui.Box
-                  sx={{
-                    alignItems: 'center',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexGrow: 1,
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Mui.Typography variant='body2'>Room Controller Level</Mui.Typography>
-                  <Mui.Box>
-                    {controller && (
-                      <StyledBadge badgeContent={rcl} color='secondary'>
-                        <Mui.Avatar alt={controller.name} src={controller.image} sx={{ width: 24, height: 24 }} />
-                      </StyledBadge>
-                    )}
-                  </Mui.Box>
-                </Mui.Box>
-                <Mui.ToggleButtonGroup
-                  color='primary'
-                  exclusive
-                  fullWidth
-                  onChange={(_, value) => value && setRCL(value)}
-                  size='small'
-                  value={rcl}
-                >
-                  {Array.from(Array(MAX_RCL), (_, i) => ++i).map((level) => (
-                    <Mui.ToggleButton key={level} value={level}>
-                      {level}
-                    </Mui.ToggleButton>
-                  ))}
-                </Mui.ToggleButtonGroup>
-              </Mui.Stack>
-            </Mui.Stack>
+            <MapSettings />
           </StyledAccordionDetails>
         </StyledAccordion>
 

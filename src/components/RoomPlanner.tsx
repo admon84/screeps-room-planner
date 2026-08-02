@@ -3,6 +3,7 @@ import * as Icons from '@mui/icons-material';
 import LeftDrawer from './left-drawer/LeftDrawer';
 import HoverTilePanel from './canvas/HoverTilePanel';
 import { useState } from 'react';
+import AppBarMenu from './AppBarMenu';
 import CanvasWrapper from './canvas/CanvasWrapper';
 
 export default function RoomPlanner() {
@@ -30,7 +31,7 @@ export default function RoomPlanner() {
               Screeps Room Planner
             </Mui.Typography>
             <Mui.Box sx={{ display: 'flex', flexGrow: 1 }} />
-            <Mui.Box sx={{ display: 'flex' }}>
+            <Mui.Box sx={{ alignItems: 'center', display: 'flex' }}>
               <Mui.Button
                 size='small'
                 href='https://github.com/admon84/screeps-room-planner'
@@ -40,6 +41,7 @@ export default function RoomPlanner() {
               >
                 View Source
               </Mui.Button>
+              <AppBarMenu />
             </Mui.Box>
           </Mui.Toolbar>
         </Mui.AppBar>
