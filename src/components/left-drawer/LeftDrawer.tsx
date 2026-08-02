@@ -43,7 +43,9 @@ const StyledButton = Mui.styled(Mui.Button, {
 });
 
 const StyledAccordion = Mui.styled((props: Mui.AccordionProps) => (
-  <Mui.Accordion disableGutters elevation={0} square {...props} />
+  // The default Collapse duration scales with content height, so the tall Structures list expands
+  // noticeably slower than the short sections; one fixed short duration keeps every section snappy.
+  <Mui.Accordion disableGutters elevation={0} square slotProps={{ transition: { timeout: 150 } }} {...props} />
 ))(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   '&:not(:last-child)': {
@@ -511,7 +513,6 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             </StyledAccordionDetails>
           </StyledAccordion>
         )}
-
       </Mui.Box>
     </>
   );
