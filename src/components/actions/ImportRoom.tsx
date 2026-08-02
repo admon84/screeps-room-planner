@@ -19,6 +19,7 @@ import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import StyledDialog from '../dialog/StyledDialog';
 import DialogTitle from '../dialog/DialogTitle';
+import AppBarButton from './AppBarButton';
 
 type ImportSource = 'world' | 'bunker';
 
@@ -143,9 +144,7 @@ export default function ImportRoom() {
 
   return (
     <>
-      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.TravelExploreOutlined />}>
-        Import Room
-      </Mui.Button>
+      <AppBarButton icon={<Icons.TravelExploreOutlined />} label='Import' onClick={handleOpen} />
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
         <DialogTitle onClose={handleClose}>Import Room</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>

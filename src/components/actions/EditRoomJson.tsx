@@ -9,6 +9,7 @@ import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import StyledDialog from '../dialog/StyledDialog';
 import DialogTitle from '../dialog/DialogTitle';
+import AppBarButton from './AppBarButton';
 
 export default function EditRoomJson() {
   const { palette } = Mui.useTheme();
@@ -65,9 +66,7 @@ export default function EditRoomJson() {
 
   return (
     <>
-      <Mui.Button onClick={handleOpen} variant='outlined' startIcon={<Icons.DataObject />}>
-        Edit Room JSON
-      </Mui.Button>
+      <AppBarButton icon={<Icons.Edit />} label='Edit' onClick={handleOpen} />
       <StyledDialog fullWidth maxWidth='sm' open={modalOpen} onClose={handleClose}>
         <DialogTitle onClose={handleClose}>Edit Room JSON</DialogTitle>
         <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>

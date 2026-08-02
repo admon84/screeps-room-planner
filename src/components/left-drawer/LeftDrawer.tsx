@@ -6,7 +6,6 @@ import { useSettings } from '@/stores/Settings';
 import { countPlacedByType, useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useMemo, useState } from 'react';
 import MapSettings from './MapSettings';
-import RoomActions from './RoomActions';
 
 const iconSize = '1.5rem';
 
@@ -109,7 +108,6 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
   const [structuresMenuExpanded, setStructuresMenuExpanded] = useState(true);
   const [objectsMenuExpanded, setObjectsMenuExpanded] = useState(true);
   const [terrainMenuExpanded, setTerrainMenuExpanded] = useState(true);
-  const [actionsMenuExpanded, setActionsMenuExpanded] = useState(true);
   const [query, setQuery] = useState('');
   const width = 300;
 
@@ -512,20 +510,6 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
           </StyledAccordion>
         )}
 
-        {/* Actions Menu -- deliberately outside the search filter: these are room-wide commands, not
-            brushes, so hiding them would strand the user mid-search with no way to import or export. */}
-        <StyledAccordion expanded={actionsMenuExpanded} onChange={() => setActionsMenuExpanded(!actionsMenuExpanded)}>
-          <StyledAccordionSummary>
-            <Mui.Typography>Actions</Mui.Typography>
-          </StyledAccordionSummary>
-          <StyledAccordionDetails>
-            <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-              <Mui.Stack direction='column' sx={{ m: 2 }} spacing={1}>
-                <RoomActions />
-              </Mui.Stack>
-            </Mui.Box>
-          </StyledAccordionDetails>
-        </StyledAccordion>
       </Mui.Box>
     </>
   );
