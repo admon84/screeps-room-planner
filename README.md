@@ -1,43 +1,28 @@
 # Screeps Room Planner
 
-Introducing the new Screeps Room Planner: a practical tool for players to efficiently plan and visualize room layouts.
+A web app for planning [Screeps](https://screeps.com) room layouts. Paint structures, resource objects, and terrain onto a 50x50 grid, rendered with the game's own WebGL renderer.
+
+#### Hosted at [screeps-room-planner.vercel.app](https://screeps-room-planner.vercel.app)
+
+![screeps-room-planner](https://github.com/user-attachments/assets/cf4c25de-7b04-4172-af8f-5f2440088f5c)
 
 ## Features
 
-- **Material UI**: Experience a clean, modern, and intuitive user interface built with Material UI
-- **Room Visualization**: Get a clear overview of your room in a visually pleasing design
-- **Import Room Data**: Download terrain and structure data from live Screeps MMO rooms
-- **Edit Room JSON**: View, edit and apply your room layout as JSON in the [screeps-tools](https://github.com/screepers/screeps-tools) building planner format, for easy integration with your Screeps script and other community tools
+- Structure placement with per-RCL limits and tile stacking rules
+- Import terrain and structures from live Screeps MMO rooms
+- Edit and export room JSON in the [screeps-tools](https://github.com/screepers/screeps-tools) building planner format
 
-![screeps-room-planner](https://github.com/admon84/screeps-room-planner/assets/10291543/799c51b5-2207-462a-aba9-f40aaae19536)
+## Development
 
-## Hosted version
+Requires Node.js v20.19+ (or v22.12+).
 
-For your convenience, check out the hosted version:
+```sh
+npm i
+npm run dev
+```
 
-:link: [screeps-room-planner.vercel.app](https://screeps-room-planner.vercel.app)
-
-## Getting started
-
-Screeps Room Planner is easy to install and run on your local machine.
-
-### Requirements
-
-- Node.js v20.19 or later (or v22.12+).
-
-### Install
-
-1. Clone or download the repo to your local machine
-2. Install dependencies with `npm i`
-3. Start the app in development mode with `npm run dev`
-
-### Production
-
-The app builds to a static site -- no server required:
-
-1. Build the app with `npm run build`, which writes `dist/`
-2. Serve the build locally with `npm run preview`, or host `dist/` on any static host
+`npm run build` writes a static site to `dist/`. Serve it with `npm run preview` or any static host.
 
 ## License
 
-Screeps Room Planner is released under the MIT License. See the LICENSE file for more information.
+MIT. See the LICENSE file.
