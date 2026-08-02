@@ -36,6 +36,11 @@ export const worldConfigs = {
   // array. Omitting it leaves the array empty and setTerrain() throws on the first tile write.
   ROOM_SIZE,
   VIEW_BOX,
+  // Ramparts are drawn by the terrain processor, which merges adjacent ones into a single path. Its
+  // fill comes from `users[id].color` unless this is set -- and the planner's synthetic users carry
+  // a badge but no `color`, so leaving it off yields an invalid fill and no rampart sprite at all.
+  // Enabling it takes the owner/hostile branch instead: green for the player, red for everyone else.
+  userOwnerColor: true,
   BADGE_URL: 'https://screeps.com/api/user/badge-svg?username=%1',
   metadata: applyMineralFont(RENDERER_METADATA),
   gameData: {

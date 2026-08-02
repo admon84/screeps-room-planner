@@ -75,12 +75,26 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
 
         addObject(createObjectFromType({ type: brush, x, y }));
 
-        // Deselect the brush once the last one is placed, matching RoomGrid.
-        if (!Helpers.structureCanBePlaced(brush, rcl, terrainType, placed + 1)) resetBrush();
+        // Counted fresh after the write rather than as `placed + 1`: addObject displaces whatever
+        // shared the tile, so the delta is not always +1 and a predicted count deselects early.
+        const total = countPlacedByType(useGameObjectStore.getState().objects)[brush] ?? 0;
+        if (!Helpers.structureCanBePlaced(brush, rcl, terrainType, total)) resetBrush();
         return;
       }
-      default:
+      default: {
+        // Replacing an object on its own tile keeps the count flat, so an occupied tile stays
+        // paintable even at the cap.
+        const objects = useGameObjectStore.getState().objects;
+        const storedType = Helpers.getObjectTypeForBrush(brush);
+        const occupiesTile = objects.some((o) => o.x === x && o.y === y && o.type === storedType);
+        const placed = countPlacedByType(objects)[storedType] ?? 0;
+        if (!occupiesTile && !Helpers.objectCanBePlaced(brush, placed)) return;
+
         addObject(createObjectFromType({ type: brush, x, y }));
+
+        const total = countPlacedByType(useGameObjectStore.getState().objects)[storedType] ?? 0;
+        if (!Helpers.objectCanBePlaced(brush, total)) resetBrush();
+      }
     }
   };
 

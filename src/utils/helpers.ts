@@ -88,6 +88,15 @@ export const structureCanBePlaced = (structure: string, rcl: number, terrain: st
   return !!total && (!placed || placed < total);
 };
 
+/** The stored object type for an object brush: every mineral resource collapses to `mineral`. */
+export const getObjectTypeForBrush = (brush: string) =>
+  brush === Constants.SOURCE ? Constants.SOURCE : Constants.MINERAL;
+
+export const objectCanBePlaced = (brush: string, placed = 0) => {
+  const total = Constants.MAX_OBJECTS[getObjectTypeForBrush(brush)];
+  return !total || placed < total;
+};
+
 export const structuresToRemove = (brush: string, skipBrush = false) =>
   brush === Constants.STRUCTURE_RAMPART
     ? []
