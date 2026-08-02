@@ -4,39 +4,44 @@ Guidance for AI coding agents working in this repo. Human-facing setup docs live
 
 ## Project Overview
 
-Screeps Room Planner: a Next.js web app for planning and visualizing room layouts for the game
+Screeps Room Planner: a Vite + React web app for planning and visualizing room layouts for the game
 Screeps. Users paint structures, resource objects, and terrain onto a 50x50 room grid, import real
 room terrain from the Screeps MMO API, and export the layout as JSON for use in their game script.
 
 ## Commands
 
-| Task         | Command                |
-| ------------ | ---------------------- |
-| Dev          | `npm run dev`          |
-| Build        | `npm run build`        |
-| Lint         | `npm run lint`         |
-| Format       | `npm run format`       |
-| Format check | `npm run format:check` |
-| Prod         | `npm start`            |
+| Task           | Command                |
+| -------------- | ---------------------- |
+| Dev            | `npm run dev`          |
+| Build          | `npm run build`        |
+| Preview (prod) | `npm run preview`      |
+| Lint           | `npm run lint`         |
+| Format         | `npm run format`       |
+| Format check   | `npm run format:check` |
 
 There is no test suite. Verify changes with `npm run lint` and `npm run build`, plus a manual pass in
-the browser for anything touching the canvas.
+the browser for anything touching the canvas. `npm run build` is `tsc -b && vite build` -- `vite build`
+does not type-check on its own, so the `tsc -b` half is the type gate and must not be dropped.
 
-`next lint` was removed in Next 16, so `npm run lint` is plain `eslint .` driven by
-`eslint.config.mjs` (flat config). `next build` no longer runs ESLint -- lint is a separate gate.
+Lint is a separate gate: `eslint .` driven by `eslint.config.mjs` (flat config). Nothing in the build
+runs ESLint.
 
 ## Tech Stack
 
-Next.js 16 (App Router, Turbopack) - React 19 - TypeScript 5.9 (strict) - MUI 9 (Emotion) -
-Zustand 5 - PixiJS v7 via `@screeps/renderer` - Prettier + ESLint 9 (flat config).
+Vite 8 (rolldown) - React 19 - TypeScript 5.9 (strict) - MUI 9 (Emotion) - Zustand 5 -
+PixiJS v7 via `@screeps/renderer` - Prettier + ESLint 9 (flat config).
 
-TypeScript is pinned to 5.9.3 and ESLint to 9.x on purpose: Next 16.2's type-check path does not
-support the TS 7 compiler API yet, and `eslint-config-next`'s plugin tree caps at `eslint ^9`.
+The output is a fully static SPA with no server-side code; it deploys to Vercel via `vercel.json`,
+which pins the Vite preset rather than relying on framework auto-detection.
+
+TypeScript is pinned to 5.9.3 and ESLint to 9.x. Both pins were originally forced by Next and can now
+be lifted -- do it as its own change, not folded into unrelated work.
 
 ## Architecture
 
 ```
-src/app/         App Router entry; api/room-terrain proxies the Screeps MMO API (avoids CORS)
+index.html       SPA shell; title/description/viewport live here, not in a metadata export
+src/main.tsx     Entry point: createRoot, StrictMode, ThemeProvider, font + global CSS imports
 src/components/  UI. canvas/ = the WebGL renderer and its overlays, left-drawer/ = brushes
 src/hooks/       useGameRenderer - owns the GameRenderer lifecycle and PIXI stage wiring
 src/stores/      Zustand stores, one per concern; no single global store
@@ -84,12 +89,23 @@ State behind the canvas:
   `es5` trailing commas. Do not hand-format around it.
 - One Zustand store per concern, colocated in `src/stores/`. Subscribe with a selector
   (`useSettings((s) => s.settings.brush)`) so components don't re-render on unrelated state.
-- Components are client-side by default; `RoomPlanner` carries the `'use client'` boundary.
 
 ## Gotchas
 
-- `@screeps/renderer` and PIXI touch `window` at module load, which breaks Next's prerender. The
-  canvas must stay behind `dynamic(..., { ssr: false })` -- see `CanvasWrapper.tsx`.
+- `Canvas` is behind `React.lazy` in `CanvasWrapper.tsx`. The reason is bundle size, not SSR --
+  `@screeps/renderer` is a ~2 MB prebuilt bundle, and splitting it lets the AppBar and brush drawer
+  paint first. It needs its `Suspense` boundary; `next/dynamic` did not.
+- The two `@screeps/*` packages are prebuilt CommonJS/UMD webpack bundles that set their globals
+  (`window.PIXI`, `window.RENDERER_METADATA`) as a module-load side effect. `worldConfigs.ts` relies
+  on this with a bare `import '@screeps/renderer-metadata'`. Do not "clean up" that import, and after
+  any bundler change confirm the side effects survived the production build -- dev never tree-shakes,
+  so this can only fail under `npm run build` + `npm run preview`:
+
+  ```
+  grep -l "RENDERER_METADATA" dist/bundle/*.js
+  grep -l "window.PIXI"       dist/bundle/*.js
+  ```
+
 - `PIXI` is an ambient global (`@screeps/renderer` assigns `window.PIXI`), not an import. Types come
   from the `pixi.js` devDependency, which is never imported at runtime -- it only backs the
   `declare const PIXI` in `declarations.d.ts`. Don't add a runtime import.
@@ -105,9 +121,16 @@ State behind the canvas:
 - `types/declarations.d.ts` is hand-written because the `@screeps/*` packages ship no types. Extend it
   when you touch a new renderer API rather than reaching for `any`.
 - Renderer sprites are served from `public/assets/` and mapped by name in `utils/resourceMap.ts`; a
-  new sprite needs an entry in both.
+  new sprite needs an entry in both. Bundled output goes to `dist/bundle/` (`build.assetsDir`) so it
+  never shares a directory with the copied sprites.
+- Sprite and icon URLs are document-relative (`assets/...` in `resourceMap.ts`, `./images/...` in
+  `helpers.ts`). They only resolve because the app is served from `/`. Keep Vite's `base` at `/`, and
+  do not add an SPA catch-all rewrite -- there is no client-side router, so a deep path should 404
+  rather than serve a shell whose relative asset URLs are all wrong.
 
 ## Contributing
 
 - Never commit directly to `main`; branch and open a PR.
-- No secrets in the repo. The Screeps API is called unauthenticated through the local proxy route.
+- No secrets in the repo. The Screeps API is called unauthenticated, directly from the browser --
+  `screeps.com` reflects the request `Origin` in `Access-Control-Allow-Origin`, so no proxy is needed.
+  If that ever changes, imports break and a proxy has to come back.

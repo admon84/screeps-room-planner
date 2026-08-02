@@ -1,17 +1,11 @@
-// `dynamic(..., { ssr: false })` is only legal inside a Client Component. This currently inherits
-// the boundary from RoomPlanner, but declaring it here keeps a future direct import from a Server
-// Component from breaking the build.
-'use client';
-
-import React, { useState, useCallback } from 'react';
-import dynamic from 'next/dynamic';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import CanvasDebugPanel from './CanvasDebugPanel';
-
-// @screeps/renderer (and PIXI) reference `window` at module load, which breaks
-// Next's static prerender. Load the canvas client-side only.
-const Canvas = dynamic(() => import('./Canvas'), { ssr: false });
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import type { Metrics } from '@/types';
+
+// @screeps/renderer drags in a ~2 MB PIXI bundle. Splitting it out lets the app shell paint before
+// the renderer chunk arrives.
+const Canvas = lazy(() => import('./Canvas'));
 
 export default function CanvasWrapper() {
   const [metrics, setMetrics] = useState<Metrics>({
@@ -25,7 +19,9 @@ export default function CanvasWrapper() {
 
   return (
     <>
-      <Canvas terrain={terrain} onMetricsUpdate={handleMetricsUpdate} />
+      <Suspense fallback={null}>
+        <Canvas terrain={terrain} onMetricsUpdate={handleMetricsUpdate} />
+      </Suspense>
       <CanvasDebugPanel metrics={metrics} />
     </>
   );

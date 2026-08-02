@@ -23,7 +23,7 @@ Screeps Room Planner is easy to install and run on your local machine.
 
 ### Requirements
 
-- Node.js v20.9 or later.
+- Node.js v20.19 or later (or v22.12+).
 
 ### Install
 
@@ -33,10 +33,10 @@ Screeps Room Planner is easy to install and run on your local machine.
 
 ### Production
 
-Run the app in production mode for optimized app performance:
+The app builds to a static site -- no server required:
 
-1. Build the app with `npm run build`
-2. Start the app with `npm start`
+1. Build the app with `npm run build`, which writes `dist/`
+2. Serve the build locally with `npm run preview`, or host `dist/` on any static host
 
 ## License
 

@@ -175,6 +175,9 @@ declare module '@screeps/renderer' {
     | { [key: string]: Expression<T> }
     | T;
 
+  // `T` is a phantom parameter -- the class body is empty, but `Expression<T>` above needs the
+  // arity to keep the recursive union well-formed.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export class PredefinedExpression<T> {}
 
   export class AddExpression extends PredefinedExpression {
