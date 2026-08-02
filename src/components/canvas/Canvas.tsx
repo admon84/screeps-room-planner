@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as Constants from '@/utils/constants';
 import * as Helpers from '@/utils/helpers';
 import { useGameRenderer } from '@/hooks/useGameRenderer';
 import { useCameraControls } from '@/hooks/useCameraControls';
-import { Point } from '@/types';
+import { isEraseGesture, isPaintGesture, isPanGesture } from '@/utils/canvas';
 import { countPlacedByType, useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import { createObjectFromType } from '@/utils/gameObjects';
@@ -18,10 +18,12 @@ interface CanvasProps {
 
 export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasProps) {
   const gameCanvasRef = useRef<HTMLDivElement | null>(null);
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [pan, setPan] = useState<Point | null>(null);
+  // Refs rather than state: a drag fires these on every mousemove, and re-rendering per frame
+  // would stall the pan.
+  const isMouseDownRef = useRef(false);
+  const isPanningRef = useRef(false);
   const { gameApp, hoverPos } = useGameRenderer({ gameCanvasRef, terrain, onGameLoop, onMetricsUpdate });
-  const { zoomIn, zoomOut, fitRoom, panBy } = useCameraControls({ gameApp, containerRef: gameCanvasRef });
+  const { zoomIn, zoomOut, fitRoom, panSmoothBy } = useCameraControls({ gameApp, containerRef: gameCanvasRef });
   const addObject = useGameObjectStore((state) => state.addObject);
   const removeObjectsAt = useGameObjectStore((state) => state.removeObjectsAt);
   const removeStructuresAt = useGameObjectStore((state) => state.removeStructuresAt);
@@ -98,54 +100,50 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    // console.log('Canvas > mouse down', hoverPos, e.buttons);
-    setIsMouseDown(true);
+    isMouseDownRef.current = true;
 
-    if (e.buttons === 4 || (e.shiftKey && e.buttons === 1)) {
-      setPan({ x: e.clientX, y: e.clientY });
-      return;
-    }
-
-    if (e.buttons === 1 && hoverPos) {
-      paintAt(hoverPos.x, hoverPos.y);
-      return;
-    }
-
-    if (e.buttons === 2 && hoverPos) {
-      removeObjectsAt(hoverPos.x, hoverPos.y);
-      return;
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    // console.log('Canvas > mouse move', hoverPos, e.buttons);
-
-    if (pan && (e.buttons === 4 || (e.shiftKey && e.buttons === 1))) {
-      panBy(e.movementX, e.movementY);
-      setPan({ x: e.clientX, y: e.clientY });
+    if (isPanGesture(e)) {
+      isPanningRef.current = true;
       setCursor('grabbing');
       return;
     }
 
-    if (e.shiftKey) {
-      setCursor('grab');
-    }
+    if (!hoverPos) return;
 
-    if (e.buttons === 1 && isMouseDown && hoverPos) {
-      paintAt(hoverPos.x, hoverPos.y);
-      return;
-    }
-
-    if (e.buttons === 2 && isMouseDown && hoverPos) {
+    if (isEraseGesture(e)) {
       removeObjectsAt(hoverPos.x, hoverPos.y);
       return;
+    }
+
+    if (isPaintGesture(e)) {
+      paintAt(hoverPos.x, hoverPos.y);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (isPanningRef.current && isPanGesture(e)) {
+      panSmoothBy(e.movementX, e.movementY);
+      setCursor('grabbing');
+      return;
+    }
+
+    setCursor(e.shiftKey ? 'grab' : 'default');
+
+    if (!isMouseDownRef.current || !hoverPos) return;
+
+    if (isEraseGesture(e)) {
+      removeObjectsAt(hoverPos.x, hoverPos.y);
+      return;
+    }
+
+    if (isPaintGesture(e)) {
+      paintAt(hoverPos.x, hoverPos.y);
     }
   };
 
   const handleMouseUp = () => {
-    // console.log('Canvas > mouse up', hoverPos);
-    setIsMouseDown(false);
-    setPan(null);
+    isMouseDownRef.current = false;
+    isPanningRef.current = false;
     setCursor('default');
   };
 

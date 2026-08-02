@@ -121,7 +121,7 @@ export default function ImportJsonStructures() {
               />
             }
           />
-          <Mui.Button variant='outlined' onClick={handleLoadTerrain} startIcon={<Icons.DataObject />}>
+          <Mui.Button variant='contained' onClick={handleLoadTerrain} startIcon={<Icons.DataObject />}>
             Import Json
           </Mui.Button>
         </Mui.DialogActions>
