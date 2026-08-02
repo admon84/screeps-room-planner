@@ -823,6 +823,7 @@ interface Rampart extends GameObject {
   hits?: number;
   hitsMax?: number;
   nextDecayTime?: number;
+  isPublic?: boolean;
 }
 
 export function createRampart({
@@ -833,6 +834,7 @@ export function createRampart({
   nextDecayTime = 5000,
   hits = 300000000,
   hitsMax = 300000000,
+  isPublic = false,
   _id,
   _isDisabled = false,
 }: Rampart) {
@@ -845,6 +847,7 @@ export function createRampart({
     hits,
     hitsMax,
     nextDecayTime,
+    isPublic,
     _id,
     _isDisabled,
   });

@@ -145,7 +145,7 @@ export default function ImportRoom() {
               />
             }
           />
-          <Mui.Button variant='outlined' onClick={handleImportRoom} startIcon={<Icons.CloudDownload />}>
+          <Mui.Button variant='contained' onClick={handleImportRoom} startIcon={<Icons.CloudDownload />}>
             Import Room
           </Mui.Button>
         </Mui.DialogActions>

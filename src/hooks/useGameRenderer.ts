@@ -2,7 +2,7 @@ import { GameRenderer } from '@screeps/renderer';
 import { useEffect, useRef, useState } from 'react';
 import { resourceMap, rescaleResources } from '@/utils/resourceMap';
 import { worldConfigs } from '@/utils/worldConfigs';
-import { convertGlobalToRoomPosition, convertRoomToWorldPosition, createHighlight } from '@/utils/canvas';
+import { convertGlobalToRoomPosition, convertRoomToWorldPosition, createHighlight, isPanGesture } from '@/utils/canvas';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useGameAppStore } from '@/stores/useGameAppStore';
 import { createGameState } from '@/utils/gameState';
@@ -107,9 +107,7 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
           // federated event rather than the native DOM event, so the old path only worked by
           // accident and can be null.
           .on('mousemove', (event: any) => {
-            const isPanning = (event.shiftKey && event.buttons === 1) || event.buttons === 4;
-
-            if (isPanning) {
+            if (isPanGesture(event)) {
               highlight.visible = false;
               return;
             }

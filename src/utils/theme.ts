@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { alpha, createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   typography: {
@@ -8,54 +8,94 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#5973ff',
-      contrastText: '#111',
-      light: '#94a1ff',
-      dark: '#0048cb',
+      main: '#3b9eff',
+      contrastText: '#04101f',
+      light: '#7cc2ff',
+      dark: '#1d6fd0',
     },
     secondary: {
-      main: '#191a1e',
-      light: '#3f4045',
-      contrastText: 'rgba(236,239,255,0.8)',
-      dark: '#0a0a0a',
+      main: '#202020',
+      light: '#2e2e2e',
+      contrastText: '#ededed',
+      dark: '#0d0d0d',
     },
-    divider: '#333',
+    divider: '#2e2e2e',
     text: {
-      primary: '#ccc',
-      secondary: '#999',
-      disabled: '#666',
+      primary: '#ededed',
+      secondary: '#a1a1a1',
+      disabled: '#5f5f5f',
     },
     background: {
-      default: 'rgba(0,0,0,0.87)',
-      paper: '#222',
+      default: '#0d0d0d',
+      paper: '#171717',
     },
     error: {
-      main: '#ff6d00',
-      light: '#ff9e40',
-      dark: '#c43c00',
+      main: '#f87171',
+      light: '#fca5a5',
+      dark: '#dc2626',
     },
     warning: {
-      main: '#ffe56d',
-      light: '#ffff9e',
-      dark: '#c9b33c',
+      main: '#fbbf24',
+      light: '#fcd34d',
+      dark: '#d97706',
     },
     info: {
-      main: '#3f53b5',
-      light: '#757fe8',
-      dark: '#002b84',
+      main: '#22d3ee',
+      light: '#67e8f9',
+      dark: '#0891b2',
     },
     success: {
-      main: '#65fd62',
-      light: '#9fff94',
-      dark: '#16c92f',
+      main: '#4ade80',
+      light: '#86efac',
+      dark: '#16a34a',
     },
   },
   components: {
     MuiAppBar: {
       styleOverrides: {
+        root: ({ theme }) => ({
+          background: theme.palette.background.paper,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          boxShadow: 'none',
+        }),
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          borderRight: `1px solid ${theme.palette.divider}`,
+        }),
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
+      styleOverrides: {
         root: {
-          background: '#191a1e',
+          borderRadius: 6,
+          letterSpacing: 0,
+          textTransform: 'none',
         },
+        contained: ({ theme, ownerState }) =>
+          ownerState.color === 'primary' || ownerState.color === undefined
+            ? { ':hover': { backgroundColor: theme.palette.primary.light } }
+            : {},
+        // A bare outlined button reads as unstyled default, and a fully saturated border is as
+        // loud as a fill. A dimmed border over a faint tint keeps them quiet but deliberate.
+        outlined: ({ theme, ownerState }) =>
+          ownerState.color === 'primary' || ownerState.color === undefined
+            ? {
+                backgroundColor: alpha(theme.palette.primary.main, 0.06),
+                borderColor: alpha(theme.palette.primary.main, 0.35),
+                color: theme.palette.primary.light,
+                ':hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.14),
+                  borderColor: theme.palette.primary.main,
+                },
+              }
+            : {},
       },
     },
   },

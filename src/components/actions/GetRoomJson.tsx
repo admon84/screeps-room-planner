@@ -59,7 +59,7 @@ export default function GetRoomJson() {
         </Mui.DialogContent>
         <Mui.DialogActions sx={{ backgroundColor: palette.divider, justifyContent: 'flex-end' }}>
           <Mui.Button
-            variant='outlined'
+            variant='contained'
             onClick={() => {
               navigator.clipboard.writeText(code);
               handleClose();

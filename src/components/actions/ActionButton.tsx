@@ -47,7 +47,7 @@ export default function ActionButton({
               handleClose();
               onClick?.();
             }}
-            variant='outlined'
+            variant='contained'
             startIcon={startIcon}
             endIcon={endIcon}
           >

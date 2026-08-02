@@ -2,6 +2,8 @@ import { GameRenderer } from '@screeps/renderer';
 import { useCallback, useEffect, useRef } from 'react';
 import { ROOM_SIZE } from '@/utils/constants';
 import { CELL_SIZE } from '@/utils/worldConfigs';
+import { useGameAppStore } from '@/stores/useGameAppStore';
+import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 
 const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 1.0;
@@ -10,6 +12,8 @@ const PINCH_SENSITIVITY = 0.005;
 const BUTTON_ZOOM_FACTOR = 1.5;
 const ZOOM_EASE_TIME_CONSTANT_MS = 40;
 const ZOOM_SETTLE_EPSILON = 0.0005;
+const PAN_EASE_TIME_CONSTANT_MS = 55;
+const PAN_SETTLE_EPSILON = 0.05;
 const CLAMP_MARGIN_PX = 100;
 const FIT_PADDING_PX = 48;
 const KEY_PAN_STEP_PX = 80;
@@ -29,6 +33,9 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
   const anchorRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef(0);
   const lastFrameRef = useRef(0);
+  const pendingPanRef = useRef({ x: 0, y: 0 });
+  const panRafRef = useRef(0);
+  const panLastFrameRef = useRef(0);
 
   const clampPosition = useCallback(() => {
     const container = containerRef.current;
@@ -46,6 +53,9 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
   const stopAnimation = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
     rafRef.current = 0;
+    cancelAnimationFrame(panRafRef.current);
+    panRafRef.current = 0;
+    pendingPanRef.current = { x: 0, y: 0 };
   }, []);
 
   const animate = useCallback(
@@ -118,6 +128,38 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
     [gameApp, clampPosition]
   );
 
+  // Drag deltas accumulate into a pending offset that this loop drains with the same exponential
+  // curve the zoom uses, so pan speed follows frame time rather than mouse event frequency.
+  const animatePan = useCallback(
+    (now: number) => {
+      if (!gameApp) return;
+      const dt = now - panLastFrameRef.current;
+      panLastFrameRef.current = now;
+      const pending = pendingPanRef.current;
+      const ratio = 1 - Math.exp(-dt / PAN_EASE_TIME_CONSTANT_MS);
+      const settling = Math.abs(pending.x) < PAN_SETTLE_EPSILON && Math.abs(pending.y) < PAN_SETTLE_EPSILON;
+      const step = settling ? pending : { x: pending.x * ratio, y: pending.y * ratio };
+
+      pendingPanRef.current = settling ? { x: 0, y: 0 } : { x: pending.x - step.x, y: pending.y - step.y };
+      gameApp.pan(step.x, step.y);
+      clampPosition();
+      panRafRef.current = settling ? 0 : requestAnimationFrame(animatePan);
+    },
+    [gameApp, clampPosition]
+  );
+
+  const panSmoothBy = useCallback(
+    (dx: number, dy: number) => {
+      if (!gameApp) return;
+      pendingPanRef.current = { x: pendingPanRef.current.x + dx, y: pendingPanRef.current.y + dy };
+      if (!panRafRef.current) {
+        panLastFrameRef.current = performance.now();
+        panRafRef.current = requestAnimationFrame(animatePan);
+      }
+    },
+    [gameApp, animatePan]
+  );
+
   useEffect(() => {
     if (!gameApp) return;
     fitRoom();
@@ -164,17 +206,24 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
           fitRoom();
           break;
         case 'ArrowUp':
-          panBy(0, KEY_PAN_STEP_PX);
+          panSmoothBy(0, KEY_PAN_STEP_PX);
           break;
         case 'ArrowDown':
-          panBy(0, -KEY_PAN_STEP_PX);
+          panSmoothBy(0, -KEY_PAN_STEP_PX);
           break;
         case 'ArrowLeft':
-          panBy(KEY_PAN_STEP_PX, 0);
+          panSmoothBy(KEY_PAN_STEP_PX, 0);
           break;
         case 'ArrowRight':
-          panBy(-KEY_PAN_STEP_PX, 0);
+          panSmoothBy(-KEY_PAN_STEP_PX, 0);
           break;
+        case 'Delete':
+        case 'Backspace': {
+          const hovered = useGameAppStore.getState().hoverRoomPos;
+          if (!hovered) return;
+          useGameObjectStore.getState().removeStructuresAt(hovered.x, hovered.y);
+          break;
+        }
         default:
           return;
       }
@@ -183,7 +232,7 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameApp, zoomIn, zoomOut, fitRoom, panBy]);
+  }, [gameApp, zoomIn, zoomOut, fitRoom, panSmoothBy]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -193,5 +242,5 @@ export const useCameraControls = ({ gameApp, containerRef }: Props) => {
     return () => observer.disconnect();
   }, [gameApp, containerRef, clampPosition]);
 
-  return { zoomIn, zoomOut, fitRoom, panBy };
+  return { zoomIn, zoomOut, fitRoom, panBy, panSmoothBy };
 };

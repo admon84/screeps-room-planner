@@ -10,14 +10,38 @@ import RoomActions from './RoomActions';
 
 const iconSize = '1.5rem';
 
-const StyledButton = Mui.styled(Mui.Button)<Mui.ButtonProps>(({ theme, variant }) => ({
-  borderColor: 'transparent !important',
-  color: '#eee',
-  textTransform: 'capitalize',
-  ':hover': {
-    backgroundColor: variant === 'contained' ? theme.palette.primary.main : 'rgba(255,255,255,0.15)',
-  },
-}));
+const StyledButton = Mui.styled(Mui.Button, {
+  shouldForwardProp: (prop) => prop !== 'inactive',
+})<Mui.ButtonProps & { inactive?: boolean }>(({ theme, variant, inactive }) => {
+  const selected = variant === 'contained';
+  return {
+    borderColor: 'transparent !important',
+    // Text stays light in every state. A selected row is marked by a tint and an edge bar rather
+    // than a solid fill, so readability never depends on the fill color being applied.
+    color: selected ? theme.palette.primary.light : theme.palette.text.primary,
+    backgroundColor: selected ? Mui.alpha(theme.palette.primary.main, 0.12) : 'transparent',
+    borderLeft: `3px solid ${selected ? theme.palette.primary.main : 'transparent'}`,
+    borderRadius: 4,
+    justifyContent: 'space-between',
+    paddingLeft: theme.spacing(1.5),
+    transition: theme.transitions.create(['background-color', 'border-left-color'], { duration: 150 }),
+    // Brush labels come from lowercase structure keys, so these opt out of the theme's `none`.
+    textTransform: 'capitalize',
+    fontWeight: selected ? 500 : 400,
+    ':hover': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    // A `disabled` button swallows pointer events, which kills the tooltip on its icon. Structures at
+    // their RCL cap are styled as disabled and made inert here instead, so the tooltip still fires.
+    ...(inactive && {
+      color: theme.palette.text.disabled,
+      cursor: 'default',
+      ':hover': {
+        backgroundColor: 'transparent',
+      },
+    }),
+  };
+});
 
 const StyledAccordion = Mui.styled((props: Mui.AccordionProps) => (
   <Mui.Accordion disableGutters elevation={0} square {...props} />
@@ -34,23 +58,32 @@ const StyledAccordion = Mui.styled((props: Mui.AccordionProps) => (
 const StyledAccordionSummary = Mui.styled((props: Mui.AccordionSummaryProps) => (
   <Mui.AccordionSummary expandIcon={<Icons.ArrowForwardIosSharp sx={{ fontSize: '0.9rem' }} />} {...props} />
 ))(({ theme }) => ({
-  backgroundColor: 'rgba(255, 255, 255, .05)',
+  backgroundColor: theme.palette.secondary.main,
   flexDirection: 'row-reverse',
+  '& .MuiAccordionSummary-expandIconWrapper': {
+    color: theme.palette.text.secondary,
+  },
   '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
     transform: 'rotate(90deg)',
   },
   '& .MuiAccordionSummary-content': {
     marginLeft: theme.spacing(1),
   },
+  '& .MuiTypography-root': {
+    fontSize: '0.8125rem',
+    fontWeight: 600,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+  },
   ':hover': {
-    backgroundColor: theme.palette.grey[800],
+    backgroundColor: theme.palette.secondary.light,
   },
 }));
 
-const StyledAccordionDetails = Mui.styled(Mui.AccordionDetails)({
+const StyledAccordionDetails = Mui.styled(Mui.AccordionDetails)(({ theme }) => ({
   padding: 0,
-  borderTop: '1px solid rgba(0, 0, 0, .125)',
-});
+  borderTop: `1px solid ${theme.palette.divider}`,
+}));
 
 type Props = {
   mobileOpen: boolean;
@@ -133,7 +166,8 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                       className={BrushClass.Structure}
                       data-structure={key}
                       key={key}
-                      disabled={disabled}
+                      inactive={disabled}
+                      disableRipple={disabled}
                       endIcon={
                         <Mui.Tooltip
                           arrow
@@ -163,6 +197,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         </Mui.Tooltip>
                       }
                       onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
+                        if (disabled) return;
                         const newBrush = getBrushTarget(e.target as HTMLElement);
                         if (newBrush) {
                           if (brush === newBrush) {
@@ -191,7 +226,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         }}
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
-                        <Mui.Tooltip arrow placement='left' title={`${total - placed} remaining`}>
+                        <Mui.Tooltip arrow hidden={placed === 0} placement='left' title={`${total - placed} remaining`}>
                           <Mui.Chip
                             color={error ? 'error' : 'default'}
                             // Chip clones this element to inject its own className, and a Fragment
@@ -204,13 +239,17 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                                   ? placed
                                   : placed + ' / ' + total
                             }
-                            disabled={disabled}
                             size='small'
                             sx={({ palette }) => ({
-                              ...(brush === key && !disabled && { borderColor: palette.text.primary }),
+                              ...(brush === key &&
+                                !disabled && {
+                                  borderColor: palette.primary.main,
+                                  color: palette.primary.light,
+                                }),
+                              ...(disabled && { opacity: palette.action.disabledOpacity }),
                               cursor: 'pointer',
                               fontSize: '.7rem',
-                              fontWeight: 300,
+                              fontWeight: 500,
                               transition: 'border-color 250ms ease',
                             })}
                             variant='outlined'
