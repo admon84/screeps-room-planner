@@ -163,6 +163,13 @@ export const RESOURCE_KEANIUM = 'K';
 export const RESOURCE_ZYNTHIUM = 'Z';
 export const RESOURCE_CATALYST = 'X';
 
+// Every mineral brush is stored as a single `mineral` object carrying a `mineralType`, so one cap
+// on MINERAL covers all seven resources -- a room holds at most one mineral of any kind.
+export const MAX_OBJECTS: Record<string, number> = {
+  [SOURCE]: 2,
+  [MINERAL]: 1,
+};
+
 export const OBJECT_BRUSHES: Record<string, string> = {
   [SOURCE]: SOURCE,
   [RESOURCE_HYDROGEN]: 'hydrogen',

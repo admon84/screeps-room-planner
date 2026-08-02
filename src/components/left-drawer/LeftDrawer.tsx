@@ -1,7 +1,7 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import * as Helpers from '@/utils/helpers';
-import { BrushType, BrushClass, TERRAIN_PLAIN } from '@/utils/constants';
+import { BrushType, BrushClass, MAX_OBJECTS, TERRAIN_PLAIN } from '@/utils/constants';
 import { useSettings } from '@/stores/Settings';
 import { countPlacedByType, useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useMemo, useState } from 'react';
@@ -273,11 +273,17 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
             <Mui.Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
               <Mui.Stack direction='column' sx={{ m: 2 }}>
                 {Helpers.getObjectBrushes().map(({ key, image, name, anchor, description }) => {
+                  const storedType = Helpers.getObjectTypeForBrush(key);
+                  const placed = placedCounts[storedType] ?? 0;
+                  const total = MAX_OBJECTS[storedType];
+                  const disabled = !Helpers.objectCanBePlaced(key, placed);
                   return (
                     <StyledButton
                       className={BrushClass.Object}
                       data-object={key}
                       key={key}
+                      inactive={disabled}
+                      disableRipple={disabled}
                       endIcon={
                         <Mui.Tooltip
                           arrow
@@ -301,12 +307,13 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                               backgroundSize: 'contain',
                               height: iconSize,
                               width: iconSize,
-                              opacity: 1,
+                              opacity: disabled ? 0.2 : 1,
                             }}
                           />
                         </Mui.Tooltip>
                       }
                       onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
+                        if (disabled) return;
                         const newBrush = getBrushTarget(e.target as HTMLElement);
                         if (newBrush) {
                           if (brush === newBrush) {
@@ -335,6 +342,25 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                         }}
                       >
                         <Mui.Typography variant='body2'>{name}</Mui.Typography>
+                        <Mui.Tooltip arrow placement='left' title={`${total - placed} remaining`}>
+                          <Mui.Chip
+                            label={`${placed} / ${total}`}
+                            size='small'
+                            sx={({ palette }) => ({
+                              ...(brush === key &&
+                                !disabled && {
+                                  borderColor: palette.primary.main,
+                                  color: palette.primary.light,
+                                }),
+                              ...(disabled && { opacity: palette.action.disabledOpacity }),
+                              cursor: 'pointer',
+                              fontSize: '.7rem',
+                              fontWeight: 300,
+                              transition: 'border-color 250ms ease',
+                            })}
+                            variant='outlined'
+                          />
+                        </Mui.Tooltip>
                       </Mui.Box>
                     </StyledButton>
                   );
