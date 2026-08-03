@@ -167,6 +167,7 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
             objects: useGameObjectStore.getState().objects,
             terrain: useTerrainStore.getState().terrain,
             rcl: useSettings.getState().settings.rcl,
+            blockEdges: useSettings.getState().settings.blockEdges,
           });
           highlight.tint = canPlace ? HIGHLIGHT_TINT_VALID : HIGHLIGHT_TINT_INVALID;
         };

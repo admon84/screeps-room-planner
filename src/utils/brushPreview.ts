@@ -37,7 +37,7 @@ const getTerrainTypeAt = (terrain: TerrainTile[], { x, y }: Point) =>
 export const brushCanBePlacedAt = (
   brush: Brush,
   pos: Point,
-  { objects, terrain, rcl }: { objects: GameObject[]; terrain: TerrainTile[]; rcl: number }
+  { objects, terrain, rcl, blockEdges }: { objects: GameObject[]; terrain: TerrainTile[]; rcl: number; blockEdges: boolean }
 ) => {
   switch (brush.type) {
     case Constants.BrushType.Terrain:
@@ -48,6 +48,7 @@ export const brushCanBePlacedAt = (
       return occupiesTile || Helpers.objectCanBePlaced(brush.key, countPlacedByType(objects)[storedType] ?? 0);
     }
     default:
+      if (blockEdges && Helpers.isEdgeTile(pos.x, pos.y)) return false;
       return Helpers.structureCanBePlaced(
         brush.key,
         rcl,

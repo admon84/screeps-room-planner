@@ -5,6 +5,7 @@ import { ScreepsServer } from '@/utils/screepsApi';
 
 interface State {
   settings: {
+    blockEdges: boolean;
     brush: string | null;
     brushType: BrushType;
     debug: boolean;
@@ -14,6 +15,7 @@ interface State {
     server: ScreepsServer;
     shard: string;
   };
+  setBlockEdges: (blockEdges: boolean) => void;
   setBrush: (brush: string) => void;
   setBrushType: (brushType: BrushType) => void;
   setDebug: (debug: boolean) => void;
@@ -26,6 +28,7 @@ interface State {
 }
 
 const initialSettings = {
+  blockEdges: true,
   brush: null,
   brushType: BrushType.Structure,
   debug: false,
@@ -40,6 +43,7 @@ export const useSettings = create<State>()(
   persist(
     (set) => ({
       settings: initialSettings,
+      setBlockEdges: (blockEdges) => set((state) => ({ settings: { ...state.settings, blockEdges } })),
       setBrush: (brush) => set((state) => ({ settings: { ...state.settings, brush } })),
       setBrushType: (brushType) => set((state) => ({ settings: { ...state.settings, brushType } })),
       setDebug: (debug) => set((state) => ({ settings: { ...state.settings, debug } })),
@@ -58,8 +62,8 @@ export const useSettings = create<State>()(
       // The brush stays per-session: persisting it would restore the app mid-paint-mode on reload.
       // The room properties (playerName/rcl/room/shard) are durable so a plan's identity -- and the
       // badge the playerName drives -- survives a reload.
-      partialize: ({ settings: { debug, playerName, rcl, room, shard } }) => ({
-        settings: { debug, playerName, rcl, room, shard },
+      partialize: ({ settings: { blockEdges, debug, playerName, rcl, room, shard } }) => ({
+        settings: { blockEdges, debug, playerName, rcl, room, shard },
       }),
       merge: (persisted, current) => ({
         ...current,

@@ -21,6 +21,7 @@ const RCL_OPTIONS = Array.from({ length: MAX_RCL }, (_, index) => index + 1);
 export default function EditRoomJson() {
   const { palette } = Mui.useTheme();
 
+  const setBlockEdges = useSettings((state) => state.setBlockEdges);
   const setPlayerName = useSettings((state) => state.setPlayerName);
   const setRCL = useSettings((state) => state.setRCL);
   const setRoom = useSettings((state) => state.setRoom);
@@ -33,16 +34,16 @@ export default function EditRoomJson() {
   const [modalOpen, setOpen] = useState(false);
   const [tab, setTab] = useState<EditTab>('properties');
   const [text, setText] = useState('');
-  const [form, setForm] = useState({ room: '', shard: '', rcl: MAX_RCL, playerName: '' });
+  const [form, setForm] = useState({ room: '', shard: '', rcl: MAX_RCL, playerName: '', blockEdges: true });
   const [formError, setFormError] = useState<string | null>(null);
 
   // Seeded once per open so in-progress edits are never clobbered by a store change, and read through
   // getState() rather than a selector -- the plan is only needed at this instant, and subscribing
   // would re-serialize it on every paint stroke. Edits are discarded on close; reopening reseeds.
   const handleOpen = () => {
-    const { playerName, rcl, room, shard } = useSettings.getState().settings;
+    const { blockEdges, playerName, rcl, room, shard } = useSettings.getState().settings;
     setText(buildRoomJson(useGameObjectStore.getState().objects, useTerrainStore.getState().terrain, rcl, room, shard));
-    setForm({ room, shard, rcl, playerName });
+    setForm({ room, shard, rcl, playerName, blockEdges });
     setFormError(null);
     setOpen(true);
   };
@@ -102,6 +103,7 @@ export default function EditRoomJson() {
     setRoom(roomName);
     setShard(shardName);
     setPlayerName(playerName);
+    setBlockEdges(form.blockEdges);
     handleClose();
   };
 
@@ -221,6 +223,17 @@ export default function EditRoomJson() {
                     label='Player Name'
                     value={form.playerName}
                     onChange={(e) => setFormField('playerName', e.target.value)}
+                  />
+                </Mui.Grid>
+                <Mui.Grid size={12}>
+                  <Mui.FormControlLabel
+                    control={
+                      <Mui.Switch
+                        checked={form.blockEdges}
+                        onChange={(e) => setFormField('blockEdges', e.target.checked)}
+                      />
+                    }
+                    label='Block structures on room edges'
                   />
                 </Mui.Grid>
               </Mui.Grid>
