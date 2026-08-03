@@ -45,6 +45,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const removeObjectsAt = useGameObjectStore((state) => state.removeObjectsAt);
   const removeStructuresAt = useGameObjectStore((state) => state.removeStructuresAt);
   const setTerrainAt = useTerrainStore((state) => state.setTerrainAt);
+  const blockEdges = useSettings((state) => state.settings.blockEdges);
   const brush = useSettings((state) => state.settings.brush);
   const brushType = useSettings((state) => state.settings.brushType);
   const rcl = useSettings((state) => state.settings.rcl);
@@ -98,6 +99,11 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
         return;
       }
       case Constants.BrushType.Structure: {
+        if (blockEdges && Helpers.isEdgeTile(x, y)) {
+          notify(`Cannot place ${brush}: blocked by room edge`, 'warning');
+          return;
+        }
+
         // Drag-painting fires many times between renders, so the placement count and terrain have
         // to be read live -- a value captured at render time would walk past the RCL cap.
         const terrainType =

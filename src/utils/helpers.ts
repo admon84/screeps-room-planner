@@ -4,6 +4,9 @@ import { Point } from '../types';
 export const isRoomPosition = (x: number, y: number) =>
   x >= 0 && x < Constants.ROOM_SIZE && y >= 0 && y < Constants.ROOM_SIZE;
 
+export const isEdgeTile = (x: number, y: number) =>
+  x === 0 || y === 0 || x === Constants.ROOM_SIZE - 1 || y === Constants.ROOM_SIZE - 1;
+
 export const getDistance = (a: Point, b: Point) => Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y));
 
 export const getPointForTile = (tile: number) => ({
