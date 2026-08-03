@@ -13,8 +13,11 @@ import Wordmark from '@/components/Wordmark';
 import { ICON_EDGE_GUTTER } from '@/utils/theme';
 import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useUiStore } from '@/stores/useUiStore';
+import { useStartupRoomLoad } from '@/hooks/useStartupRoomLoad';
 
 export default function RoomPlanner() {
+  useStartupRoomLoad();
+
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const canUndo = useHistoryStore((state) => state.past.length > 0);

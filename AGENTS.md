@@ -58,7 +58,7 @@ State behind the canvas:
 - `useGameObjectsStore` - a flat `GameObject[]`; the single source of truth for everything placed.
   `addObject` applies the stacking rules, so callers do not pre-clear a tile.
 - `useTerrainStore` - sparse `{ room, x, y, type }[]` in the shape `setTerrain()` wants; a missing
-  entry means plain. Seeded from `SAMPLE_TERRAIN`.
+  entry means plain.
 - `useGameAppStore` - the hovered room position, published by the canvas for `HoverTilePanel`.
 - `Settings` - brush, brush type, RCL, and room/shard. Camera state is deliberately not here: the
   renderer's own `zoomLevel` and `stage.position` are the single source of truth, and
@@ -117,8 +117,6 @@ State behind the canvas:
 - `useGameRenderer` must stay teardown-clean: React 19 StrictMode double-invokes its effect, so every
   path releases the renderer and clears its timers. Terrain has its own effect on purpose -- putting
   it back in the init effect rebuilds the WebGL context on every terrain change.
-- `utils/sampleTerrain.ts` is ~4500 lines of generated terrain data. Never read it in full or edit it
-  by hand.
 - `types/declarations.d.ts` is hand-written because the `@screeps/*` packages ship no types. Extend it
   when you touch a new renderer API rather than reaching for `any`.
 - Renderer sprites are served from `public/assets/` and mapped by name in `utils/resourceMap.ts`; a

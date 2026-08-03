@@ -1,18 +1,10 @@
 import * as Mui from '@mui/material';
 import * as Icons from '@mui/icons-material';
 import { useEffect, useState } from 'react';
-import { MAX_RCL, STRUCTURE_CONTROLLER } from '@/utils/constants';
-import {
-  SCREEPS_SERVERS,
-  ScreepsServer,
-  fetchRoomObjects,
-  fetchRoomTerrain,
-  fetchShards,
-  isValidRoomName,
-  normalizeRoomName,
-  terrainTilesFromEncoded,
-} from '@/utils/screepsApi';
-import { createExampleBunkerObjects, createObjectsFromApi } from '@/utils/gameObjects';
+import { MAX_RCL } from '@/utils/constants';
+import { SCREEPS_SERVERS, ScreepsServer, fetchShards, isValidRoomName, normalizeRoomName } from '@/utils/screepsApi';
+import { createExampleBunkerObjects } from '@/utils/gameObjects';
+import { importRoomFromApi } from '@/utils/importRoom';
 import { useSettings } from '@/stores/Settings';
 import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useHistoryStore } from '@/stores/useHistoryStore';
@@ -34,7 +26,6 @@ export default function ImportRoom() {
   const setRoom = useSettings((state) => state.setRoom);
   const setRCL = useSettings((state) => state.setRCL);
   const setObjects = useGameObjectStore((state) => state.setObjects);
-  const setTerrain = useTerrainStore((state) => state.setTerrain);
   const resetTerrain = useTerrainStore((state) => state.reset);
   const commit = useHistoryStore((state) => state.commit);
 
@@ -104,28 +95,17 @@ export default function ImportRoom() {
     }
     setRoom(roomName);
 
-    let terrainData;
-    let objectsData;
     try {
-      [terrainData, objectsData] = await Promise.all([
-        includeTerrainChecked ? fetchRoomTerrain(server, shardName, roomName) : null,
-        fetchRoomObjects(server, shardName, roomName),
-      ]);
+      await importRoomFromApi({
+        server,
+        shard: shardName,
+        room: roomName,
+        includeTerrain: includeTerrainChecked,
+        includeStructures: includeStructuresChecked,
+      });
     } catch (error) {
       setFormError(error as Error);
       return false;
-    }
-
-    commit();
-    if (terrainData) {
-      setTerrain(terrainTilesFromEncoded(terrainData.terrain[0].terrain));
-    }
-    setObjects(createObjectsFromApi(objectsData.objects, includeStructuresChecked));
-
-    // Unowned and reserved controllers report level 0, which leaves the current RCL alone.
-    const controller = objectsData.objects.find((object) => object.type === STRUCTURE_CONTROLLER);
-    if (controller?.level) {
-      setRCL(controller.level);
     }
     return true;
   };
