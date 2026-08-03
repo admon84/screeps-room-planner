@@ -233,7 +233,7 @@ export default function EditRoomJson() {
                         onChange={(e) => setFormField('blockEdges', e.target.checked)}
                       />
                     }
-                    label='Block structures on room edges'
+                    label='Block room edges'
                   />
                 </Mui.Grid>
               </Mui.Grid>
