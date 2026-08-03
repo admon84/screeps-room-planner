@@ -197,7 +197,7 @@ interface Container extends GameObject {
   hitsMax?: number;
   nextDecayTime?: number;
   storeCapacity?: number;
-  store?: { energy: number; H: number };
+  store?: { energy: number };
 }
 
 export function createContainer({
@@ -210,7 +210,7 @@ export function createContainer({
   _id,
   _isDisabled = false,
   storeCapacity = 2000,
-  store = { energy: 1000, H: 500 },
+  store = { energy: 2000 },
 }: Container) {
   return createObjectWithId({
     type: Constants.STRUCTURE_CONTAINER,
@@ -262,7 +262,7 @@ export function createTower({
       repair: null,
     },
     store: {
-      energy: 500,
+      energy: 1000,
     },
     storeCapacityResource: {
       energy: 1000,
@@ -284,7 +284,7 @@ export function createExtension({
   hits = 1000,
   hitsMax = 1000,
   storeCapacityResource = { energy: 200 },
-  store = { energy: 100 },
+  store = { energy: 200 },
   _id,
   _isDisabled = false,
 }: Extension) {
@@ -315,8 +315,8 @@ export function createLab({
   room,
   hits = 500,
   hitsMax = 500,
-  storeCapacityResource = { energy: 200, L: 100 },
-  store = { energy: 100, L: 50 },
+  storeCapacityResource = { energy: 2000, L: 3000 },
+  store = { energy: 1000, L: 1500 },
   _id,
   _isDisabled = false,
 }: Lab) {
@@ -350,7 +350,7 @@ export function createLink({
   hitsMax = 1000,
   cooldown = 0,
   storeCapacityResource = { energy: 800 },
-  store = { energy: 400 },
+  store = { energy: 800 },
   _id,
   _isDisabled = false,
 }: Link) {
@@ -385,7 +385,7 @@ export function createNuker({
   hitsMax = 1000,
   cooldownTime = 18,
   storeCapacityResource = { energy: 300000, G: 5000 },
-  store = { energy: 150000, G: 2500 },
+  store = { energy: 300000, G: 5000 },
   _id,
   _isDisabled = false,
 }: Nuker) {
@@ -466,6 +466,7 @@ export function createPowerBank({
 }
 
 interface PowerSpawn extends GameObject {
+  user?: string;
   hits?: number;
   hitsMax?: number;
   storeCapacityResource?: { energy: number; power: number };
@@ -476,10 +477,11 @@ export function createPowerSpawn({
   x,
   y,
   room,
+  user = Constants.USER_ID,
   hits = 5000,
   hitsMax = 5000,
   storeCapacityResource = { energy: 5000, power: 100 },
-  store = { energy: 2500, power: 50 },
+  store = { energy: 0, power: 50 },
   _id,
   _isDisabled = false,
 }: PowerSpawn) {
@@ -488,6 +490,7 @@ export function createPowerSpawn({
     x,
     y,
     room,
+    user,
     hits,
     hitsMax,
     storeCapacityResource,
@@ -508,7 +511,7 @@ export function createSource({
   x,
   y,
   room,
-  energy = 1500,
+  energy = 3000,
   energyCapacity = 3000,
   ticksToRegeneration = 300,
   nextRegenerationTime = 309,
@@ -581,7 +584,7 @@ export function createSpawn({
   spawning = null,
   off = false,
   storeCapacityResource = { energy: 300 },
-  store = { energy: 150 },
+  store = { energy: 0 },
   _id,
   _isDisabled = false,
 }: Spawn) {
@@ -639,7 +642,7 @@ interface Terminal extends GameObject {
   hits?: number;
   hitsMax?: number;
   storeCapacity?: number;
-  store?: { energy: number };
+  store?: { energy: number; L: number };
 }
 
 export function createTerminal({
@@ -649,7 +652,7 @@ export function createTerminal({
   hits = 3000,
   hitsMax = 3000,
   storeCapacity = 300000,
-  store = { energy: 150000 },
+  store = { energy: 150000, L: 75000 },
   _id,
   _isDisabled = false,
 }: Terminal) {
@@ -699,7 +702,7 @@ export function createExtractor({
 interface Factory extends GameObject {
   level?: number;
   storeCapacity?: number;
-  store?: { energy: number; power: number; H: number; O: number };
+  store?: { energy: number };
   cooldownTime?: number;
   effects?: Record<string, { power: number; level: number; endTime: number }>;
 }
@@ -708,19 +711,14 @@ export function createFactory({
   x,
   y,
   room,
-  level,
-  storeCapacity = 2000,
-  store = {
-    energy: 1000,
-    power: 500,
-    H: 250,
-    O: 250,
-  },
+  level = 5,
+  storeCapacity = 50000,
+  store = { energy: 50000 },
   cooldownTime = 9,
   effects = {
     '0': {
       power: 19,
-      level: 1,
+      level: 5,
       endTime: 15,
     },
   },

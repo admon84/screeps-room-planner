@@ -17,7 +17,7 @@ import { useGameObjectStore } from '@/stores/useGameObjectsStore';
 import { useGameAppStore } from '@/stores/useGameAppStore';
 import { useTerrainStore } from '@/stores/useTerrainStore';
 import { useSettings } from '@/stores/Settings';
-import { createGameState } from '@/utils/gameState';
+import { createGameState, deriveObjectsForRcl } from '@/utils/gameState';
 import { Point } from '@/types';
 
 const TICK_DURATION = 1;
@@ -46,6 +46,7 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
   const [isGameAppInitialized, setGameAppInitialized] = useState(false);
   const objects = useGameObjectStore((state) => state.objects);
   const playerName = useSettings((state) => state.settings.playerName);
+  const rcl = useSettings((state) => state.settings.rcl);
 
   // Held in a ref so a new callback identity re-points the renderer's hooks instead of tearing down
   // and rebuilding the WebGL context.
@@ -265,14 +266,15 @@ export const useGameRenderer = ({ gameCanvasRef, terrain, onGameLoop, onMetricsU
     }
 
     const applyLatestState = () => {
-      gameApp.applyState(createGameState(useGameObjectStore.getState().objects, playerName) as any, TICK_DURATION);
+      const derived = deriveObjectsForRcl(useGameObjectStore.getState().objects, useSettings.getState().settings.rcl);
+      gameApp.applyState(createGameState(derived, playerName) as any, TICK_DURATION);
     };
 
     applyLatestState();
     const stateTimer = setInterval(applyLatestState, TICK_INTERVAL_MS);
 
     return () => clearInterval(stateTimer);
-  }, [gameApp, isGameAppInitialized, objects, playerName]);
+  }, [gameApp, isGameAppInitialized, objects, playerName, rcl]);
 
   return { gameApp, hoverPos };
 };
