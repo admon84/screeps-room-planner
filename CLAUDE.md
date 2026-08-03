@@ -6,8 +6,8 @@
 this file exists only because Claude Code reads `CLAUDE.md` and not `AGENTS.md`. Keep anything below
 limited to Claude-specific workflow.
 
-- Prefer `Grep`/`Glob` over reading whole files in `src/utils/` -- `sampleTerrain.ts` (~4500 lines)
-  and `gameObjects.ts` (~850 lines) will otherwise flood the context window.
+- Prefer `Grep`/`Glob` over reading whole files in `src/utils/` -- `gameObjects.ts` (~850 lines) will
+  otherwise flood the context window.
 - Use plan mode before changes to the renderer lifecycle (`src/hooks/useGameRenderer.ts` plus
   `src/components/canvas/`); teardown and StrictMode behaviour there are design questions, not
   mechanical edits.
