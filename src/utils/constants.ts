@@ -179,7 +179,7 @@ export const OBJECT_BRUSHES: Record<string, string> = {
   [RESOURCE_CATALYST]: 'catalyst',
 };
 
-export const EXTENSION_ENERGY_CAPACITY = {
+export const EXTENSION_ENERGY_CAPACITY: Record<number, number> = {
   0: 50,
   1: 50,
   2: 50,
@@ -189,6 +189,16 @@ export const EXTENSION_ENERGY_CAPACITY = {
   6: 50,
   7: 100,
   8: 200,
+};
+
+export const RAMPART_HITS_MAX: Record<number, number> = {
+  2: 300000,
+  3: 1000000,
+  4: 3000000,
+  5: 10000000,
+  6: 30000000,
+  7: 100000000,
+  8: 300000000,
 };
 
 // The bunker layout is authored at origin, spanning 0..12 on both axes. Offsetting it into the

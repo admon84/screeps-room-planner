@@ -1,4 +1,47 @@
-import { USER_ID } from './constants';
+import {
+  CONTROLLER_STRUCTURES,
+  EXTENSION_ENERGY_CAPACITY,
+  RAMPART_HITS_MAX,
+  STRUCTURE_CONTROLLER,
+  STRUCTURE_EXTENSION,
+  STRUCTURE_RAMPART,
+  USER_ID,
+} from './constants';
+import { GameObject } from './gameObjects';
+
+type DerivedObject = GameObject & {
+  level?: number;
+  hits?: number;
+  hitsMax?: number;
+  store?: Record<string, number>;
+  storeCapacityResource?: Record<string, number>;
+};
+
+// Always overwrites _isDisabled (never sets it conditionally) so structures re-enable when the RCL
+// steps back up. Extension capacity must be an exact 50/100/200 -- the renderer's border sprites
+// gate on strict equality.
+export const deriveObjectsForRcl = (objects: GameObject[], rcl: number): GameObject[] => {
+  const counts: Record<string, number> = {};
+  return objects.map((object) => {
+    const { type } = object;
+    const caps = type ? CONTROLLER_STRUCTURES[type] : undefined;
+    if (!type || !caps) return object;
+    const index = counts[type] ?? 0;
+    counts[type] = index + 1;
+    const derived: DerivedObject = { ...object, _isDisabled: index >= (caps[rcl] ?? 0) };
+    if (type === STRUCTURE_EXTENSION) {
+      const energy = EXTENSION_ENERGY_CAPACITY[rcl];
+      derived.storeCapacityResource = { energy };
+      derived.store = { energy };
+    } else if (type === STRUCTURE_CONTROLLER) {
+      derived.level = rcl;
+    } else if (type === STRUCTURE_RAMPART && RAMPART_HITS_MAX[rcl]) {
+      derived.hits = RAMPART_HITS_MAX[rcl];
+      derived.hitsMax = RAMPART_HITS_MAX[rcl];
+    }
+    return derived;
+  });
+};
 
 // `playerName` only feeds `username`, which the renderer's setBadgeUrls processor substitutes into
 // BADGE_URL on every applyState -- so the badge follows the name with no cache to bust. The user's
