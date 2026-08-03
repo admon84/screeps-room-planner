@@ -3,36 +3,55 @@ import { Fragment } from 'react';
 import StyledDialog from '@/components/dialog/StyledDialog';
 import DialogTitle from '@/components/dialog/DialogTitle';
 
-// `keys` is a chord to press together; `alt` lists equivalent alternatives, rendered with an "or" so
-// Ctrl+Z does not read the same as Delete/Backspace.
-type Shortcut = { keys: string[]; alt?: string[]; description: string };
+// A chord is keys pressed together, joined by "+". A row's bindings are equivalent ways to trigger
+// the same action, stacked vertically. `adjacent` opts out of the "+" for key sets like the arrows,
+// which are pressed individually rather than together.
+type Chord = string[];
+type Shortcut = { bindings: Chord[]; adjacent?: boolean; description: string };
 
-// Descriptions mirror the gesture predicates in utils/canvas.ts. Erase is tested before panning, so
-// a modifier turns a click into an erase on either button; a bare right click always pans.
+// Mirrors the gesture predicates in utils/canvas.ts. Erase is tested before panning, so a modifier
+// turns a click into an erase on either button; a bare right click always pans.
 const MOUSE: Shortcut[] = [
-  { keys: ['Left click'], description: 'Paint the selected brush -- hold and drag to paint a stroke' },
-  { keys: ['Ctrl', 'Left click'], description: 'Erase everything on the tile -- hold and drag to erase' },
-  { keys: ['Cmd', 'Left click'], description: 'Erase everything on the tile (macOS)' },
-  { keys: ['Right click'], description: 'Hold and drag to pan the camera' },
-  { keys: ['Middle click'], description: 'Hold and drag to pan the camera' },
-  { keys: ['Shift', 'Left click'], description: 'Hold and drag to pan the camera' },
-  { keys: ['Wheel'], description: 'Zoom in and out' },
-  { keys: ['Ctrl', 'Wheel'], description: 'Zoom in and out (trackpad pinch)' },
+  { bindings: [['Left Click']], description: 'Paint the selected brush (hold and drag)' },
+  {
+    bindings: [
+      ['Ctrl', 'Left Click'],
+      ['Cmd', 'Left Click'],
+    ],
+    description: 'Erase everything on the tile (hold and drag)',
+  },
+  {
+    bindings: [['Right Click'], ['Middle Click'], ['Shift', 'Left Click']],
+    description: 'Pan the camera (hold and drag)',
+  },
+  { bindings: [['Wheel'], ['Ctrl', 'Wheel']], description: 'Zoom in and out' },
 ];
 
 const KEYBOARD: Shortcut[] = [
-  { keys: ['Ctrl', 'Z'], description: 'Undo' },
-  { keys: ['Ctrl', 'Shift', 'Z'], alt: ['Ctrl', 'Y'], description: 'Redo' },
-  { keys: ['+'], alt: ['-'], description: 'Zoom in and out' },
-  { keys: ['0'], description: 'Fit room to view' },
-  { keys: ['Arrows'], description: 'Pan the camera' },
   {
-    keys: ['Delete'],
-    alt: ['Backspace'],
+    bindings: [
+      ['Ctrl', 'Z'],
+      ['Cmd', 'Z'],
+    ],
+    description: 'Undo',
+  },
+  {
+    bindings: [
+      ['Ctrl', 'Shift', 'Z'],
+      ['Ctrl', 'Y'],
+    ],
+    description: 'Redo',
+  },
+  { bindings: [['+']], description: 'Zoom in' },
+  { bindings: [['-']], description: 'Zoom out' },
+  { bindings: [['0']], description: 'Fit room to view' },
+  { bindings: [['←', '↑', '↓', '→']], adjacent: true, description: 'Pan the camera' },
+  {
+    bindings: [['Delete'], ['Backspace']],
     description: 'Remove structures on the hovered tile, keeping sources and minerals',
   },
-  { keys: ['Esc'], description: 'Deselect the current brush' },
-  { keys: ['?'], description: 'Open this dialog' },
+  { bindings: [['Esc']], description: 'Deselect the current brush' },
+  { bindings: [['?']], description: 'Open this dialog' },
 ];
 
 function Key({ children }: { children: string }) {
@@ -46,7 +65,7 @@ function Key({ children }: { children: string }) {
         color: palette.text.primary,
         fontFamily: 'inherit',
         fontSize: '0.75rem',
-        lineHeight: 1.6,
+        lineHeight: 1.4,
         px: 0.75,
         whiteSpace: 'nowrap',
       })}
@@ -56,31 +75,44 @@ function Key({ children }: { children: string }) {
   );
 }
 
+function Separator({ children }: { children: string }) {
+  return (
+    <Mui.Typography component='span' variant='body2' sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+      {children}
+    </Mui.Typography>
+  );
+}
+
+// Rows share a top border so it spans both grid columns; the first row opts out.
+const rowSx = (index: number) => ({
+  borderTop: index === 0 ? 'none' : '1px solid',
+  borderColor: (theme: Mui.Theme) => Mui.alpha(theme.palette.divider, 0.5),
+  pb: 0.75,
+  pt: index === 0 ? 0 : 0.75,
+});
+
 function ShortcutList({ title, shortcuts }: { title: string; shortcuts: Shortcut[] }) {
   return (
     <>
-      <Mui.Typography variant='subtitle2' sx={{ mb: 1 }}>
+      <Mui.Typography variant='subtitle2' sx={{ mb: 0.5 }}>
         {title}
       </Mui.Typography>
-      <Mui.Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 2, rowGap: 1 }}>
-        {shortcuts.map(({ keys, alt, description }) => (
-          <Fragment key={description + keys.join()}>
-            <Mui.Box sx={{ alignItems: 'center', display: 'flex', gap: 0.5 }}>
-              {keys.map((key) => (
-                <Key key={key}>{key}</Key>
-              ))}
-              {alt && (
-                <>
-                  <Mui.Typography variant='body2' sx={{ color: 'text.secondary', mx: 0.25 }}>
-                    or
-                  </Mui.Typography>
-                  {alt.map((key) => (
-                    <Key key={key}>{key}</Key>
+      <Mui.Box sx={{ alignItems: 'baseline', columnGap: 2, display: 'grid', gridTemplateColumns: 'auto 1fr' }}>
+        {shortcuts.map(({ bindings, adjacent, description }, index) => (
+          <Fragment key={description}>
+            <Mui.Box sx={{ ...rowSx(index), alignItems: 'flex-start', display: 'flex', flexDirection: 'column' }}>
+              {bindings.map((chord) => (
+                <Mui.Box key={chord.join()} sx={{ alignItems: 'center', display: 'flex', gap: 0.5, py: 0.125 }}>
+                  {chord.map((key, keyIndex) => (
+                    <Fragment key={key}>
+                      {keyIndex > 0 && !adjacent && <Separator>+</Separator>}
+                      <Key>{key}</Key>
+                    </Fragment>
                   ))}
-                </>
-              )}
+                </Mui.Box>
+              ))}
             </Mui.Box>
-            <Mui.Typography variant='body2' color='text.secondary'>
+            <Mui.Typography variant='body2' color='text.secondary' sx={rowSx(index)}>
               {description}
             </Mui.Typography>
           </Fragment>
@@ -104,7 +136,7 @@ export default function KeyboardShortcuts({ open, onClose }: Props) {
       <Mui.DialogContent dividers sx={{ backgroundColor: palette.divider }}>
         <Mui.Paper sx={{ p: 2 }}>
           <ShortcutList title='Mouse' shortcuts={MOUSE} />
-          <Mui.Divider sx={{ my: 2 }} />
+          <Mui.Divider sx={{ my: 1.5 }} />
           <ShortcutList title='Keyboard' shortcuts={KEYBOARD} />
         </Mui.Paper>
       </Mui.DialogContent>
