@@ -25,6 +25,8 @@ const StepButton = Mui.styled(Mui.IconButton)(({ theme }) => ({
 export default function MapSettings() {
   const rcl = useSettings((state) => state.settings.rcl);
   const setRCL = useSettings((state) => state.setRCL);
+  const allowOverRCL = useSettings((state) => state.settings.allowOverRCL);
+  const setAllowOverRCL = useSettings((state) => state.setAllowOverRCL);
   const commit = useHistoryStore((state) => state.commit);
   const controller = Helpers.getStructureBrushes(rcl).find((b) => b.key === STRUCTURE_CONTROLLER);
 
@@ -35,14 +37,12 @@ export default function MapSettings() {
     setRCL(next);
   };
 
-  return (
+  const rclLevel = (
     <Mui.Stack
       direction='row'
       sx={(theme) => ({
         alignItems: 'center',
         justifyContent: 'space-between',
-        mx: 2,
-        my: 1.5,
         // Brush labels sit inside the row button's 3px accent border and its own left padding. This
         // row has neither, so both are added back to put the label on the same vertical line.
         pl: `calc(3px + ${theme.spacing(1.5)})`,
@@ -73,6 +73,28 @@ export default function MapSettings() {
             <Icons.KeyboardArrowDown />
           </StepButton>
         </Mui.Stack>
+      </Mui.Stack>
+    </Mui.Stack>
+  );
+
+  return (
+    <Mui.Stack direction='column' sx={{ mx: 2, my: 1.5 }}>
+      {rclLevel}
+      <Mui.Stack
+        direction='row'
+        spacing={0.75}
+        sx={(theme) => ({
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            // Brush labels sit inside the row button's 3px accent border and its own left padding. This
+            // row has neither, so both are added back to put the label on the same vertical line.
+            pl: `calc(3px + ${theme.spacing(1.5)})`,
+        })}
+      >
+        <Mui.Typography variant='body2' sx={{ textAlign: 'center', fontSize: '80%' }}>
+            Allow placement over RCL
+        </Mui.Typography>
+        <Mui.Checkbox checked={allowOverRCL} onChange={(event) => setAllowOverRCL(event.target.checked)} />
       </Mui.Stack>
     </Mui.Stack>
   );

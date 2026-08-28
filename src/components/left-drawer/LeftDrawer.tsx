@@ -221,7 +221,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                 <Mui.Stack direction='column' sx={{ m: 2 }}>
                   {structureBrushes.map(({ key, image, total, name, anchor, description }) => {
                     const placed = placedCounts[key] ?? 0;
-                    const disabled = !Helpers.structureCanBePlaced(key, rcl, TERRAIN_PLAIN, placed);
+                    const disabled = false;
                     const error = total < placed;
                     const locked = !error && rcl < Helpers.getRequiredRCL(key);
                     return (
@@ -304,7 +304,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                             size='small'
                             sx={({ palette }) => ({
                               ...(brush === key &&
-                                !disabled && {
+                                !disabled && !error && {
                                   borderColor: palette.primary.main,
                                   color: palette.primary.light,
                                 }),
@@ -342,7 +342,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                     const storedType = Helpers.getObjectTypeForBrush(key);
                     const placed = placedCounts[storedType] ?? 0;
                     const total = MAX_OBJECTS[storedType];
-                    const disabled = !Helpers.objectCanBePlaced(key, placed);
+                    const disabled = false;
                     return (
                       <StyledButton
                         className={BrushClass.Object}
