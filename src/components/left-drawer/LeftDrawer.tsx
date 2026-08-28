@@ -304,7 +304,7 @@ export default function LeftDrawer({ mobileOpen, handleDrawerToggle }: Props) {
                             size='small'
                             sx={({ palette }) => ({
                               ...(brush === key &&
-                                !disabled && {
+                                !disabled && !error && {
                                   borderColor: palette.primary.main,
                                   color: palette.primary.light,
                                 }),

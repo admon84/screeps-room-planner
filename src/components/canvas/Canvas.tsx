@@ -49,6 +49,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
   const brush = useSettings((state) => state.settings.brush);
   const brushType = useSettings((state) => state.settings.brushType);
   const rcl = useSettings((state) => state.settings.rcl);
+  const allowOverRCL = useSettings((state) => state.settings.allowOverRCL);
   const resetBrush = useSettings((state) => state.resetBrush);
   const notify = useNotificationStore((state) => state.notify);
 
@@ -109,7 +110,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
         const terrainType =
           useTerrainStore.getState().terrain.find((t) => t.x === x && t.y === y)?.type ?? Constants.TERRAIN_PLAIN;
         const placed = countPlacedByType(useGameObjectStore.getState().objects)[brush] ?? 0;
-        if (!Helpers.structureCanBePlaced(brush, rcl, terrainType, placed)) {
+        if (!allowOverRCL && !Helpers.structureCanBePlaced(brush, rcl, terrainType, placed)) {
           notify(structureRefusalMessage(brush, rcl, terrainType), 'warning');
           return;
         }
@@ -125,7 +126,7 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
         const storedType = Helpers.getObjectTypeForBrush(brush);
         const occupiesTile = objects.some((o) => o.x === x && o.y === y && o.type === storedType);
         const placed = countPlacedByType(objects)[storedType] ?? 0;
-        if (!occupiesTile && !Helpers.objectCanBePlaced(brush, placed)) {
+        if (!allowOverRCL && !occupiesTile && !Helpers.objectCanBePlaced(brush, placed)) {
           notify(objectRefusalMessage(brush), 'warning');
           return;
         }

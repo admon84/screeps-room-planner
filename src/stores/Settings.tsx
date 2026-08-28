@@ -11,6 +11,7 @@ interface State {
     debug: boolean;
     playerName: string;
     rcl: number;
+    allowOverRCL: boolean;
     room: string;
     server: ScreepsServer;
     shard: string;
@@ -21,6 +22,7 @@ interface State {
   setDebug: (debug: boolean) => void;
   setPlayerName: (playerName: string) => void;
   setRCL: (rcl: number) => void;
+  setAllowOverRCL: (allowOverRCL: boolean) => void;
   setRoom: (room: string) => void;
   setServer: (server: ScreepsServer) => void;
   setShard: (shard: string) => void;
@@ -34,6 +36,7 @@ const initialSettings = {
   debug: false,
   playerName: USER_ID,
   rcl: MAX_RCL,
+  allowOverRCL: false,
   room: 'W1N1',
   server: 'persistent' as ScreepsServer,
   shard: 'shard0',
@@ -49,6 +52,7 @@ export const useSettings = create<State>()(
       setDebug: (debug) => set((state) => ({ settings: { ...state.settings, debug } })),
       setPlayerName: (playerName) => set((state) => ({ settings: { ...state.settings, playerName } })),
       setRCL: (rcl) => set((state) => ({ settings: { ...state.settings, rcl } })),
+      setAllowOverRCL: (allowOverRCL) => set((state) => ({ settings: { ...state.settings, allowOverRCL } })),
       setRoom: (room) => set((state) => ({ settings: { ...state.settings, room } })),
       setServer: (server) => set((state) => ({ settings: { ...state.settings, server } })),
       setShard: (shard) => set((state) => ({ settings: { ...state.settings, shard } })),
