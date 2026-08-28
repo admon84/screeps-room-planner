@@ -116,11 +116,6 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
 
         commitOnce();
         addObject(createObjectFromType({ type: brush, x, y }));
-
-        // Counted fresh after the write rather than as `placed + 1`: addObject displaces whatever
-        // shared the tile, so the delta is not always +1 and a predicted count deselects early.
-        const total = countPlacedByType(useGameObjectStore.getState().objects)[brush] ?? 0;
-        if (!Helpers.structureCanBePlaced(brush, rcl, terrainType, total)) resetBrush();
         return;
       }
       default: {
@@ -137,9 +132,6 @@ export default function Canvas({ onMetricsUpdate, terrain, onGameLoop }: CanvasP
 
         commitOnce();
         addObject(createObjectFromType({ type: brush, x, y }));
-
-        const total = countPlacedByType(useGameObjectStore.getState().objects)[storedType] ?? 0;
-        if (!Helpers.objectCanBePlaced(brush, total)) resetBrush();
       }
     }
   };
