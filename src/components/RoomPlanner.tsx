@@ -13,10 +13,12 @@ import Wordmark from '@/components/Wordmark';
 import { ICON_EDGE_GUTTER } from '@/utils/theme';
 import { useHistoryStore } from '@/stores/useHistoryStore';
 import { useUiStore } from '@/stores/useUiStore';
+import { useStartupPlanLoad } from '@/hooks/useStartupPlanLoad';
 import { useStartupRoomLoad } from '@/hooks/useStartupRoomLoad';
 
 export default function RoomPlanner() {
   useStartupRoomLoad();
+  useStartupPlanLoad();
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
